@@ -7,16 +7,16 @@
   <meta name="description" content="Play RE-Justice, an original browser fighting game. Challenge the CPU, pick a fighter, and customize your controls. Early access prototype.">
   <title>RE-Justice — Free Browser Fighting Game</title>
   <style>
-    :root{color-scheme:dark;font-family:Impact,Haettenschweiler,'Arial Narrow Bold',system-ui,sans-serif}
-    *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden;background:#060910;color:#fff}
+    :root{color-scheme:dark;font-family:'Segoe UI',Arial,system-ui,sans-serif}
+    *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden;background:#080e18;color:#fff}
     #screen{width:100vw;height:100dvh;display:flex;align-items:center;justify-content:center;padding:0;position:relative}
-    #game{display:block;width:min(100vw,177.7778vh);height:min(100vh,56.25vw);object-fit:contain;background:#080d19;outline:none;touch-action:none}
+    #game{display:block;width:min(100vw,177.7778dvh);height:min(100dvh,56.25vw);object-fit:contain;background:#080e18;outline:none;touch-action:none;image-rendering:auto}
     #status{position:absolute;bottom:9px;right:12px;color:#8b95ad;font:11px Arial,sans-serif;pointer-events:none;letter-spacing:0.2px}
     @media(max-height:550px){#status{display:none}}
   </style>
 </head>
 <body>
-  <div id="screen"><canvas id="game" width="1280" height="720" tabindex="0" aria-label="RE-Justice browser fighting game"></canvas><span id="status">EARLY ACCESS · RE-JUSTICE</span></div>
+  <div id="screen"><canvas id="game" width="1280" height="720" tabindex="0" aria-label="RE-Justice browser fighting game"></canvas><span id="status">RE-JUSTICE · EARLY ACCESS</span></div>
   <script src="assets.js"></script>
   <script src="characters.js"></script>
   <script src="stages.js"></script>
