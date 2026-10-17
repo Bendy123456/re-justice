@@ -373,8 +373,8 @@
       c.beginPath();c.arc(56,23,16,0,Math.PI*2);c.fillStyle='#171d25';c.fill();
       c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2;c.stroke();
       line(c,52,23,60,23,'rgba(255,255,255,.75)',2);line(c,56,19,56,27,'rgba(255,255,255,.75)',2);
-      label(c,'ShatteredAccord',120,22,18,'#ecf2f6','left','700');
-      label(c,'DEV BUILD',248,22,14,'#a7b9c5','left','700');
+      label(c,'RE-Justice',120,22,18,'#ecf2f6','left','700');
+      label(c,'DEV BUILD',232,22,14,'#a7b9c5','left','700');
       c.fillStyle='#1fa3eb';c.fillRect(870,12,13,22);label(c,'10 / 20',892,28,14,'#eff8ff');
       c.fillStyle='#84d8ff';c.fillRect(1020,13,90,18);c.fillStyle='#31404e';c.fillRect(1066,13,44,18);
       label(c,'4:31',1118,28,13,'#d9eaf3');
@@ -406,25 +406,23 @@
       this.sideTab(sidebarX,65,tabW,tabH,'FIGHT',g.menuCursor!==2,5);
       this.sideTab(sidebarX,152,tabW,tabH,'SETTINGS',g.menuCursor===2,4);
       const selected=g.menuItems[g.menuCursor];
-      this.dashboardCard(92,65,392,182,'1V1 ONLINE','ONLINE LOBBIES AND MATCHMAKING',selected==='online','#27b3ea');
-      this.dashboardCard(488,65,392,182,'1V1 VS BOT','PRACTICE AGAINST THE CPU',selected==='cpu','#f6c278');
-      this.dashboardCard(884,65,386,182,'ARENA','CHOOSE YOUR FIGHTER AND STAGE',false,'#27b3ea','LOCAL');
-      this.dashboardCard(92,250,392,182,'NEWS','CHARACTER SELECT AND HUD UI UPDATED',false,'#27b3ea');
-      this.dashboardCard(488,250,392,182,'STATUS','4 PLAYABLE FIGHTERS · 30 SLOT ROSTER',false,'#27b3ea');
-      this.dashboardCard(884,250,386,182,'PATCH NOTES','SETTINGS MENU NOW SUPPORTS REBINDS',g.menuCursor===2,'#f6c278');
-      // highlight the currently chosen action again so the eye lands on it.
-      if(selected==='settings'){
-        c.strokeStyle='#f6c278';c.lineWidth=3;c.strokeRect(884.5,250.5,385,181);
-      }
+      const onlineHovered=g.uiHover==='online',cpuHovered=g.uiHover==='cpu',fightHovered=g.uiHover==='fight-tab';
+      const onlineSelected=selected==='online'||onlineHovered;
+      const cpuSelected=selected==='cpu'||fightHovered||cpuHovered;
+      this.dashboardCard(92,65,564,260,'1V1 ONLINE','ONLINE PLAY COMING LATER',onlineSelected,'#27b3ea');
+      this.dashboardCard(674,65,596,260,'1V1 VS BOT','CLICK TO CHOOSE A FIGHTER AND CHALLENGE THE CPU',cpuSelected,'#f6c278');
+      const bottom=c.createLinearGradient(0,335,0,705);
+      bottom.addColorStop(0,'rgba(3,7,14,.65)');
+      bottom.addColorStop(1,'rgba(4,7,13,.04)');
+      c.fillStyle=bottom;c.fillRect(90,337,1180,290);
+      label(c,'RE-JUSTICE',110,417,44,'#f2f4f6');
+      label(c,'CHOOSE YOUR FIGHT',110,456,21,'#d1dae3','left','700');
       if(selected==='online'){
-        panel(c,890,445,360,78,.78);label(c,'ONLINE STATUS',910,473,18,'#bfe7fa');label(c,'UI READY · NETWORK PLAY COMING LATER',910,500,15,'#e7edf2');
-      }else if(selected==='cpu'){
-        panel(c,890,445,360,78,.78);label(c,'QUICK START',910,473,18,'#f6c278');label(c,'PRESS CONFIRM TO OPEN CHARACTER SELECT',910,500,15,'#e7edf2');
+        label(c,'ONLINE MULTIPLAYER IS STILL IN DEVELOPMENT',110,519,17,'#99d7f4','left','700');
       }else{
-        panel(c,890,445,360,78,.78);label(c,'SETTINGS',910,473,18,'#f6c278');label(c,'EDIT KEYBOARD / CONTROLLER BINDS',910,500,15,'#e7edf2');
+        label(c,'SELECT A MODE ABOVE OR USE THE SETTINGS TAB TO CHANGE YOUR CONTROLS',110,519,17,'#c2d5e2','left','700');
       }
-      label(c,'MAIN MENU',93,466,16,'#d7e4ec','left','700');
-      label(c,'↑ / ↓ SELECT    ← / → SWITCH TILES    ENTER / A CONFIRM    F4 CONTROLLER TEST',640,688,16,'#d5e1e9','center','700');
+      label(c,'CLICK TO SELECT    •    ARROWS / D-PAD TO NAVIGATE    •    ENTER / A TO CONFIRM',640,675,17,'#e4edf5','center','700');
     }
     settings(){
       const c=this.ctx,g=this.game,input=g.input,actions=FG.InputUtils.ACTIONS;
