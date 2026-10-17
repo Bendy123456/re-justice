@@ -1,5 +1,16 @@
 # Shattered Accord — Phase 1 + Character Select + Dashboard Menu (v0.1.2)
 
+## Model Viewer — visual-only starter-rig milestone
+
+Open **[Model Viewer](model-viewer.html)** locally or on Render at **https://re-justice.onrender.com/model-viewer.html**.
+
+The Flash, Batman, Superman, and Wonder Woman now render with distinct, data-driven 2D skeletal rigs, animated poses and illustrated costumes. The debug viewer lets you select all available poses (including nine normal attacks), scrub exact animation frames, preview alternate colors, turn on skeleton guides and overlay the existing frame-data hitboxes. The viewer does not simulate combat.
+
+To select a character with your mouse on the in-game selection screen, click any portrait. Click your already-selected playable portrait again to lock it; hold **Shift** while clicking to control P2. **Enter** or **Start** begins the match after a playable character is selected.
+
+The new rig is a procedural fallback: external sprite sheets specified in `assets.js` still take precedence. All combat logic, health, hitboxes, move frame data and stages remain unchanged.
+
+
 A local, original placeholder-art, browser fighting game **inspired by** classic 2D superhero fighters. It does not bundle game art, audio, sprite sheets, or source code from Injustice.
 
 ## Launch
