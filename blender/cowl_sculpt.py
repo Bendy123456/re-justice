@@ -12,11 +12,11 @@ COWL = {
     "ring_segments": 64,
     "shell_rows": 18,
     "top_z": 1.815,
-    "ear_tip_z": 1.915,
+    "ear_tip_z": 1.906,
     "ear_root_z": 1.752,
-    "base_front_z": 1.699,
-    "base_side_z": 1.634,
-    "base_back_z": 1.608,
+    "base_front_z": 1.703,
+    "base_side_z": 1.616,
+    "base_back_z": 1.530,
     "visor_gap": .004,
     "ear_segments": 16,
     "rim_width": .002,
@@ -65,21 +65,19 @@ def build_sculpted_cowl(extras,materials):
             # Lower edge of the *same mesh* smoothly cuts around the real jaw.
             # At front center the cowl meets the inset eye slit; on sides
             # it descends along temples; at back it runs down into the neck.
-            bottom=(COWL["base_front_z"]*front**6
-                 + COWL["base_side_z"]*side**4
-                 + COWL["base_back_z"]*rear**6)
-            norm=(front**6+side**4+rear**6)
-            bottom=bottom/max(norm,.0001)
+            bottom=(COWL["base_side_z"]
+                  + (COWL["base_front_z"]-COWL["base_side_z"])*front**3
+                  - (COWL["base_side_z"]-COWL["base_back_z"])*rear**2)
             # Shaped, subtly faceted cranium, flattening the bulbous cap:
             # a broader brow, narrow sides, low crown and gently drawn back.
             profile=t
             if t<.52:
                 rx=.116 + .003*sin(pi*t/.52)
-                ry=.110 + .001*sin(pi*t/.52)
+                ry=.123 + .001*sin(pi*t/.52)
             else:
                 q=(t-.52)/.48
                 rx=.117*(1-.53*q*q)
-                ry=.111*(1-.54*q*q)
+                ry=.124*(1-.54*q*q)
             if t>.90:
                 q=(t-.90)/.10
                 rx*=1-.70*q
@@ -87,7 +85,7 @@ def build_sculpted_cowl(extras,materials):
             # Light superellipse for planar temples and less round profile.
             expn=.79 + .10*max(0,t-.63)
             x=rx*copysign(abs(ax)**expn,ax)
-            y=.014 - ry*copysign(abs(ay)**expn,ay)
+            y=.010 - ry*copysign(abs(ay)**expn,ay)
             # Forehead projects forward to integrate brow (not a detached bar);
             # cheekbone and temple planes are tucked rather than puffy.
             forehead=exp(-((t-.16)/.17)**2)*front**8
@@ -110,12 +108,12 @@ def build_sculpted_cowl(extras,materials):
     earverts=[];earfaces=[]
     K=COWL["ear_segments"]
     profile=[
-        (1.760,.045,.046,.075,.013),
-        (1.778,.043,.047,.075,.013),
-        (1.804,.032,.037,.078,.016),
-        (1.850,.020,.025,.084,.019),
-        (1.886,.010,.015,.089,.022),
-        (COWL["ear_tip_z"],.0014,.002,.093,.025),
+        (1.733,.050,.028,.076,.020),
+        (1.760,.046,.029,.079,.021),
+        (1.790,.036,.024,.083,.024),
+        (1.830,.024,.018,.087,.030),
+        (1.878,.009,.008,.093,.038),
+        (COWL["ear_tip_z"],.0011,.0015,.096,.041),
     ]
     for side in (-1,1):
         offset=len(earverts)
@@ -140,21 +138,21 @@ def build_sculpted_cowl(extras,materials):
     for sign,side in ((-1,"R"),(1,"L")):
         # Dark recessed socket floats only 1-2 mm above the shell edge.
         eye=[
-            (sign*.036,-.149,1.697),(sign*.083,-.134,1.704),
-            (sign*.093,-.128,1.696),(sign*.079,-.138,1.685),
-            (sign*.044,-.153,1.687)
+            (sign*.036,-.124,1.697),(sign*.083,-.112,1.704),
+            (sign*.093,-.105,1.696),(sign*.079,-.114,1.685),
+            (sign*.044,-.128,1.687)
         ]
         _bend_plate("COWL | narrow recessed eye socket "+side,eye,seam,extras,.002)
         lit=[
-            (sign*.043,-.155,1.697),(sign*.080,-.140,1.700),
-            (sign*.077,-.143,1.695),(sign*.049,-.157,1.690)
+            (sign*.043,-.129,1.697),(sign*.080,-.115,1.700),
+            (sign*.077,-.118,1.695),(sign*.049,-.132,1.690)
         ]
         _bend_plate("COWL | almond-shaped inset optic "+side,lit,lens,extras,.0015)
     # Small center nose crest *shares cowl color* and tapers into exposed nose.
     bridge=[
-        (-.020,-.146,1.699),(.020,-.146,1.699),
-        (.018,-.150,1.684),(0,-.159,1.660),
-        (-.018,-.150,1.684)
+        (-.020,-.123,1.699),(.020,-.123,1.699),
+        (.018,-.131,1.684),(0,-.146,1.660),
+        (-.018,-.131,1.684)
     ]
     _bend_plate("COWL | sculpted nasal bridge",bridge,matte,extras,.002)
     print("COWL_GEOMETRY_QA",{
