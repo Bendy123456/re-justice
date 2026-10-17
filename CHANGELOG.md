@@ -1,5 +1,14 @@
 # Changelog
 
+## Batman Blender Torso Armor — Sculpted Chest Pass (2026-10-17)
+
+- Kept the anatomically shaped 65-bone CC0 humanoid, head, cape, limbs, and gameplay systems unchanged.
+- Replaced the old floating rectangular chest and abdominal plates with curvature-fitted pectoral shells, inset bat emblem, oblique rib guards, thin contour seams, central abdominal scales, and clavicle transitions.
+- New `blender/torso_armor.py` samples the rest-state torso mesh using BVH raycasting, subdivides the plate contours, wraps every vertex onto the skin with defined clearance, then adds realistic thickness and rounded manufactured edges.
+- Rejected erroneous ray hits on the back of the model/arms at the lateral ribs to prevent floating, flared armor.
+- The `batman-blender-asset` preview branch generates updated `.blend`, `.glb` and two review renders via Blender CI; this pass is not deployed into the public game.
+- Known issue: this remains an early costume study. Cloth/armor weight painting and full Injustice-grade sculpt detail need additional work.
+
 ## 0.2.0 — Starter Fighter Rig and Model Viewer (2026-10-17)
 
 ### Added
