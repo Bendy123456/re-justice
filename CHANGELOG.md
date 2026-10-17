@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.5 — Retina sharpness + full menu redesign (2026-10-17)
+
+### Included
+- Render Canvas at the actual display's physical pixel resolution (devicePixelRatio-aware, capped for performance), while preserving 1280×720 logical fighter coordinates and pointer mapping.
+- Replaced the washed-out grey home tiles with two polished, clearly differentiated mode cards: **1v1 Online** (coming soon) and **1v1 Vs Bot** (play now).
+- Rebuilt navigation sidebar and header: RE-Justice branding, real early-access status, high-contrast graphite panels, blue/gold accents, clean font and spacing. Removed mock XP/time gauges.
+- Redesigned Settings into a **two-column, eight-row controls grid** with larger labels and clickable binding fields.
+- Maintained mouse and controller navigation, return-to-Fight tab, selectable player / input device, rumble, and restore defaults.
+- Added HiDPI and updated click-hitbox regression checks in tests.js; added stylesheet and script cache busting to aid updated browser deployments.
+
+### Known limitations / how to reproduce
+1. **Online is not implemented:** select 1v1 Online. A status notice appears; actual network multiplayer is still future work.
+2. **Other roster fighters remain previews:** the character select has 30 portraits, but only Flash, Batman, Superman, and Wonder Woman currently have playable move data.
+3. **Advanced attacks not implemented:** throws, supers and character powers remain placeholders in this Phase 1 build even though they can be assigned in the controls menu.
+4. **Web fonts vary by operating system:** the new native system-font stack is sharp without external font downloads, but letter shapes can differ slightly on macOS/Linux versus Windows.
+5. **HiDPI costs more fill rate:** on weaker GPUs, the physical-pixel raster may increase rendering load. It is capped to 3× logical resolution.
+
 ## 0.1.4 — Settings mouse navigation fix (2026-10-17)
 
 - Fixed the left **FIGHT** tab so it returns from Settings to the main menu when clicked.
