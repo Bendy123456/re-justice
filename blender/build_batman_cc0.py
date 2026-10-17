@@ -89,28 +89,15 @@ def rod(name,a,b,r,m,bone):
     o=bpy.context.object;o.name=name
     o.rotation_euler=d.to_track_quat('Z','Y').to_euler()
     o.data.materials.clear();o.data.materials.append(m);extras.append((o,bone));return o
-# Body proportions are from the imported 65-bone CC0 original (1.82 meters).
-# Semi-fitted armor lives at chest / waist; sculpted base remains anatomically continuous.
-for s,side in [(1,'L'),(-1,'R')]:
-    panel('Pectoral armor '+side,[
-        (s*.02,1.435),(s*.11,1.476),(s*.28,1.448),(s*.297,1.386),
-        (s*.19,1.345),(s*.025,1.355)
-    ],-.140,EDGE,'spine_03',.014)
-    panel('Oblique protector '+side,[
-        (s*.032,1.334),(s*.209,1.324),(s*.193,1.277),(s*.032,1.277)
-    ],-.132,METAL,'spine_02',.011)
-    for k in range(2):
-        panel('Abdominal armor '+side+str(k),[
-           (s*.04,1.253-k*.043),(s*.162,1.252-k*.043),
-           (s*.153,1.226-k*.043),(s*.04,1.227-k*.043)
-        ],-.142,METAL,'spine_02',.010)
-# Chest bat silhouette—large across the torso rather than a circular badge.
-shape=[(-.30,1.40),(-.22,1.43),(-.155,1.44),(-.112,1.463),(-.06,1.434),
-       (-.028,1.458),(0,1.44),(.028,1.458),(.06,1.434),(.112,1.463),
-       (.155,1.44),(.22,1.43),(.30,1.40),(.22,1.365),(.155,1.362),
-       (.10,1.377),(.047,1.348),(0,1.315),(-.047,1.348),
-       (-.10,1.377),(-.155,1.362),(-.22,1.365)]
-panel('Injustice-era black bat symbol',shape,-.155,COWL,'spine_03',.008)
+# Body proportions remain exactly those of the imported CC0 mesh.
+# Armor comes from a dedicated body-surface-projected generator; no body edits.
+import sys
+sys.path.insert(0,os.path.dirname(__file__))
+from torso_armor import build_torso_armor
+TORso_qa=build_torso_armor(body,extras,{
+    "matte":METAL, "bright":EDGE, "dark":COWL,
+    "soft":METAL, "seam":COWL, "crest":COWL,
+})
 # Belt with pouches and heavy buckle.
 bpy.ops.mesh.primitive_torus_add(major_segments=64,minor_segments=14,
     location=(0,0,1.008),major_radius=.202,minor_radius=.014)
@@ -210,5 +197,5 @@ with open(os.path.join(OUT,'README.txt'),'w') as q:
     q.write('Quaternius Universal Base Characters: CC0 1.0 public domain\n')
     q.write('Derived base from https://github.com/programasweights/avatar\n')
     q.write('Original RE-Justice Batman-themed art added with Blender.\n')
-    q.write('Modeling study: costume skin weights and face require manual refinement. No game rip.\n')
+    q.write('Modeling study: fitted torso armor, remaining areas need sculpting and skin-weight work. No game rip.\n')
 print('CC0_BATMAN_GENERATION_SUCCESS',OUT)
