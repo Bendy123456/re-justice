@@ -1,0 +1,144 @@
+{
+  "meshes": [
+    {
+      "name": "Eyebrows",
+      "verts": 646,
+      "dimensions": [
+        0.12468113750219345,
+        0.03755628690123558,
+        0.03060781955718994
+      ],
+      "materials": [
+        "Matte jade"
+      ]
+    },
+    {
+      "name": "Eyes",
+      "verts": 556,
+      "dimensions": [
+        0.0974975973367691,
+        0.029403891414403915,
+        0.0299454927444458
+      ],
+      "materials": [
+        "Matte jade"
+      ]
+    },
+    {
+      "name": "SuperHero_Male",
+      "verts": 7281,
+      "dimensions": [
+        1.8588650226593018,
+        0.2914881706237793,
+        1.8195866346359253
+      ],
+      "materials": [
+        "Matte jade"
+      ]
+    },
+    {
+      "name": "Cube",
+      "verts": 8,
+      "dimensions": [
+        2.0,
+        2.0,
+        2.0
+      ],
+      "materials": [
+        "Material"
+      ]
+    },
+    {
+      "name": "Icosphere",
+      "verts": 42,
+      "dimensions": [
+        1.9021157026290894,
+        1.9999998807907104,
+        2.0
+      ],
+      "materials": []
+    }
+  ],
+  "armatures": [
+    {
+      "name": "Armature",
+      "bones": [
+        "root",
+        "pelvis",
+        "spine_01",
+        "spine_02",
+        "spine_03",
+        "neck_01",
+        "Head",
+        "clavicle_l",
+        "upperarm_l",
+        "lowerarm_l",
+        "hand_l",
+        "index_01_l",
+        "index_02_l",
+        "index_03_l",
+        "index_04_leaf_l",
+        "middle_01_l",
+        "middle_02_l",
+        "middle_03_l",
+        "middle_04_leaf_l",
+        "pinky_01_l",
+        "pinky_02_l",
+        "pinky_03_l",
+        "pinky_04_leaf_l",
+        "ring_01_l",
+        "ring_02_l",
+        "ring_03_l",
+        "ring_04_leaf_l",
+        "thumb_01_l",
+        "thumb_02_l",
+        "thumb_03_l",
+        "thumb_04_leaf_l",
+        "clavicle_r",
+        "upperarm_r",
+        "lowerarm_r",
+        "hand_r",
+        "index_01_r",
+        "index_02_r",
+        "index_03_r",
+        "index_04_leaf_r",
+        "middle_01_r",
+        "middle_02_r",
+        "middle_03_r",
+        "middle_04_leaf_r",
+        "pinky_01_r",
+        "pinky_02_r",
+        "pinky_03_r",
+        "pinky_04_leaf_r",
+        "ring_01_r",
+        "ring_02_r",
+        "ring_03_r",
+        "ring_04_leaf_r",
+        "thumb_01_r",
+        "thumb_02_r",
+        "thumb_03_r",
+        "thumb_04_leaf_r",
+        "thigh_l",
+        "calf_l",
+        "foot_l",
+        "ball_l",
+        "ball_leaf_l",
+        "thigh_r",
+        "calf_r",
+        "foot_r",
+        "ball_r",
+        "ball_leaf_r"
+      ]
+    }
+  ],
+  "min": [
+    -1.0,
+    -1.0,
+    -1.0
+  ],
+  "max": [
+    1.0,
+    1.0,
+    1.8100765943527222
+  ]
+}
