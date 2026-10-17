@@ -146,12 +146,12 @@ def build_torso_armor(body, extras, materials):
         for i in range(NX+1):
             t=(i/NX)*2-1
             x=t*width
-            front=skin_front_y(x,z)
+            front_y=skin_front_y(x,z)
             # Shallow forged contours at the upper chest, not an overhanging
             # chest shelf. Side panels softly taper back into suit cloth.
             chest_dome=0.0038*math.exp(-((abs(t)-.46)/.32)**2)*math.exp(-((z-1.412)/.06)**2)
             surf_offset=.007+chest_dome
-            verts.append((x,front-surf_offset,z))
+            verts.append((x,front_y-surf_offset,z))
     for row in range(len(sections)-1):
         for col in range(NX):
             a=row*(NX+1)+col
