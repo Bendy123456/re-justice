@@ -1,8 +1,21 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>RE-Justice | Three.js Render Bridge Lab</title>
-<style>body{margin:0;padding:24px;background:#080e18;color:#e4f4ff;font:16px system-ui}main{max-width:1100px;margin:auto}canvas{display:block;width:100%;aspect-ratio:16/9;border:1px solid #385069;background:#131f32}button,select{margin:8px 8px 8px 0;padding:10px 14px;background:#22364b;color:white;border:1px solid #66849b;cursor:pointer}#status{color:#9ccfe1}</style>
-</head><body><main><h1>RE-JUSTICE / RENDER BRIDGE LAB</h1><p>Step 1 diagnostic: original Ion Strider placeholder in a 3D scene. Does not run the fighting simulation.</p><canvas id="view" width="1280" height="720"></canvas><select id="state"><option value="idle">Idle</option><option value="walk">Walk</option><option value="block">Block</option><option value="attack">Light attack</option><option value="hitstun">Hit reaction</option></select><button id="freeze">Pause</button><button id="boxes">2D Hitbox / Hurtbox overlay</button><p id="status">Initializing WebGL…</p></main>
+<title>RE-Justice | 2013 Character Costume Study</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:22px;background:#070b12;color:#e5f0fa;font:15px system-ui}main{max-width:1250px;margin:auto}h1{font-size:23px;margin:0 0 3px}p{color:#9eafc0;margin:5px 0 12px}canvas{display:block;width:100%;aspect-ratio:16/9;border:1px solid #3c4b64;background:#0e1827}button,select{padding:11px 14px;background:#1f2b3b;color:#fff;border:1px solid #6886a3;border-radius:5px;margin:10px 8px 0 0;cursor:pointer;font:inherit}button:hover{background:#304961}.field{margin:8px 20px 8px 0;display:inline-flex;align-items:center;gap:10px}input[type=range]{width:160px}#status{margin-top:12px;color:#92c6dd}#disclaimer{font-size:13px;color:#b09ba0}
+</style>
+</head><body><main>
+<h1>RE-JUSTICE — 3D COSTUME STUDY</h1>
+<p>2013 Injustice costume references · faithful fan-art study · render-only preview</p>
+<canvas id="view" width="1280" height="720"></canvas>
+<div class="toolbar"><label class="field">Fighter <select id="fighter"><option value="flash">Flash</option><option value="batman">Batman</option><option value="superman">Superman</option><option value="wonder-woman">Wonder Woman</option></select></label>
+<label class="field">Animation <select id="state"><option value="idle">Idle</option><option value="walk">Walk</option><option value="block">Stand block</option><option value="crouch">Crouch</option><option value="jump">Jump</option><option value="attack">Light attack</option><option value="medium">Medium attack</option><option value="heavy">Heavy attack</option><option value="hitstun">Hit reaction</option><option value="victory">Victory</option></select></label>
+<button id="freeze">Pause</button><button id="boxes">2D collision overlay</button>
+<label class="field">Rotate <input type="range" id="spin" min="-70" max="70" value="0"></label>
+<label class="field">Zoom <input type="range" id="zoom" min="90" max="200" value="180"></label>
+</div><p id="status">Initializing WebGL…</p>
+<p id="disclaimer">This is a higher-detail procedural costume study, not an extracted or finished NetherRealm character asset. In gameplay, 2D hitboxes stay unchanged.</p>
+</main>
 <script src="characters.js"></script><script src="hero-visuals.js"></script><script src="stages.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
 <script src="visual3d.js"></script><script src="render-lab.js"></script>
