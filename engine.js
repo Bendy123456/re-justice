@@ -83,9 +83,13 @@
       if(this.input){this.input.onDisconnect=(slot)=>{
         if(this.scene==='fight'&&!this.pause){this.pause=true;this.input.toast('P'+slot+' disconnected · paused');}
       };}
+      this.uiHover=null;
       this.resize();
       if(this.canvas&&typeof window!=='undefined'){
         window.addEventListener('resize',()=>this.resize());
+        this.canvas.addEventListener('mousemove',e=>this.onPointerMove(e));
+        this.canvas.addEventListener('mouseleave',()=>this.onPointerLeave());
+        this.canvas.addEventListener('click',e=>this.onPointerClick(e));
         this.running=true;requestAnimationFrame(t=>this.loop(t));
       }
     }
@@ -93,6 +97,50 @@
       if(!this.canvas)return;
       // The internal canvas stays 1280x720; CSS letterboxes without stretching.
       this.canvas.width=WIDTH;this.canvas.height=HEIGHT;
+    }
+    pointerToCanvas(event){
+      if(!this.canvas)return null;
+      const rect=this.canvas.getBoundingClientRect();
+      if(!rect.width||!rect.height)return null;
+      const x=(event.clientX-rect.left)*(WIDTH/rect.width);
+      const y=(event.clientY-rect.top)*(HEIGHT/rect.height);
+      return {x,y};
+    }
+    pointInRect(point,rect){
+      return point&&rect&&point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h;
+    }
+    titleHotspots(){
+      return [
+        {id:'fight-tab',x:10,y:65,w:72,h:84,cursor:1},
+        {id:'settings-tab',x:10,y:152,w:72,h:84,cursor:2},
+        {id:'online',x:92,y:65,w:564,h:260,cursor:0},
+        {id:'cpu',x:674,y:65,w:596,h:260,cursor:1}
+      ];
+    }
+    onPointerMove(event){
+      const p=this.pointerToCanvas(event);
+      if(!p||!this.canvas)return;
+      let hover=null;
+      if(this.scene==='title')hover=this.titleHotspots().find(h=>this.pointInRect(p,h))||null;
+      this.uiHover=hover?hover.id:null;
+      this.canvas.style.cursor=hover?'pointer':'default';
+    }
+    onPointerLeave(){
+      this.uiHover=null;
+      if(this.canvas)this.canvas.style.cursor='default';
+    }
+    onPointerClick(event){
+      const p=this.pointerToCanvas(event);
+      if(!p)return;
+      if(this.scene==='title'){
+        for(const spot of this.titleHotspots()){
+          if(!this.pointInRect(p,spot))continue;
+          if(spot.id==='settings-tab'){this.menuCursor=2;this.openSettings();return;}
+          if(spot.id==='fight-tab'){this.menuCursor=1;this.audio.play('confirm',.16);return;}
+          if(spot.id==='online'){this.menuCursor=0;this.activateMenuItem();return;}
+          if(spot.id==='cpu'){this.menuCursor=1;this.activateMenuItem();return;}
+        }
+      }
     }
     loop(time){
       if(!this.running)return;
