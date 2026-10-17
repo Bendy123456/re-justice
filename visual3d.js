@@ -181,7 +181,7 @@
         }
       }
       // Chest symbols are flat inset details, not spinning disks.
-      const crest=this.grp(torso,0,.46,.253);
+      const crest=this.grp(torso,0,.46,.337);
       if(d.emblem==='bolt'){
         this.poly(crest,d.trim,[[-.015,.13],[.088,.13],[.017,.012],[.077,.012],[-.093,-.155],[-.061,-.02],[-.127,-.02]],.01);
         this.orb(crest,c.trim,0,0,-.012,.148,.146,.016);
