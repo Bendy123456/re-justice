@@ -2,7 +2,7 @@ name: Build anatomical Batman Blender study
 on:
   push:
     branches: [batman-blender-asset]
-    paths: ['blender/build_batman_cc0.py', 'blender/torso_armor.py', 'blender/belt_face_refine.py', '.github/workflows/batman-cc0-build.yml']
+    paths: ['blender/build_batman_cc0.py', 'blender/torso_armor.py', 'blender/belt_face_refine.py', 'blender/cowl_sculpt.py', '.github/workflows/batman-cc0-build.yml']
   workflow_dispatch:
 permissions:
   contents: write
@@ -29,7 +29,7 @@ jobs:
           tail -30 generated/batman_cc0/build-log.txt
       - name: Validate Blender, glTF and renders
         run: |
-          for f in REJustice_Batman_CC0_Base.blend REJustice_Batman_CC0_Base.glb batman_cc0_fullbody.png batman_cc0_closeup.png; do test -s "generated/batman_cc0/$f"; done
+          for f in REJustice_Batman_CC0_Base.blend REJustice_Batman_CC0_Base.glb batman_cc0_fullbody.png batman_cc0_closeup.png batman_cowl_front.png batman_cowl_profile.png; do test -s "generated/batman_cc0/$f"; done
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -41,7 +41,7 @@ jobs:
           from PIL import Image
           from pathlib import Path
           p=Path('generated/batman_cc0')
-          for name in ['batman_cc0_fullbody','batman_cc0_closeup']:
+          for name in ['batman_cc0_fullbody','batman_cc0_closeup','batman_cowl_front','batman_cowl_profile']:
               im=Image.open(p/(name+'.png')).convert('RGB')
               im.thumbnail((650,650))
               dst=p/(name+'_qa.jpg')
