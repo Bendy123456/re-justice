@@ -1,5 +1,15 @@
 # Changelog
 
+## Batman Blender refinement — belt, chest, face (2026-10-17)
+
+- Retrieved the prior editable art from the existing `batman-blender-asset` GitHub branch; no user re-upload required.
+- Rebuilt the former hovering torus belt into a close-fitting mesh sampled around the source humanoid's actual waist circumference, with small rounded utility modules and a low-profile buckle.
+- Replaced separated/chunky chest and rib armor with a continuous surface-wrapped ballistic cuirass, subtle inset lines, and a flush bat insignia; adjusted plate roughness and slate material shading.
+- Reworked brow ridges, narrow cowl lenses, cheek guards, bridge and ear proportions while retaining the original anatomical human jaw mesh.
+- Preserved the imported anatomical body and rig, unchanged gameplay code, and all existing combat/hitbox data.
+- Blender CI generated the updated editable `.blend`, rigged `.glb`, full-body render, and chest/face close-up render. Final build/export passed.
+- Remaining art tasks: manual high-poly sculpt refinement, realistic material textures, painted deformation weights for the armor, and detailed animation tests before game integration.
+
 ## Batman Blender Torso Armor — Sculpted Chest Pass (2026-10-17)
 
 - Kept the anatomically shaped 65-bone CC0 humanoid, head, cape, limbs, and gameplay systems unchanged.
