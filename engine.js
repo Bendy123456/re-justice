@@ -140,6 +140,32 @@
       }
       return hotspots;
     }
+    // Input-only inverse hit testing for angled character cards in ui.js.
+    selectPortraitHit(point){
+      if(!point)return -1;
+      for(let i=29;i>=0;i--){
+        const side=i>=15,local=i%15,row=Math.floor(local/3),col=local%3;
+        const x=side?1257-(col+1)*81-row*16:23+col*81+row*16;
+        const y=9+row*127;
+        const a=side?.015:-.015,b=side?-.09:.09;
+        const dx=point.x-x,dy=point.y-y,det=1-a*b;
+        const lx=(dx-b*dy)/det,ly=(dy-a*dx)/det;
+        if(lx>=0&&lx<=80&&ly>=0&&ly<=120)return i;
+      }
+      return -1;
+    }
+    selectPortraitAt(point,player=1){
+      const index=this.selectPortraitHit(point);
+      if(index<0)return false;
+      const id=FG.ROSTER[index],key=player===2?'p2Id':'p1Id';
+      if(this[key]===id&&FG.CHARACTERS[id].playable){
+        this.toggleSelectLock(player);
+      }else{
+        this[key]=id;this.selectLocked[player]=false;this.previewPlayer=player;
+        this.audio.play('confirm',.3);
+      }
+      return true;
+    }
     onPointerMove(event){
       const p=this.pointerToCanvas(event);
       if(!p||!this.canvas)return;
@@ -148,7 +174,8 @@
       const hovered=hotspots.find(h=>this.pointInRect(p,h));
       this.uiHover=hovered?hovered.id:null;
       this.uiHoverRow=hovered?.id==='settings-row'?hovered.row:null;
-      this.canvas.style.cursor=hovered?'pointer':'default';
+      const canPick=this.scene==='versus'&&this.selectPortraitHit(p)>=0;
+      this.canvas.style.cursor=hovered||canPick?'pointer':'default';
     }
     onPointerLeave(){
       this.uiHover=null;this.uiHoverRow=null;
@@ -157,6 +184,10 @@
     onPointerClick(event){
       const p=this.pointerToCanvas(event);
       if(!p)return;
+      if(this.scene==='versus'){
+        this.selectPortraitAt(p,event.shiftKey?2:1);
+        return;
+      }
       if(this.scene==='settings'){
         const spot=this.settingsHotspots().find(h=>this.pointInRect(p,h));
         if(!spot)return;
