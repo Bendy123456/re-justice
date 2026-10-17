@@ -117,13 +117,27 @@
         {id:'cpu',x:674,y:65,w:596,h:260,cursor:1}
       ];
     }
+    settingsHotspots(){
+      const hotspots=[
+        {id:'fight-tab',x:10,y:65,w:72,h:84},
+        {id:'settings-tab',x:10,y:152,w:72,h:84},
+        {id:'settings-player',x:122,y:222,w:154,h:42},
+        {id:'settings-device',x:338,y:222,w:208,h:42}
+      ];
+      const actions=FG.InputUtils.ACTIONS;
+      for(let row=0;row<actions.length+2;row++){
+        hotspots.push({id:'settings-row',row,x:114,y:294+row*22,w:1125,h:22});
+      }
+      return hotspots;
+    }
     onPointerMove(event){
       const p=this.pointerToCanvas(event);
       if(!p||!this.canvas)return;
-      let hover=null;
-      if(this.scene==='title')hover=this.titleHotspots().find(h=>this.pointInRect(p,h))||null;
-      this.uiHover=hover?hover.id:null;
-      this.canvas.style.cursor=hover?'pointer':'default';
+      const hotspots=this.scene==='title'?this.titleHotspots():
+        this.scene==='settings'?this.settingsHotspots():[];
+      const hovered=hotspots.find(h=>this.pointInRect(p,h));
+      this.uiHover=hovered?hovered.id:null;
+      this.canvas.style.cursor=hovered?'pointer':'default';
     }
     onPointerLeave(){
       this.uiHover=null;
@@ -132,6 +146,38 @@
     onPointerClick(event){
       const p=this.pointerToCanvas(event);
       if(!p)return;
+      if(this.scene==='settings'){
+        const spot=this.settingsHotspots().find(h=>this.pointInRect(p,h));
+        if(!spot)return;
+        if(spot.id==='fight-tab'){
+          this.rebinding=null;this.rebindDelay=0;
+          this.scene='title';this.menuCursor=1;
+          this.audio.play('confirm',.3);
+          return;
+        }
+        if(spot.id==='settings-tab')return;
+        if(this.rebinding)return;
+        if(spot.id==='settings-player'){
+          this.settingsRow=-2;
+          this.settingsPlayer=this.settingsPlayer===1?2:1;
+        }else if(spot.id==='settings-device'){
+          this.settingsRow=-1;
+          this.settingsDevice=this.settingsDevice==='keyboard'?'pad':'keyboard';
+        }else if(spot.id==='settings-row'){
+          this.settingsRow=spot.row;
+          const actions=FG.InputUtils.ACTIONS;
+          if(spot.row<actions.length)this.beginRebind(actions[spot.row]);
+          else if(spot.row===actions.length){
+            this.input?.setRumble(!this.input?.rumbleEnabled);
+            this.input?.toast?.('Rumble '+(this.input?.rumbleEnabled?'ON':'OFF'));
+          }else{
+            this.input?.resetBindings();
+            this.input?.toast?.('Controls reset to defaults');
+          }
+        }
+        this.audio.play('confirm',.2);
+        return;
+      }
       if(this.scene==='title'){
         for(const spot of this.titleHotspots()){
           if(!this.pointInRect(p,spot))continue;
