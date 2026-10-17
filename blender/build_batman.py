@@ -129,7 +129,7 @@ def cube(name,loc,sc,mt,bone,bevel=.02):
     bpy.ops.mesh.primitive_cube_add(size=1,location=loc)
     o=bpy.context.object;o.dimensions=sc
     bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-    return register(o,mt,name,bevel=bevel,bone=bone)
+    return register(o,mt,name,edge=bevel,bone=bone)
 
 def uvball(name,loc,sc,mt,bone):
     bpy.ops.mesh.primitive_uv_sphere_add(segments=24,ring_count=16,location=loc)
