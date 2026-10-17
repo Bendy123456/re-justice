@@ -218,6 +218,17 @@
     equal(g.selectLocked[1],true);
     g.moveSelection(1,1,0);equal(g.selectLocked[1],false);
   });
+  test('Clicking Fight from Settings returns to menu on scaled canvas',()=>{
+    const g=makeGame();
+    g.canvas={style:{},getBoundingClientRect(){return {left:80,top:30,width:640,height:360};}};
+    g.openSettings();
+    const click=(x,y)=>g.onPointerClick({clientX:80+x/2,clientY:30+y/2});
+    click(200,241);equal(g.settingsPlayer,2);
+    click(400,241);equal(g.settingsDevice,'pad');
+    click(210,310);equal(g.rebinding.action,'left');
+    click(40,100);equal(g.scene,'title');equal(g.rebinding,null);
+    equal(g.menuCursor,1);
+  });
   const list=document.getElementById('cases');let passed=0;
   for(const [name,fn] of tests){const li=document.createElement('li');
     try{fn();li.className='pass';li.textContent=name;passed++;}
