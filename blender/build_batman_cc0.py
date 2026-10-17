@@ -45,6 +45,12 @@ BELT=material('Old-gold utility pouches',(0.33,.25,.11),metal=.35,rough=.70)
 CAPE=material('Heavy black cape',(0.018,.024,.033),rough=.98,noise=True)
 EYES=material('Cowl white slit lenses',(.76,.84,.88),rough=.24)
 body.data.materials.clear();body.data.materials.append(FABRIC)
+body.data.materials.append(SKIN)
+# Paint the actual imported anatomical face polygons, rather than placing a sphere on it.
+for poly in body.data.polygons:
+    p=body.matrix_world @ poly.center
+    if 1.51 < p.z < 1.68 and abs(p.x) < .12 and p.y < -.025:
+        poly.material_index=1
 for o in bpy.context.scene.objects:
     if o.type=='MESH' and o!=body:
         o.data.materials.clear();o.data.materials.append(EYES)
@@ -130,7 +136,7 @@ lathe('Top cowl dome',[
    (1.748,.113,.107,.008),(1.785,.078,.075,.006),(1.795,.015,.025,.007)
 ],COWL,'Head')
 # mouth skin patch covers only lower central cowl so a face is visible
-ellipse('Sculpted lower-face jaw contour',(0,-.062,1.629),(.089,.082,.077),SKIN,'Head')
+# Lower face and chin are now the real continuous 3D human mesh, not an inserted oval.
 for s,side in [(1,'L'),(-1,'R')]:
     # Ear wedge, narrow with believable cowl profile
     verts=[(s*.065,-.03,1.764),(s*.128,-.03,1.764),
