@@ -1,0 +1,60 @@
+name: Visual study screenshots
+on:
+  push:
+    branches: [visual-3d-phase1]
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and game smoke checks
+        run: |
+          node --check visual3d.js
+          node --check hero-visuals.js
+          node --check render-lab.js
+          node smoke-tests.cjs
+      - name: Install headless browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Start local site
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          sleep 3
+      - name: Render all four model screenshots
+        run: |
+          mkdir -p screenshots
+          node - <<'NODE'
+          const {chromium}=require('playwright');
+          (async()=>{
+            const browser=await chromium.launch({headless:true,args:[
+              '--enable-webgl','--use-gl=angle','--use-angle=swiftshader',
+              '--enable-unsafe-swiftshader','--no-sandbox'
+            ]});
+            const page=await browser.newPage({viewport:{width:1320,height:1040},deviceScaleFactor:1});
+            const errors=[];page.on('pageerror',e=>errors.push(e.message));
+            await page.goto('http://127.0.0.1:8765/render-lab.html',{waitUntil:'load'});
+            for(const id of ['flash','batman','superman','wonder-woman']){
+              await page.selectOption('#fighter',id);
+              await page.waitForTimeout(1100);
+              const status=await page.locator('#status').innerText();
+              console.log(id+': '+status);
+              await page.locator('#view').screenshot({path:'screenshots/'+id+'.png'});
+              if(!status.includes('GPU'))throw Error('WebGL failed for '+id+': '+status);
+            }
+            if(errors.length)throw Error(errors.join('\n'));
+            await browser.close();
+          })().catch(e=>{console.error(e);process.exit(1)});
+          NODE
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: study-renders
+          path: screenshots/*.png
+          if-no-files-found: warn
