@@ -1,227 +1,283 @@
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 Blender 4.0.2
-Fra:1 Mem:24.02M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
-Fra:1 Mem:24.02M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
-Fra:1 Mem:24.12M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
-Fra:1 Mem:24.14M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
-Fra:1 Mem:24.14M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
-Fra:1 Mem:24.14M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
-Fra:1 Mem:24.15M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
-Fra:1 Mem:24.15M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
-Fra:1 Mem:24.26M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
-Fra:1 Mem:24.36M (Peak 26.32M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
-Fra:1 Mem:27.23M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
-Fra:1 Mem:27.18M (Peak 27.28M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
-Fra:1 Mem:27.49M (Peak 27.49M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Recessed batsymbol silhouette
-Fra:1 Mem:27.79M (Peak 27.79M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • L
-Fra:1 Mem:27.84M (Peak 27.84M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • R
-Fra:1 Mem:27.84M (Peak 27.84M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted sternum bridge
-Fra:1 Mem:27.95M (Peak 27.95M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • L
-Fra:1 Mem:27.95M (Peak 27.95M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • L
-Fra:1 Mem:27.96M (Peak 27.96M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • R
-Fra:1 Mem:28.23M (Peak 28.23M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • L
-Fra:1 Mem:28.30M (Peak 28.30M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • R
-Fra:1 Mem:28.30M (Peak 28.30M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • L
-Fra:1 Mem:28.31M (Peak 28.31M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • R
-Fra:1 Mem:28.36M (Peak 28.36M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • R
-Fra:1 Mem:28.44M (Peak 28.44M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • L
-Fra:1 Mem:28.45M (Peak 28.45M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • L
-Fra:1 Mem:28.46M (Peak 28.46M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • R
-Fra:1 Mem:28.46M (Peak 28.46M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • L
-Fra:1 Mem:28.58M (Peak 28.58M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • R
-Fra:1 Mem:28.77M (Peak 28.77M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • R
-Fra:1 Mem:28.84M (Peak 29.71M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
-Fra:1 Mem:23.04M (Peak 29.71M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
-Fra:1 Mem:23.04M (Peak 29.71M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
-Fra:1 Mem:23.04M (Peak 29.71M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
-Fra:1 Mem:23.04M (Peak 29.71M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
-Fra:1 Mem:23.12M (Peak 29.71M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
-Fra:1 Mem:23.13M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
-Fra:1 Mem:23.13M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
-Fra:1 Mem:23.13M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
-Fra:1 Mem:23.13M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
-Fra:1 Mem:23.88M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
-Fra:1 Mem:24.21M (Peak 29.71M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
-Fra:1 Mem:24.20M (Peak 29.71M) | Time:00:00.09 | Mem:0.35M, Peak:0.35M | Scene, ViewLayer | Updating Scene BVH | Building
-Fra:1 Mem:24.20M (Peak 29.71M) | Time:00:00.09 | Mem:0.35M, Peak:0.35M | Scene, ViewLayer | Updating Scene BVH | Building BVH
-Fra:1 Mem:24.20M (Peak 29.71M) | Time:00:00.09 | Mem:1.83M, Peak:1.83M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
-Fra:1 Mem:24.20M (Peak 29.71M) | Time:00:00.10 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
-Fra:1 Mem:24.20M (Peak 29.71M) | Time:00:00.10 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Mesh | Computing normals
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Objects Flags
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Primitive Offsets
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Images
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Camera Volume
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights | Computing distribution
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights | Computing tree
-Fra:1 Mem:26.00M (Peak 29.71M) | Time:00:00.10 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Integrator
-Fra:1 Mem:27.00M (Peak 29.71M) | Time:00:00.10 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Film
-Fra:1 Mem:27.01M (Peak 29.71M) | Time:00:00.10 | Mem:6.40M, Peak:6.48M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:27.01M (Peak 29.71M) | Time:00:00.10 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Baking
-Fra:1 Mem:27.01M (Peak 29.71M) | Time:00:00.10 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Device | Writing constant memory
-Fra:1 Mem:27.01M (Peak 29.71M) | Time:00:00.10 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Sample 0/24
-Fra:1 Mem:58.01M (Peak 58.01M) | Time:00:01.04 | Remaining:00:21.65 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Sample 1/24
-Fra:1 Mem:71.78M (Peak 99.32M) | Time:00:22.38 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Sample 24/24
-Fra:1 Mem:71.78M (Peak 99.32M) | Time:00:22.38 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Finished
+Fra:1 Mem:24.95M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
+Fra:1 Mem:24.95M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
+Fra:1 Mem:25.06M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
+Fra:1 Mem:25.08M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
+Fra:1 Mem:25.06M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 3
+Fra:1 Mem:25.08M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
+Fra:1 Mem:25.09M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
+Fra:1 Mem:25.19M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
+Fra:1 Mem:25.87M (Peak 27.21M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
+Fra:1 Mem:28.12M (Peak 28.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
+Fra:1 Mem:28.13M (Peak 28.13M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
+Fra:1 Mem:28.13M (Peak 28.13M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
+Fra:1 Mem:28.44M (Peak 28.44M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Recessed batsymbol silhouette
+Fra:1 Mem:28.86M (Peak 28.86M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • L
+Fra:1 Mem:28.86M (Peak 28.86M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • R
+Fra:1 Mem:28.85M (Peak 28.86M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted sternum bridge
+Fra:1 Mem:28.87M (Peak 28.87M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • R
+Fra:1 Mem:28.95M (Peak 28.95M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 3
+Fra:1 Mem:29.12M (Peak 29.12M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 2
+Fra:1 Mem:29.64M (Peak 29.64M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 1
+Fra:1 Mem:29.64M (Peak 29.64M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • R
+Fra:1 Mem:29.68M (Peak 29.68M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • R
+Fra:1 Mem:29.68M (Peak 29.69M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 3
+Fra:1 Mem:29.73M (Peak 29.73M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 2
+Fra:1 Mem:29.77M (Peak 29.77M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 1
+Fra:1 Mem:29.81M (Peak 29.81M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • L
+Fra:1 Mem:29.82M (Peak 29.82M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • L
+Fra:1 Mem:29.91M (Peak 29.91M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • L
+Fra:1 Mem:29.97M (Peak 29.97M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • L
+Fra:1 Mem:30.04M (Peak 30.04M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • L
+Fra:1 Mem:30.04M (Peak 30.04M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • L
+Fra:1 Mem:30.05M (Peak 30.05M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • L
+Fra:1 Mem:30.17M (Peak 30.17M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • R
+Fra:1 Mem:30.17M (Peak 30.17M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • R
+Fra:1 Mem:30.23M (Peak 30.23M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • R
+Fra:1 Mem:30.29M (Peak 30.29M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • R
+Fra:1 Mem:29.96M (Peak 31.37M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:23.66M (Peak 31.37M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:23.66M (Peak 31.37M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:23.66M (Peak 31.37M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:23.66M (Peak 31.37M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:23.75M (Peak 31.37M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:23.76M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:23.76M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:23.76M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:23.76M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:24.55M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:24.91M (Peak 31.37M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:24.90M (Peak 31.37M) | Time:00:00.09 | Mem:0.37M, Peak:0.37M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:24.90M (Peak 31.37M) | Time:00:00.09 | Mem:0.37M, Peak:0.37M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:24.90M (Peak 31.37M) | Time:00:00.09 | Mem:1.95M, Peak:1.95M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:24.90M (Peak 31.37M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:24.90M (Peak 31.37M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights | Computing distribution
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:26.82M (Peak 31.37M) | Time:00:00.09 | Mem:5.85M, Peak:5.85M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:27.82M (Peak 31.37M) | Time:00:00.09 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:27.82M (Peak 31.37M) | Time:00:00.10 | Mem:6.76M, Peak:6.85M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:27.82M (Peak 31.37M) | Time:00:00.10 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:27.82M (Peak 31.37M) | Time:00:00.10 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:27.82M (Peak 31.37M) | Time:00:00.10 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:58.82M (Peak 58.82M) | Time:00:00.88 | Remaining:00:18.13 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:72.60M (Peak 100.14M) | Time:00:19.31 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:72.60M (Peak 100.14M) | Time:00:19.31 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Finished
 Saved: '/home/runner/work/re-justice/re-justice/generated/batman_cc0/batman_cc0_fullbody.png'
-Time: 00:22.61 (Saving: 00:00.22)
+Time: 00:19.59 (Saving: 00:00.28)
 
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Recessed batsymbol silhouette", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Rib guard • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Sculpted pectoral cuirass • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
-Fra:1 Mem:26.22M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
-Fra:1 Mem:26.24M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
-Fra:1 Mem:26.34M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
-Fra:1 Mem:26.34M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
-Fra:1 Mem:26.33M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 3
-Fra:1 Mem:26.34M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
-Fra:1 Mem:26.34M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
-Fra:1 Mem:26.35M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
-Fra:1 Mem:26.36M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
-Fra:1 Mem:26.41M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
-Fra:1 Mem:26.43M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • R
-Fra:1 Mem:26.51M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
-Fra:1 Mem:27.59M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • R
-Fra:1 Mem:27.64M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • R
-Fra:1 Mem:27.64M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • R
-Fra:1 Mem:27.63M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
-Fra:1 Mem:27.62M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
-Fra:1 Mem:27.62M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
-Fra:1 Mem:27.67M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
-Fra:1 Mem:27.67M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • R
-Fra:1 Mem:27.69M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
-Fra:1 Mem:27.74M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
-Fra:1 Mem:27.71M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
-Fra:1 Mem:27.69M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • R
-Fra:1 Mem:27.73M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
-Fra:1 Mem:27.77M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • L
-Fra:1 Mem:27.80M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • L
-Fra:1 Mem:27.88M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • L
-Fra:1 Mem:27.87M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • L
-Fra:1 Mem:28.32M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • L
-Fra:1 Mem:28.35M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • L
-Fra:1 Mem:28.44M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • L
-Fra:1 Mem:28.49M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • R
-Fra:1 Mem:28.49M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • L
-Fra:1 Mem:28.54M (Peak 29.76M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Recessed batsymbol silhouette
-Fra:1 Mem:28.84M (Peak 29.87M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
-Fra:1 Mem:23.04M (Peak 29.87M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
-Fra:1 Mem:23.04M (Peak 29.87M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
-Fra:1 Mem:23.04M (Peak 29.87M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
-Fra:1 Mem:23.04M (Peak 29.87M) | Time:00:00.09 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
-Fra:1 Mem:23.12M (Peak 29.87M) | Time:00:00.09 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
-Fra:1 Mem:23.13M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
-Fra:1 Mem:23.13M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
-Fra:1 Mem:23.13M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
-Fra:1 Mem:23.13M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
-Fra:1 Mem:23.88M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
-Fra:1 Mem:24.21M (Peak 29.87M) | Time:00:00.09 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
-Fra:1 Mem:24.20M (Peak 29.87M) | Time:00:00.09 | Mem:0.35M, Peak:0.35M | Scene, ViewLayer | Updating Scene BVH | Building
-Fra:1 Mem:24.20M (Peak 29.87M) | Time:00:00.09 | Mem:0.35M, Peak:0.35M | Scene, ViewLayer | Updating Scene BVH | Building BVH
-Fra:1 Mem:24.20M (Peak 29.87M) | Time:00:00.09 | Mem:1.83M, Peak:1.83M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
-Fra:1 Mem:24.20M (Peak 29.87M) | Time:00:00.09 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
-Fra:1 Mem:24.20M (Peak 29.87M) | Time:00:00.09 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Mesh | Computing normals
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:3.60M, Peak:5.08M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Objects Flags
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Primitive Offsets
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Images
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Camera Volume
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.39M, Peak:5.39M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights | Computing distribution
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Lights | Computing tree
-Fra:1 Mem:26.00M (Peak 29.87M) | Time:00:00.09 | Mem:5.48M, Peak:5.48M | Scene, ViewLayer | Updating Integrator
-Fra:1 Mem:27.00M (Peak 29.87M) | Time:00:00.09 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Film
-Fra:1 Mem:27.01M (Peak 29.87M) | Time:00:00.09 | Mem:6.40M, Peak:6.48M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:27.01M (Peak 29.87M) | Time:00:00.09 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Baking
-Fra:1 Mem:27.01M (Peak 29.87M) | Time:00:00.09 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Updating Device | Writing constant memory
-Fra:1 Mem:27.01M (Peak 29.87M) | Time:00:00.09 | Mem:6.48M, Peak:6.48M | Scene, ViewLayer | Sample 0/24
-Fra:1 Mem:58.01M (Peak 58.01M) | Time:00:01.22 | Remaining:00:25.88 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Sample 1/24
-Fra:1 Mem:71.78M (Peak 99.32M) | Time:00:24.86 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Sample 24/24
-Fra:1 Mem:71.78M (Peak 99.32M) | Time:00:24.86 | Mem:37.47M, Peak:37.47M | Scene, ViewLayer | Finished
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+Fra:1 Mem:27.15M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
+Fra:1 Mem:27.17M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
+Fra:1 Mem:27.25M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
+Fra:1 Mem:27.26M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
+Fra:1 Mem:27.27M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 3
+Fra:1 Mem:27.27M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
+Fra:1 Mem:27.28M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
+Fra:1 Mem:27.28M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
+Fra:1 Mem:27.29M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
+Fra:1 Mem:27.34M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
+Fra:1 Mem:27.99M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
+Fra:1 Mem:28.35M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
+Fra:1 Mem:28.36M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
+Fra:1 Mem:28.36M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
+Fra:1 Mem:28.35M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
+Fra:1 Mem:28.36M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
+Fra:1 Mem:28.35M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
+Fra:1 Mem:28.34M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • R
+Fra:1 Mem:28.37M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
+Fra:1 Mem:28.40M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
+Fra:1 Mem:28.40M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
+Fra:1 Mem:28.79M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • R
+Fra:1 Mem:28.85M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • R
+Fra:1 Mem:28.85M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • R
+Fra:1 Mem:28.99M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • R
+Fra:1 Mem:29.00M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Recessed batsymbol silhouette
+Fra:1 Mem:29.07M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • R
+Fra:1 Mem:29.14M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • R
+Fra:1 Mem:29.16M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted pectoral cuirass • L
+Fra:1 Mem:29.59M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Raised pectoral accent • L
+Fra:1 Mem:29.59M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Underside pec gasket • L
+Fra:1 Mem:29.55M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • L
+Fra:1 Mem:29.55M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rib guard • L
+Fra:1 Mem:29.56M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Clavicle undercollar line • R
+Fra:1 Mem:29.60M (Peak 29.61M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted sternum bridge
+Fra:1 Mem:29.67M (Peak 29.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Lower rib • L
+Fra:1 Mem:29.73M (Peak 29.73M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 3
+Fra:1 Mem:29.80M (Peak 29.80M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Tapered oblique • L
+Fra:1 Mem:29.84M (Peak 29.84M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 2
+Fra:1 Mem:29.91M (Peak 29.91M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sternum joint • L
+Fra:1 Mem:29.91M (Peak 29.91M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • L 1
+Fra:1 Mem:29.92M (Peak 29.92M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 1
+Fra:1 Mem:30.00M (Peak 30.00M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 3
+Fra:1 Mem:30.02M (Peak 30.02M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Fitted abdominal scale • R 2
+Fra:1 Mem:29.96M (Peak 30.98M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:23.66M (Peak 30.98M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:23.66M (Peak 30.98M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:23.66M (Peak 30.98M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:23.66M (Peak 30.98M) | Time:00:00.08 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:23.75M (Peak 30.98M) | Time:00:00.08 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:23.76M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:23.76M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:23.76M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:23.76M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:24.55M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:24.91M (Peak 30.98M) | Time:00:00.08 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:24.90M (Peak 30.98M) | Time:00:00.08 | Mem:0.37M, Peak:0.37M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:24.90M (Peak 30.98M) | Time:00:00.08 | Mem:0.37M, Peak:0.37M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:24.90M (Peak 30.98M) | Time:00:00.08 | Mem:1.95M, Peak:1.95M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:24.90M (Peak 30.98M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:24.90M (Peak 30.98M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:3.85M, Peak:5.43M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.76M, Peak:5.76M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights | Computing distribution
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.84M, Peak:5.84M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:26.82M (Peak 30.98M) | Time:00:00.09 | Mem:5.85M, Peak:5.85M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:27.82M (Peak 30.98M) | Time:00:00.09 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:27.82M (Peak 30.98M) | Time:00:00.09 | Mem:6.76M, Peak:6.85M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:27.82M (Peak 30.98M) | Time:00:00.09 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:27.82M (Peak 30.98M) | Time:00:00.09 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:27.82M (Peak 30.98M) | Time:00:00.09 | Mem:6.85M, Peak:6.85M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:58.82M (Peak 58.82M) | Time:00:01.00 | Remaining:00:20.86 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:72.60M (Peak 100.14M) | Time:00:21.05 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:72.60M (Peak 100.14M) | Time:00:21.05 | Mem:37.83M, Peak:37.83M | Scene, ViewLayer | Finished
 Saved: '/home/runner/work/re-justice/re-justice/generated/batman_cc0/batman_cc0_closeup.png'
-Time: 00:24.99 (Saving: 00:00.13)
+Time: 00:21.18 (Saving: 00:00.13)
 
 Info: Total files 0 | Changed 0 | Failed 0
 /usr/share/blender/scripts/addons/io_scene_gltf2/io/exp/gltf2_io_image_data.py:25: SyntaxWarning: invalid escape sequence '\.'
   regex_dot = re.compile("\.")
 /usr/share/blender/scripts/addons/io_scene_gltf2/io/exp/gltf2_io_image_data.py:27: SyntaxWarning: invalid escape sequence '\]'
   new_name = "".join([char for char in adjusted_name if char not in "!#$&'()*+,/:;<>?@[\]^`{|}~"])
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • L 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 1", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 2", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
+WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted abdominal scale • R 3", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Fitted sternum bridge", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • L", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Lower rib • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
@@ -234,85 +290,97 @@ WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modi
 WARN (bke.modifier): ./source/blender/blenkernel/intern/modifier.cc:461 BKE_modifier_set_error: Object: "Tapered oblique • R", Modifier: "Smooth weighted hardplate reflections", Enable 'Auto Smooth' in Object Data Properties
 Data are loaded, start creating Blender stuff
 glTF import finished in 0.09s
-TORSO_ARMOR_SURFACE_PROBES [(0, 1.4, -0.1079), (0.1, 1.4, -0.1017), (0.22, 1.4, 0.0675), (0.27, 1.43, 0.0067), (0.07, 1.29, -0.1127)]
+TORSO_ARMOR_SURFACE_PROBES [(0, 1.4, -0.1079), (0.1, 1.4, -0.1017), (0.22, 1.4, -0.0925), (0.27, 1.43, -0.0836), (0.07, 1.29, -0.1127)]
 Info: Saved "REJustice_Batman_CC0_Base.blend"
-22:43:38 | ERROR: Draco mesh compression is not available because library could not be found at /usr/bin/4.0/python/lib/python3.12/site-packages/libextern_draco.so
-22:43:38 | INFO: Starting glTF 2.0 export
-22:43:38 | INFO: Extracting primitive: Armored kneecap L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Armored kneecap R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.007
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Clavicle undercollar line • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Clavicle undercollar line • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Torus
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cowl tapered ear L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cowl tapered ear R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Fitted sternum bridge
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Lower rib • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Lower rib • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Raised pectoral accent • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Raised pectoral accent • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Recessed batsymbol silhouette
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.003
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.002
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.001
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.004
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.005
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Cube.006
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Rib guard • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Rib guard • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Scalloped black fabric cape
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Sculpted pectoral cuirass • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Sculpted pectoral cuirass • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Slanted eye mask border L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Slanted eye mask border R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Sternum joint • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Sternum joint • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Sphere.005_Retopology.004
-22:43:38 | INFO: Primitives created: 2
-22:43:38 | INFO: Extracting primitive: Surface mesh • Tapered oblique • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Surface mesh • Tapered oblique • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Thin inset lens L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Thin inset lens R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Top cowl dome
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Underside pec gasket • L
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Extracting primitive: Underside pec gasket • R
-22:43:38 | INFO: Primitives created: 1
-22:43:38 | INFO: Finished glTF 2.0 export in 0.22902321815490723 s
+22:49:35 | ERROR: Draco mesh compression is not available because library could not be found at /usr/bin/4.0/python/lib/python3.12/site-packages/libextern_draco.so
+22:49:35 | INFO: Starting glTF 2.0 export
+22:49:35 | INFO: Extracting primitive: Armored kneecap L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Armored kneecap R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.007
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Clavicle undercollar line • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Clavicle undercollar line • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Torus
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cowl tapered ear L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cowl tapered ear R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • L 1
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • L 2
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • L 3
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • R 1
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • R 2
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted abdominal scale • R 3
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Fitted sternum bridge
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Lower rib • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Lower rib • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Raised pectoral accent • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Raised pectoral accent • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Recessed batsymbol silhouette
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.003
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.002
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.001
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.004
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.005
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Cube.006
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Rib guard • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Rib guard • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Scalloped black fabric cape
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Sculpted pectoral cuirass • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Sculpted pectoral cuirass • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Slanted eye mask border L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Slanted eye mask border R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Sternum joint • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Sternum joint • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Sphere.005_Retopology.004
+22:49:35 | INFO: Primitives created: 2
+22:49:35 | INFO: Extracting primitive: Surface mesh • Tapered oblique • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Surface mesh • Tapered oblique • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Thin inset lens L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Thin inset lens R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Top cowl dome
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Underside pec gasket • L
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Extracting primitive: Underside pec gasket • R
+22:49:35 | INFO: Primitives created: 1
+22:49:35 | INFO: Finished glTF 2.0 export in 0.23459982872009277 s
 
 CC0_BATMAN_GENERATION_SUCCESS /home/runner/work/re-justice/re-justice/generated/batman_cc0
 
