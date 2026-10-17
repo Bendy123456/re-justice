@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.0 — Starter Fighter Rig and Model Viewer (2026-10-17)
+
+### Added
+- `fighter-rig.js`: original data-driven 2D skeletal renderer and FK posing for Flash, Batman, Superman and Wonder Woman. It defines body builds, costume palettes and procedural hair, cape, masks, armor and emblems.
+- Hand-keyframed visual-only animation system with idle, walk/back, jumping/falling, landing, crouch/high and low block, hit reactions, knockdown/get-up, throw/victim, victory, defeat, power, super and nine distinct normal-attack animations per starter character.
+- Bézier-contoured segmented anatomy, 2–3 shade illustrated fills, dark outlines, highlight stripes, second-motion cape and idle breathing, damage-scuff and flash treatment, and a bounded offscreen render cache.
+- Existing sprite-sheet assets remain top priority; the procedural rig is a fallback. Incomplete-roster portraits retain the original placeholder art.
+- `model-viewer.html` / `model-viewer.js`: open the viewer, pick any of the four starter characters and any 30 animations, scrub simulation frames, flip the facing, switch palette, and inspect visual bones and frame-data-derived hitbox overlays.
+- The oblique portrait-bank buttons on character select are now mouse clickable (click once to select; click the selected playable fighter again to lock; hold Shift when clicking for P2). Click hit-tests invert the existing portrait affine transform.
+- Tests expanded to 36 passing checks. GitHub CI validates syntax and automated combat/input/menu/rig invariants.
+
+### Kept unchanged
+- All actual combat rules, damage, hit detection, move startup/active/recovery frame values, CPU decisions, stage definitions, and gameplay controls.
+- The existing title, versus setup layout, and fight HUD arrangement.
+
+### Known limitations / reproduction
+1. Unfinished roster members still render existing placeholder portraits and cannot enter fights. Try selecting Aquaman (preview-only).
+2. Some animations are debug-viewer previews for mechanics not yet implemented in gameplay (throws, supers, launches and get-up). Select one in Model Viewer.
+3. Sprite sheets override procedural art when defined in `assets.js`; replacing the art is allowed without modifying fighting logic.
+4. Mouse roster selection is per click, not hover. Click a portrait twice to lock; confirm the fight with Enter / Start once P1 is joined.
+5. Rig performance depends on browser/GPU resolution. The cache is capped at 64 image entries; test longer matches and report stutter if observed.
+
 ## 0.1.5 — Retina sharpness + full menu redesign (2026-10-17)
 
 ### Included
