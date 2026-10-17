@@ -1,0 +1,62 @@
+name: Build anatomical Batman Blender study
+on:
+  push:
+    branches: [batman-blender-asset]
+    paths: ['blender/build_batman_cc0.py', '.github/workflows/batman-cc0-build.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: batman-blender-asset
+      - name: Install Blender and glTF prerequisites
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-numpy
+      - name: Download CC0 humanoid
+        run: |
+          mkdir -p blender/resources
+          curl -fL --retry 3 --max-time 90 -o blender/resources/cc0_humanoid.glb https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb
+      - name: Create human-based Batman mesh in Blender
+        run: |
+          mkdir -p generated/batman_cc0
+          blender -b --python-exit-code 1 --python blender/build_batman_cc0.py > generated/batman_cc0/build-log.txt 2>&1 || (tail -120 generated/batman_cc0/build-log.txt && exit 1)
+          tail -30 generated/batman_cc0/build-log.txt
+      - name: Validate Blender, glTF and renders
+        run: |
+          for f in REJustice_Batman_CC0_Base.blend REJustice_Batman_CC0_Base.glb batman_cc0_fullbody.png batman_cc0_closeup.png; do test -s "generated/batman_cc0/$f"; done
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare small visual review renders
+        run: |
+          python -m pip install pillow
+          python - <<'PY'
+          import base64
+          from PIL import Image
+          from pathlib import Path
+          p=Path('generated/batman_cc0')
+          for name in ['batman_cc0_fullbody','batman_cc0_closeup']:
+              im=Image.open(p/(name+'.png')).convert('RGB')
+              im.thumbnail((650,650))
+              dst=p/(name+'_qa.jpg')
+              im.save(dst,quality=78,optimize=True)
+              (p/(name+'_qa.base64.txt')).write_text(base64.b64encode(dst.read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: batman-anatomical-blender
+          path: generated/batman_cc0
+          retention-days: 30
+      - name: Commit deliverables on isolated asset branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add generated/batman_cc0
+          git commit -m "Anatomical Batman Blender model based on CC0 humanoid [skip ci]"
+          git push origin HEAD:batman-blender-asset
