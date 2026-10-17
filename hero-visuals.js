@@ -1,20 +1,30 @@
 'use strict';
-/* Visual data only. Slot IDs intentionally match existing gameplay IDs. */
+/* RE-Justice visual reference data. Presentation only; combat slot IDs never change.
+   Costume studies reference Injustice: Gods Among Us (2013). Fan project; not official assets.
+   Geometry can later be replaced with properly licensed character glTF files. */
 (() => {
   const F=window.FG=window.FG||{};
-  const HERO_VISUALS={
-    flash:{name:'Ion Strider',build:'lean',palette:['#167f96','#ed8d55','#e0b999'],alt:[['#175d78','#85d9ee','#e0b999'],['#393c71','#f2b24d','#e0b999']],emblem:'chevron',head:'visor',cape:false},
-    batman:{name:'Night Sentinel',build:'athletic',palette:['#283c53','#73b6b2','#ba9982'],alt:[['#34333a','#ce9c5f','#ba9982'],['#283d42','#9ac0d2','#ba9982']],emblem:'arc',head:'hood',cape:true},
-    superman:{name:'Solar Vanguard',build:'heavy',palette:['#7d3a54','#ebad62','#d2a38d'],alt:[['#284a69','#d5e2d6','#d2a38d'],['#b36037','#eac87a','#d2a38d']],emblem:'sun',head:'hair',cape:true},
-    'wonder-woman':{name:'Aegis Dawn',build:'athletic',palette:['#2c5964','#d59c76','#a77964'],alt:[['#703e5a','#dbb784','#a77964'],['#566155','#ddd6bd','#a77964']],emblem:'shield',head:'crest',cape:false}
+  const P={
+    flash:{name:'The Flash',build:'sprinter',style:'speedster',
+      suit:'#a71d2a',shadow:'#44101d',highlight:'#d33a39',trim:'#dfae4a',metal:'#be8a36',skin:'#d6a08a',eyes:'#f8efe1',hair:'#452323',
+      emblem:'bolt',mask:'flash',cape:false,armor:0.61,gloss:.36},
+    batman:{name:'Batman',build:'armored',style:'tactical',
+      suit:'#252d39',shadow:'#121722',highlight:'#46515e',trim:'#ba9c55',metal:'#59616d',skin:'#bca08a',eyes:'#dfeefa',hair:'#14171d',
+      emblem:'bat',mask:'cowl',cape:true,armor:1,gloss:.5},
+    superman:{name:'Superman',build:'power',style:'heroic',
+      suit:'#174575',shadow:'#122741',highlight:'#386995',trim:'#b53739',metal:'#a5a2a1',skin:'#d8b19a',eyes:'#d6e7ed',hair:'#121820',
+      emblem:'shield',mask:'none',cape:true,armor:.45,gloss:.31},
+    'wonder-woman':{name:'Wonder Woman',build:'warrior',style:'amazon',
+      suit:'#9d2836',shadow:'#521b2b',highlight:'#cb4b51',trim:'#dbb66c',metal:'#aaa6a3',skin:'#c89378',eyes:'#d8dae5',hair:'#141b2a',
+      emblem:'wings',mask:'tiara',cape:false,armor:.72,gloss:.46}
   };
-  const BODY_BUILDS={
-    lean:{height:1.75,shoulders:.32,muscle:.86,legScale:1.05},
-    athletic:{height:1.78,shoulders:.38,muscle:1.02,legScale:1.0},
-    heavy:{height:1.87,shoulders:.44,muscle:1.18,legScale:1.02},
-    massive:{height:2.01,shoulders:.52,muscle:1.33,legScale:.94},
-    slim:{height:1.71,shoulders:.3,muscle:.78,legScale:1.08}
+  const BUILDS={
+    sprinter:{height:2.42,shoulder:.36,waist:.22,hip:.24,muscle:.89,leg:.98,head:.160},
+    armored:{height:2.48,shoulder:.45,waist:.25,hip:.27,muscle:1.17,leg:1,head:.170},
+    power:{height:2.54,shoulder:.47,waist:.25,hip:.275,muscle:1.20,leg:1.02,head:.177},
+    warrior:{height:2.48,shoulder:.35,waist:.215,hip:.265,muscle:.95,leg:1.08,head:.157}
   };
-  F.HERO_VISUALS=HERO_VISUALS;
-  F.BODY_BUILDS=BODY_BUILDS;
+  F.HERO_VISUALS=P;
+  F.BODY_BUILDS=BUILDS;
+  F.HERO_VISUALS_NOTES='Faithful character-study costumes; game code and hitboxes are unchanged';
 })();
