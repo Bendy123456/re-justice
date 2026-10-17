@@ -117,7 +117,7 @@ def tapered_limb(name,a,b,radii,mt,bone,segments=22):
             coords.append(tuple(v))
     for j in range(count-1):
         for i in range(segments):
-            k=j*segments+i,n=j*segments+(i+1)%segments
+            k=j*segments+i; n=j*segments+(i+1)%segments
             faces.append((k,n,n+segments,k+segments))
     faces.append(tuple(reversed(range(segments))))
     faces.append(tuple((count-1)*segments+i for i in range(segments)))
