@@ -19,7 +19,7 @@ jobs:
       - name: Install Blender
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends blender
+          sudo apt-get install -y --no-install-recommends blender python3-numpy
           blender --version
       - name: Build mesh rig and render review images
         run: |
