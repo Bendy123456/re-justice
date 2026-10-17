@@ -253,6 +253,39 @@
     assert(firstRight.x>lastLeft.x,'Right settings column missing');
     assert(lastLeft.y<630,'Last settings row outside panel');
   });
+  test('Skeletal rig has all animated starter fighters',()=>{
+    const rig=FG.FighterRig;
+    assert(Boolean(rig),'Rig renderer missing');
+    for(const id of ['flash','batman','superman','wonder-woman']){
+      assert(Boolean(rig.LOOKS[id]),'Missing model '+id);
+      const data=rig.LOOKS[id];assert(Boolean(rig.BUILDS[data.build]));
+    }
+    equal(rig.ANIMATIONS.filter(k=>/^(standing|crouching|airborne)_(light|medium|heavy)$/.test(k)).length,9);
+  });
+  test('Animation sampler follows attack startup and active frames',()=>{
+    const move=FG.CHARACTERS.flash.moves.standing.light;
+    const startup=FG.FighterRig.sample('standing_light',0,{...move,kind:'standing',button:'light'});
+    const active=FG.FighterRig.sample('standing_light',move.startup+1,{...move,kind:'standing',button:'light'});
+    assert(!startup.active);assert(active.active);
+    assert(active.armA!==startup.armA,'Strike pose must differ from windup');
+  });
+  test('Character portrait click maps left/right angled bank coordinates',()=>{
+    const g=makeGame();
+    equal(g.selectPortraitHit({x:63,y:45}),0);
+    equal(g.selectPortraitHit({x:1210,y:45}),15);
+    equal(g.selectPortraitHit({x:645,y:350}),-1);
+  });
+  test('Selecting a fighter by mouse preserves combat state',()=>{
+    const g=makeGame();g.enterVersus('cpu');
+    const before={round:g.roundNumber,hp:g.roundTicks,phase:g.phase};
+    assert(g.selectPortraitAt({x:63,y:45},1));
+    equal(g.p1Id,FG.ROSTER[0]);
+    equal(g.roundNumber,before.round);equal(g.roundTicks,before.hp);equal(g.phase,before.phase);
+    g.p1Id='flash';const i=FG.ROSTER.indexOf('flash');
+    const row=Math.floor((i%15)/3),col=i%3,x=23+col*81+row*16+20,y=9+row*127+22;
+    assert(g.selectPortraitAt({x,y},1));
+    equal(g.selectLocked[1],true);
+  });
   const list=document.getElementById('cases');let passed=0;
   for(const [name,fn] of tests){const li=document.createElement('li');
     try{fn();li.className='pass';li.textContent=name;passed++;}
