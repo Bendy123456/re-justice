@@ -47,6 +47,11 @@
       ctx.drawImage(art,frame*fw,row*fh,fw,fh,-fw/2,-fh,fw,fh);
       ctx.restore();return;
     }
+    // Preserve sprite-sheet priority; render the 2D skeletal model otherwise.
+    ctx.restore();
+    if(FG.FighterRig?.drawFighter?.(ctx,f,x,feet,size,opacity))return;
+    ctx.save();ctx.translate(x,feet);ctx.scale(size*(f.facing||1),size);
+    ctx.globalAlpha*=opacity;
     const state=f.state,phase=f.attack?
       f.attackTick<f.attack.startup?'windup':f.attackTick<f.attack.startup+f.attack.active?'extend':'return':'none';
     const idle=Math.sin(f.animClock*.12)*2,walk=state==='walk'?Math.sin(f.animClock*.28):0;
@@ -541,6 +546,8 @@
       const external=this.game.assets?.image('portraits',def.id);
       if(external)return external;
       if(this.portraitCache.has(def.id))return this.portraitCache.get(def.id);
+      const rig=FG.FighterRig?.portrait?.(def);
+      if(rig){this.portraitCache.set(def.id,rig);return rig;}
       const tile=document.createElement('canvas');tile.width=96;tile.height=144;
       drawPortrait(tile.getContext('2d'),def,null);
       this.portraitCache.set(def.id,tile);return tile;
@@ -618,7 +625,7 @@
       halo.addColorStop(0,rgba(def.secondary,.17));halo.addColorStop(.55,'rgba(175,183,200,.07)');
       halo.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=halo;c.fillRect(330,0,620,690);
       c.save();c.beginPath();c.rect(355,20,570,650);c.clip();
-      armoredHero(c,def,g.frame);
+      if(!(FG.FighterRig?.preview?.(c,def,g.frame)))armoredHero(c,def,g.frame);
       c.restore();
       // Front haze veils the fighter's feet like the provided screenshot.
       for(let i=0;i<5;i++){
