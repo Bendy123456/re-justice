@@ -2,7 +2,7 @@ name: Build anatomical Batman Blender study
 on:
   push:
     branches: [batman-blender-asset]
-    paths: ['blender/build_batman_cc0.py', 'blender/torso_armor.py', '.github/workflows/batman-cc0-build.yml']
+    paths: ['blender/build_batman_cc0.py', 'blender/torso_armor.py', 'blender/belt_face_refine.py', '.github/workflows/batman-cc0-build.yml']
   workflow_dispatch:
 permissions:
   contents: write
