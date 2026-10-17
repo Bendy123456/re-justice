@@ -39,6 +39,8 @@ def material(name,color,metal=0,rough=.72,noise=False):
 FABRIC=material('Kevlar fitted underlayer',(0.065,.079,.095),rough=.91,noise=True)
 METAL=material('Gunmetal protective armor',(0.11,.13,.16),metal=.17,rough=.73)
 EDGE=material('Beveled metal highlights',(0.18,.20,.23),metal=.22,rough=.63)
+CHEST_ARMOR=material('Molded matte ballistic chest composite',(0.082,.102,.126),metal=.12,rough=.74,noise=True)
+CHEST_LIP=material('Low gloss chest tooling',(0.114,.133,.154),metal=.25,rough=.60)
 COWL=material('Cowl matte carbon',(0.025,.033,.044),rough=.72,noise=True)
 SKIN=material('Exposed face',(0.46,.30,.22),rough=.83)
 BELT=material('Old-gold utility pouches',(0.33,.25,.11),metal=.35,rough=.70)
@@ -95,8 +97,8 @@ import sys
 sys.path.insert(0,os.path.dirname(__file__))
 from torso_armor import build_torso_armor
 TORso_qa=build_torso_armor(body,extras,{
-    "matte":METAL, "bright":EDGE, "dark":COWL,
-    "soft":METAL, "seam":COWL, "crest":COWL,
+    "matte":CHEST_ARMOR, "bright":CHEST_LIP, "dark":COWL,
+    "soft":CHEST_ARMOR, "seam":COWL, "crest":COWL,
 })
 # Tailored belt and cowl use original CC0 topology, preserving existing body.
 from belt_face_refine import build_fitted_belt, build_fitted_cowl
