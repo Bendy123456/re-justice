@@ -37,11 +37,11 @@ def material(name,color,metal=0,rough=.72,noise=False):
         m.node_tree.links.new(bump.outputs['Normal'],p.inputs['Normal'])
     return m
 FABRIC=material('Kevlar fitted underlayer',(0.065,.079,.095),rough=.91,noise=True)
-METAL=material('Gunmetal protective armor',(0.19,.22,.255),metal=.24,rough=.65)
-EDGE=material('Beveled metal highlights',(0.265,.29,.32),metal=.4,rough=.53)
+METAL=material('Gunmetal protective armor',(0.11,.13,.16),metal=.17,rough=.73)
+EDGE=material('Beveled metal highlights',(0.18,.20,.23),metal=.22,rough=.63)
 COWL=material('Cowl matte carbon',(0.025,.033,.044),rough=.72,noise=True)
 SKIN=material('Exposed face',(0.46,.30,.22),rough=.83)
-BELT=material('Old-gold utility pouches',(0.43,.30,.11),metal=.5,rough=.56)
+BELT=material('Old-gold utility pouches',(0.33,.25,.11),metal=.35,rough=.70)
 CAPE=material('Heavy black cape',(0.018,.024,.033),rough=.98,noise=True)
 EYES=material('Cowl white slit lenses',(.76,.84,.88),rough=.24)
 body.data.materials.clear();body.data.materials.append(FABRIC)
@@ -89,57 +89,62 @@ for s,side in [(1,'L'),(-1,'R')]:
     panel('Pectoral armor '+side,[
         (s*.02,1.435),(s*.11,1.476),(s*.28,1.448),(s*.297,1.386),
         (s*.19,1.345),(s*.025,1.355)
-    ],-.140,METAL,'spine_03',.025)
+    ],-.140,EDGE,'spine_03',.014)
     panel('Oblique protector '+side,[
         (s*.032,1.334),(s*.209,1.324),(s*.193,1.277),(s*.032,1.277)
-    ],-.132,EDGE,'spine_02',.018)
+    ],-.132,METAL,'spine_02',.011)
     for k in range(2):
         panel('Abdominal armor '+side+str(k),[
            (s*.04,1.253-k*.043),(s*.162,1.252-k*.043),
            (s*.153,1.226-k*.043),(s*.04,1.227-k*.043)
-        ],-.142,METAL,'spine_02',.015)
+        ],-.142,METAL,'spine_02',.010)
 # Chest bat silhouette—large across the torso rather than a circular badge.
 shape=[(-.30,1.40),(-.22,1.43),(-.155,1.44),(-.112,1.463),(-.06,1.434),
        (-.028,1.458),(0,1.44),(.028,1.458),(.06,1.434),(.112,1.463),
        (.155,1.44),(.22,1.43),(.30,1.40),(.22,1.365),(.155,1.362),
        (.10,1.377),(.047,1.348),(0,1.315),(-.047,1.348),
        (-.10,1.377),(-.155,1.362),(-.22,1.365)]
-panel('Injustice-era black bat symbol',shape,-.171,COWL,'spine_03',.01)
+panel('Injustice-era black bat symbol',shape,-.155,COWL,'spine_03',.008)
 # Belt with pouches and heavy buckle.
 bpy.ops.mesh.primitive_torus_add(major_segments=64,minor_segments=14,
-    location=(0,0,1.008),major_radius=.213,minor_radius=.025)
+    location=(0,0,1.008),major_radius=.202,minor_radius=.014)
 o=bpy.context.object;o.name='Continuous brass tactical belt';o.data.materials.append(BELT);extras.append((o,'pelvis'))
 for j in range(-3,4):
     if j==0:continue
     x=j*.063
     y=-.199+abs(x)*.13
-    ellipse('Belt cartridge '+str(j),(x,y,1.014),(.032,.027,.041),BELT,'pelvis')
-ellipse('Belt symbol buckle',(0,-.220,1.012),(.056,.016,.042),EDGE,'pelvis')
+    bpy.ops.mesh.primitive_cube_add(size=1,location=(x,y,1.014))
+    o=bpy.context.object;o.name='Rectangular util pouch '+str(j)
+    o.dimensions=(.046,.029,.063)
+    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+    o.data.materials.append(BELT)
+    bevel=o.modifiers.new('Soft pouch corners','BEVEL');bevel.width=.008;bevel.segments=2
+    extras.append((o,'pelvis'))
+bpy.ops.mesh.primitive_cube_add(size=1,location=(0,-.212,1.012))
+o=bpy.context.object;o.name='Bat clasp';o.dimensions=(.093,.030,.057)
+bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
+o.data.materials.append(BELT);extras.append((o,'pelvis'))
 # Proper human-head cowl, open mouth and jaw; nose comes from anatomical base face mesh.
 lathe('Top cowl dome',[
-   (1.601,.10,.09,0),(1.635,.118,.107,.014),(1.693,.125,.114,.010),
+   (1.662,.10,.09,0),(1.681,.118,.107,.014),(1.693,.125,.114,.010),
    (1.748,.113,.107,.008),(1.785,.078,.075,.006),(1.795,.015,.025,.007)
 ],COWL,'Head')
 # mouth skin patch covers only lower central cowl so a face is visible
-panel('Exposed jaw opening',[(-.063,1.62),(-.103,1.657),(-.079,1.688),
-    (0,1.681),(.079,1.688),(.103,1.657),(.063,1.62),(0,1.603)],-.119,SKIN,'Head',.01)
+ellipse('Sculpted lower-face jaw contour',(0,-.062,1.629),(.089,.082,.077),SKIN,'Head')
 for s,side in [(1,'L'),(-1,'R')]:
     # Ear wedge, narrow with believable cowl profile
     verts=[(s*.065,-.03,1.764),(s*.128,-.03,1.764),
-           (s*.112,.05,1.76),(s*.065,.05,1.76),(s*.096,0,1.948)]
+           (s*.112,.05,1.76),(s*.065,.05,1.76),(s*.096,0,1.899)]
     add('Cowl tapered ear '+side,verts,[(0,1,4),(1,2,4),(2,3,4),(3,0,4),(0,3,2,1)],COWL,'Head')
-    panel('Eye/lid '+side,[(s*.025,1.689),(s*.097,1.692),
-          (s*.093,1.674),(s*.028,1.675)],-.125,EYES,'Head',.006)
+    panel('Slanted eye mask border '+side,[(s*.026,1.70),(s*.107,1.709),
+          (s*.109,1.676),(s*.029,1.678)],-.126,COWL,'Head',.007)
+    panel('Thin inset lens '+side,[(s*.044,1.691),(s*.095,1.695),
+          (s*.09,1.686),(s*.044,1.684)],-.138,EYES,'Head',.004)
     # Curved greaves on knees without ball caps
     panel('Armored kneecap '+side,[(s*.069,.530),(s*.131,.545),(s*.159,.512),
          (s*.151,.474),(s*.07,.472)],-.093,METAL,'calf_'+side.lower(),.020)
-    # Gauntlet spikes as slim raised wedge on outer forearm of T-pose.
-    for k in range(3):
-        x=s*(.50+k*.035)
-        add('Gauntlet dorsal fin '+side+str(k),[
-           (x,-.080,1.39-k*.012),(x+s*.07,-.066,1.375-k*.012),
-           (x,-.082,1.355-k*.012),(x,-.05,1.372-k*.012)
-        ],[(0,1,2),(0,3,1),(1,3,2),(2,3,0)],METAL,'lowerarm_'+side.lower())
+    # Fin fitting is deferred until forearm skin-weight review; detached spikes removed.
+    # Preserve the underlying anatomically rigged forearm for reliable posing.
 # A proper cloth cape surface with controlled folds and broad scalloped points
 verts=[];faces=[];NX=43;NZ=36
 for j in range(NZ):
