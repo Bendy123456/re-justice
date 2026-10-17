@@ -131,74 +131,67 @@ def build_torso_armor(body, extras, materials):
         extras.append((obj,bone))
         return obj
 
-    # Anatomically contoured left/right pectoral chest shells. The interior
-    # sternum channel stays flexible. Rounded outside corners follow the pec.
-    # Front view has right on +X and up on +Z.
+    # A low-profile molded ceramic cuirass follows the natural pectoral curve
+    # of the Quaternius body. Every plate and recess is a skinned surface, not
+    # an outward-facing rectangle. Left/right pairs preserve breathing room at
+    # the sternum and the elastomer ribs.
     for sign,side in [(-1,"R"),(1,"L")]:
-        def P(points):
-            return [(sign*x,z) for x,z in points]
-        pec=[
-            (.021,1.455),(.065,1.480),(.172,1.482),
-            (.282,1.444),(.306,1.404),(.276,1.372),
-            (.164,1.344),(.063,1.364),(.022,1.392)
+        def P(coords):
+            return [(sign*x,z) for x,z in coords]
+        pectoral=[
+            (.022,1.444),(.064,1.471),(.144,1.470),(.222,1.448),
+            (.251,1.418),(.238,1.394),(.166,1.366),(.090,1.369),
+            (.028,1.386)
         ]
-        shell=armor_shell("Sculpted pectoral cuirass • "+side,P(pec),matte,
-                          "spine_03",.023,.012,.006,.14)
-        # Inner inset follows the chest dome and reads as a tailored contour.
-        contour_piping("Raised pectoral accent • "+side,
-            P([(.068,1.458),(.157,1.466),(.238,1.435),(.264,1.408)]),
-            bright,"spine_03",.040,.0027)
-        # A thin flexible seam under each pec rather than a pasted block row.
-        contour_piping("Underside pec gasket • "+side,
-            P([(.07,1.350),(.16,1.335),(.249,1.362)]),
-            seam,"spine_03",.033,.0033)
-        # Rib and oblique segments get narrower and tuck into waist.
-        ribs=[
-            ([(.054,1.341),(.169,1.329),(.236,1.349),(.223,1.314),(.153,1.298),(.060,1.308)],"Rib guard"),
-            ([(.060,1.292),(.152,1.291),(.209,1.306),(.185,1.274),(.139,1.263),(.061,1.267)],"Lower rib"),
-            ([(.070,1.253),(.134,1.259),(.180,1.273),(.165,1.239),(.120,1.221),(.069,1.228)],"Tapered oblique"),
-        ]
-        for i,(path,nm) in enumerate(ribs):
-            armor_shell(nm+" • "+side,P(path),soft if i==2 else matte,
-                        "spine_02",.012+(i*.001),.008,.004,.14)
-        # Slim vertical flex seam at chest midline
-        contour_piping("Sternum joint • "+side,
-            P([(.018,1.447),(.017,1.405),(.019,1.358)]),
-            seam,"spine_03",.026,.0022)
+        armor_shell("Molded anatomical pectoral plate • "+side,
+            P(pectoral),matte,"spine_03",.014,.0075,.0028,.19)
+        # A single understated titanium lip conveys deliberate armor tooling.
+        contour_piping("Collar-to-pectoral titanium contour • "+side,
+            P([(.072,1.454),(.149,1.450),(.212,1.426)]),
+            bright,"spine_03",.020,.0016)
+        contour_piping("Pectoral lower elastomer seam • "+side,
+            P([(.046,1.371),(.127,1.356),(.203,1.370)]),
+            seam,"spine_03",.014,.0025)
 
-    # Central abdomen: low-profile articulated scales gradually disappear
-    # into the original fabric rather than forming a rigid stack of rectangles.
+        # The rib section is ONE broad low-relief anatomical breastplate with
+        # incised articulation lines, not four floating 'finger' blocks.
+        contour=[
+            (.058,1.350),(.140,1.350),(.210,1.362),(.210,1.329),
+            (.188,1.276),(.130,1.233),(.060,1.244)
+        ]
+        armor_shell("Continuous contoured oblique armor • "+side,
+            P(contour),soft,"spine_02",.008,.0045,.0025,.22)
+        for segment,(ztop,zbottom) in enumerate([
+            (1.333,1.314),(1.300,1.285),(1.270,1.258)
+        ]):
+            contour_piping("Recessed oblique flex seam • "+side+" "+str(segment+1),
+                P([(.073,ztop),(.145,ztop-.005),(.188,zbottom)]),
+                seam,"spine_02",.015,.0018)
+        # Narrow side guard wraps into the waist without expanding shoulders.
+        armor_shell("Tapered flank protector • "+side,
+            P([(.200,1.347),(.237,1.354),(.220,1.286),(.174,1.235),
+               (.168,1.252),(.193,1.310)]),
+            matte,"spine_02",.010,.0035,.002,.23)
+
+    # Soft centerline, no chunky bridge or raised abdominal 'vertebrae'.
+    contour_piping("Centerline woven seam",
+        [(0,1.351),(0,1.291),(0,1.232),(0,1.180)],
+        seam,"spine_02",.011,.0018)
     for sign,side in [(-1,"R"),(1,"L")]:
-        for tier in range(3):
-            ztop = 1.262 - tier*.044
-            width = .125 - tier*.012
-            shape = [
-                (sign*.033, ztop), (sign*(width*.67), ztop+.008),
-                (sign*width,ztop-.005), (sign*(width*.87),ztop-.034),
-                (sign*.04,ztop-.031)
-            ]
-            armor_shell("Fitted abdominal scale • "+side+" "+str(tier+1),
-                shape,soft,"spine_02",.009,.0055,.0027,.18)
-    # Clavicle/neck armor transition only; shoulder mass and arms untouched.
-    armor_shell("Fitted sternum bridge",
-        [(-.027,1.472),(.027,1.472),(.044,1.436),
-         (.018,1.419),(-.018,1.419),(-.044,1.436)],
-        bright,"spine_03",.031,.012,.004,.13)
-    for sign,side in [(-1,"R"),(1,"L")]:
-        contour_piping("Clavicle undercollar line • "+side,
-            [(sign*.055,1.502),(sign*.154,1.502),(sign*.257,1.484)],
-            seam,"spine_03",.012,.003)
-    # Separate inset black crest and small gunmetal lip; both follow actual
-    # armor curvature. Crest is integrated and does not cover the entire pec.
-    # Polygon is deliberately tapered down the sternum like the game's insignia.
+        contour_piping("Clavicle line • "+side,
+            [(sign*.052,1.486),(sign*.139,1.485),(sign*.214,1.468)],
+            seam,"spine_03",.012,.0021)
+
+    # Matte-black recessed emblem follows a shallow curved pectoral platform.
+    # No large sheet floating outward over the rest of the armor.
     bat=[
-        (-.218,1.421),(-.160,1.440),(-.113,1.442),(-.080,1.453),
-        (-.042,1.433),(-.014,1.449),(0,1.438),(.014,1.449),
-        (.042,1.433),(.080,1.453),(.113,1.442),(.160,1.440),
-        (.218,1.421),(.151,1.398),(.095,1.405),(.055,1.390),
-        (0,1.367),(-.055,1.390),(-.095,1.405),(-.151,1.398)
+        (-.168,1.422),(-.125,1.434),(-.097,1.441),(-.070,1.447),
+        (-.044,1.431),(-.015,1.445),(0,1.438),(.015,1.445),
+        (.044,1.431),(.070,1.447),(.097,1.441),(.125,1.434),
+        (.168,1.422),(.107,1.408),(.070,1.412),(.039,1.398),
+        (0,1.379),(-.039,1.398),(-.070,1.412),(-.107,1.408)
     ]
-    armor_shell("Recessed batsymbol silhouette",bat,crest,
-                "spine_03",.048,.007,.002,.02)
+    armor_shell("Recessed, body-fitted bat emblem",bat,crest,
+                "spine_03",.024,.0035,.0015,.025)
 
     return {"plate_count":len(extras),"surface_probes":probes}
