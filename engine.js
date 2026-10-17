@@ -95,8 +95,16 @@
     }
     resize(){
       if(!this.canvas)return;
-      // The internal canvas stays 1280x720; CSS letterboxes without stretching.
-      this.canvas.width=WIDTH;this.canvas.height=HEIGHT;
+      // Preserve 1280x720 simulation coordinates, but rasterize at the screen's
+      // physical resolution. CSS size and mouse geometry stay unchanged.
+      const bounds=this.canvas.getBoundingClientRect?.()||{width:WIDTH,height:HEIGHT};
+      const dpr=typeof window!=='undefined'?Math.min(2,Math.max(1,window.devicePixelRatio||1)):1;
+      const cssWidth=bounds.width||WIDTH,cssHeight=bounds.height||HEIGHT;
+      const scale=Math.max(1,Math.min(3,Math.max(cssWidth*dpr/WIDTH,cssHeight*dpr/HEIGHT)));
+      const w=Math.round(WIDTH*scale),h=Math.round(HEIGHT*scale);
+      if(this.canvas.width!==w)this.canvas.width=w;
+      if(this.canvas.height!==h)this.canvas.height=h;
+      this.ctx?.setTransform?.(w/WIDTH,0,0,h/HEIGHT,0,0);
     }
     pointerToCanvas(event){
       if(!this.canvas)return null;
@@ -111,22 +119,24 @@
     }
     titleHotspots(){
       return [
-        {id:'fight-tab',x:10,y:65,w:72,h:84,cursor:1},
-        {id:'settings-tab',x:10,y:152,w:72,h:84,cursor:2},
-        {id:'online',x:92,y:65,w:564,h:260,cursor:0},
-        {id:'cpu',x:674,y:65,w:596,h:260,cursor:1}
+        {id:'fight-tab',x:12,y:82,w:78,h:88,cursor:1},
+        {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:2},
+        {id:'online',x:132,y:205,w:540,h:320,cursor:0},
+        {id:'cpu',x:692,y:205,w:552,h:320,cursor:1}
       ];
     }
     settingsHotspots(){
       const hotspots=[
-        {id:'fight-tab',x:10,y:65,w:72,h:84},
-        {id:'settings-tab',x:10,y:152,w:72,h:84},
-        {id:'settings-player',x:122,y:222,w:154,h:42},
-        {id:'settings-device',x:338,y:222,w:208,h:42}
+        {id:'fight-tab',x:12,y:82,w:78,h:88},
+        {id:'settings-tab',x:12,y:181,w:78,h:88},
+        {id:'settings-player',x:146,y:188,w:179,h:48},
+        {id:'settings-device',x:354,y:188,w:250,h:48}
       ];
       const actions=FG.InputUtils.ACTIONS;
       for(let row=0;row<actions.length+2;row++){
-        hotspots.push({id:'settings-row',row,x:114,y:294+row*22,w:1125,h:22});
+        const col=Math.floor(row/8),r=row%8;
+        hotspots.push({id:'settings-row',row,
+          x:134+col*560,y:282+r*44,w:534,h:38});
       }
       return hotspots;
     }
@@ -330,6 +340,10 @@
         this.settingsPlayer=this.settingsPlayer===1?2:1;this.audio.play('confirm',.14);
       }else if(this.settingsRow===-1&&(navLeft||navRight)){
         this.settingsDevice=this.settingsDevice==='keyboard'?'pad':'keyboard';this.audio.play('confirm',.14);
+      }else if(this.settingsRow>=0&&(navLeft||navRight)){
+        // Jump between the two eight-row columns without changing row position.
+        this.settingsRow=(this.settingsRow+8)%16;
+        this.audio.play('confirm',.14);
       }
       if(confirm){
         if(this.settingsRow>=0&&this.settingsRow<actions.length)this.beginRebind(actions[this.settingsRow]);
