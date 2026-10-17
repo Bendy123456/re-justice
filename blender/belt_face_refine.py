@@ -139,29 +139,29 @@ def build_fitted_cowl(extras, materials):
     # Curved cheek armatures, taper upward into the front temple.
     for s,side in ((-1,"R"),(1,"L")):
         cheek=[
-            (s*.083,-.095,1.685),(s*.120,-.064,1.699),
-            (s*.131,-.041,1.656),(s*.117,-.057,1.624),
-            (s*.099,-.085,1.621),(s*.077,-.121,1.654)
+            (s*.089,-.100,1.687),(s*.116,-.066,1.696),
+            (s*.123,-.056,1.662),(s*.107,-.079,1.638),
+            (s*.094,-.100,1.642),(s*.081,-.118,1.670)
         ]
-        _bevel_plate("Cowl cheek sweep "+side,cheek,mask,extras,"Head",.008,.003)
+        _bevel_plate("Streamlined anatomical cheek guard "+side,cheek,mask,extras,"Head",.004,.002)
         # Brow ridge follows a pitched five-point anatomical arc.
         brow=[
-            (s*.021,-.129,1.716),(s*.055,-.144,1.723),
-            (s*.103,-.123,1.719),(s*.113,-.109,1.699),
-            (s*.068,-.139,1.700),(s*.026,-.135,1.705)
+            (s*.028,-.131,1.710),(s*.057,-.141,1.714),
+            (s*.096,-.128,1.709),(s*.109,-.111,1.695),
+            (s*.070,-.135,1.698),(s*.032,-.138,1.700)
         ]
-        _bevel_plate("Integrated angular brow "+side,brow,mask,extras,"Head",.009,.003)
+        _bevel_plate("Sleek inset brow contour "+side,brow,mask,extras,"Head",.005,.002)
         # Tapered eye sockets / lenses: not big square white goggles.
         socket=[
-            (s*.038,-.147,1.696),(s*.101,-.128,1.705),
-            (s*.092,-.134,1.690),(s*.044,-.151,1.688)
+            (s*.043,-.146,1.700),(s*.092,-.131,1.704),
+            (s*.091,-.136,1.693),(s*.045,-.151,1.691)
         ]
-        _bevel_plate("Deep eye-socket trim "+side,socket,crease,extras,"Head",.003,.001)
+        _bevel_plate("Recessed eye-socket trim "+side,socket,crease,extras,"Head",.003,.001)
         lens=[
-            (s*.044,-.153,1.697),(s*.091,-.134,1.701),
-            (s*.082,-.142,1.695),(s*.048,-.158,1.692)
+            (s*.049,-.154,1.698),(s*.084,-.139,1.700),
+            (s*.080,-.145,1.695),(s*.053,-.157,1.693)
         ]
-        _bevel_plate("Narrow armored eye lens "+side,lens,eyes,extras,"Head",.003,.001)
+        _bevel_plate("Slim inset cowl lens "+side,lens,eyes,extras,"Head",.002,.0009)
         # Less toy-like, shorter sculpted bat-ear: tapered wedge with bevel
         # on its profile, integrated into the skull cap.
         base_x=s*.093
@@ -179,13 +179,13 @@ def build_fitted_cowl(extras, materials):
         bevel=ear_obj.modifiers.new("Soft sculpted ear edges","BEVEL")
         bevel.width=.0026;bevel.segments=2
     # Bridge from upper brow to nose; expose lower jaw as original human mesh.
-    bridge=[(-.034,-.142,1.700),(.034,-.142,1.700),
-            (.020,-.150,1.662),(0,-.161,1.646),
-            (-.020,-.150,1.662)]
-    _bevel_plate("Tapered center cowl nose bridge",bridge,mask,extras,"Head",.006,.002)
+    bridge=[(-.026,-.140,1.707),(.026,-.140,1.707),
+            (.017,-.153,1.674),(0,-.157,1.667),
+            (-.017,-.153,1.674)]
+    _bevel_plate("Shallow molded nose bridge",bridge,mask,extras,"Head",.004,.0015)
     # Side shadows framing mouth—do not paint a false circular face patch.
     for s,side in ((-1,"R"),(1,"L")):
-        trim=[(s*.091,-.112,1.656),(s*.107,-.086,1.640),
-              (s*.078,-.118,1.623)]
-        _bevel_plate("Jaw cutout trim "+side,trim,raised,extras,"Head",.003,.001)
+        trim=[(s*.090,-.106,1.658),(s*.099,-.088,1.643),
+              (s*.083,-.116,1.637)]
+        _bevel_plate("Subtle jawline cutoff "+side,trim,raised,extras,"Head",.002,.001)
     return True
