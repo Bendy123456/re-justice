@@ -108,15 +108,13 @@ BELT_MODULE=material('Muted machined utility module',(0.37,.275,.129),metal=.30,
 BELT_REFINE=build_fitted_belt(body,extras,{
     "strap":BELT_STRAP,"trim":BELT,"pouch":BELT_MODULE,"dark":DARK_TRIM,
 })
-# Cowl head: preserve anatomical face and replace plastic-looking eye bars
-# and cone ears with molded curved brow / narrow inset sockets.
-lathe('Fitted carbon cowl dome',[
-    (1.661,.109,.105,.01),(1.687,.116,.115,.011),
-    (1.735,.119,.114,.012),(1.762,.106,.106,.010),
-    (1.787,.082,.082,.007),(1.805,.020,.031,.008)
-],COWL,'Head')
-build_fitted_cowl(extras,{
-    "mask":COWL,"raised":DARK_TRIM,"eyes":EYES,"crease":DARK_TRIM,
+# True anatomical cowl: one sculpted angular crown/brow/temple shell.
+# Replaces the spherical lathe, square eye plates and stuck-on triangles.
+# This is a render-only mesh and inherits the existing Head bone.
+from cowl_sculpt import build_sculpted_cowl
+COWL_SEAM=material('Under-cowl optical shadow',(0.016,.022,.032),rough=.90)
+COWL_QA=build_sculpted_cowl(extras,{
+    "shell":COWL,"seam":COWL_SEAM,"lens":EYES
 })
 # A proper cloth cape surface with controlled folds and broad scalloped points
 verts=[];faces=[];NX=43;NZ=36
@@ -164,6 +162,16 @@ face=cam('CC0 Batman armor closer',(1.8,-3.8,1.9),(0,0,1.4),1.40)
 C.camera=full;C.render.filepath=os.path.join(OUT,'batman_cc0_fullbody.png')
 bpy.ops.render.render(write_still=True)
 C.camera=face;C.render.filepath=os.path.join(OUT,'batman_cc0_closeup.png')
+bpy.ops.render.render(write_still=True)
+# Studio closeups expressly for quality-checking skull profile, ear roots,
+# forehead integration and exposed lower face (not in the exported character).
+front_head=cam('Cowl inspection — true front',(0,-3.3,1.71),(0,0,1.74),.57)
+side_head=cam('Cowl inspection — profile',(3.3,-.45,1.71),(0,0,1.74),.57)
+C.camera=front_head
+C.render.filepath=os.path.join(OUT,'batman_cowl_front.png')
+bpy.ops.render.render(write_still=True)
+C.camera=side_head
+C.render.filepath=os.path.join(OUT,'batman_cowl_profile.png')
 bpy.ops.render.render(write_still=True)
 C.camera=full
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT,'REJustice_Batman_CC0_Base.blend'))
