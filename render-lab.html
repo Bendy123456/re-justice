@@ -1,0 +1,9 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RE-Justice | Three.js Render Bridge Lab</title>
+<style>body{margin:0;padding:24px;background:#080e18;color:#e4f4ff;font:16px system-ui}main{max-width:1100px;margin:auto}canvas{display:block;width:100%;aspect-ratio:16/9;border:1px solid #385069;background:#131f32}button,select{margin:8px 8px 8px 0;padding:10px 14px;background:#22364b;color:white;border:1px solid #66849b;cursor:pointer}#status{color:#9ccfe1}</style>
+</head><body><main><h1>RE-JUSTICE / RENDER BRIDGE LAB</h1><p>Step 1 diagnostic: original Ion Strider placeholder in a 3D scene. Does not run the fighting simulation.</p><canvas id="view" width="1280" height="720"></canvas><select id="state"><option value="idle">Idle</option><option value="walk">Walk</option><option value="block">Block</option><option value="attack">Light attack</option><option value="hitstun">Hit reaction</option></select><button id="freeze">Pause</button><button id="boxes">2D Hitbox / Hurtbox overlay</button><p id="status">Initializing WebGL…</p></main>
+<script src="characters.js"></script><script src="hero-visuals.js"></script><script src="stages.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<script src="visual3d.js"></script><script src="render-lab.js"></script>
+</body></html>
