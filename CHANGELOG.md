@@ -1,5 +1,16 @@
 # Changelog
 
+## Unmasked matte bald head — Blender art study (2026-10-17)
+
+- Replaced the cowl, helmet, pointed ears, hair and visor meshes with the natural, continuous head geometry from the existing anatomically rigged CC0 humanoid.
+- Applied the same actual `Kevlar fitted underlayer` matte blue-gray material datablock to the face, skull and body. Facial feature meshes use neutral, non-glowing detail materials.
+- Added `blender/bald_head_sculpt.py` to create a subtle non-destructive corrective shape key on the existing head mesh, preserving its 65-bone skeleton and full neck-to-head geometry.
+- Added front, profile and three-quarter close-up Blender renders for direct inspection; the existing full-body and armor renders remain.
+- Included existing imported eye and brow geometry in the GLB export rather than omitting facial features.
+- Blender CI successfully rendered, saved the editable `.blend`, exported the `.glb`, and published verified review images on `batman-blender-asset`.
+- No changes to the public game, moves, damage, hitboxes, fighter frame timing, or UI.
+- Known limitation: the underlying CC0 facial anatomy remains stylized and is not a photogrammetry-based face sculpt; future manual face topology and texture work could move it closer to the high-end reference portrait.
+
 ## Batman Blender — Continuous Sculpted Cowl (2026-10-17)
 
 - Replaced the sphere/lathe helmet cap and detached visor/ear components with a new anatomical cowl surface in `blender/cowl_sculpt.py`.
