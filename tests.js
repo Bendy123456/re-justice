@@ -223,11 +223,35 @@
     g.canvas={style:{},getBoundingClientRect(){return {left:80,top:30,width:640,height:360};}};
     g.openSettings();
     const click=(x,y)=>g.onPointerClick({clientX:80+x/2,clientY:30+y/2});
-    click(200,241);equal(g.settingsPlayer,2);
-    click(400,241);equal(g.settingsDevice,'pad');
-    click(210,310);equal(g.rebinding.action,'left');
+    click(200,211);equal(g.settingsPlayer,2);
+    click(420,211);equal(g.settingsDevice,'pad');
+    click(210,296);equal(g.rebinding.action,'left');
     click(40,100);equal(g.scene,'title');equal(g.rebinding,null);
     equal(g.menuCursor,1);
+  });
+
+  test('HiDPI canvas uses physical pixels while keeping logical coordinates',()=>{
+    const g=makeGame();
+    const transform=[];
+    g.canvas={width:1280,height:720,
+      getBoundingClientRect(){return {left:0,top:0,width:1920,height:1080};}};
+    g.ctx={setTransform(...args){transform.push(args);}};
+    g.resize();
+    assert(g.canvas.width>=1920&&g.canvas.height>=1080,'Canvas not rendered at CSS pixel resolution');
+    equal(g.canvas.width/g.canvas.height,1280/720);
+    equal(transform[0][0],g.canvas.width/1280);
+    const pos=g.pointerToCanvas({clientX:960,clientY:540});
+    equal(pos.x,640);equal(pos.y,360);
+  });
+  test('Menu clickable card regions and Settings rows match the new layout',()=>{
+    const g=makeGame();
+    const hotspot=g.titleHotspots().find(x=>x.id==='cpu');
+    assert(g.pointInRect({x:1000,y:320},hotspot));
+    const rows=g.settingsHotspots().filter(x=>x.id==='settings-row');
+    equal(rows.length,16);
+    const firstRight=rows.find(x=>x.row===8),lastLeft=rows.find(x=>x.row===7);
+    assert(firstRight.x>lastLeft.x,'Right settings column missing');
+    assert(lastLeft.y<630,'Last settings row outside panel');
   });
   const list=document.getElementById('cases');let passed=0;
   for(const [name,fn] of tests){const li=document.createElement('li');
