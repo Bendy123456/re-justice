@@ -49,7 +49,7 @@ body.data.materials.append(SKIN)
 # Paint the actual imported anatomical face polygons, rather than placing a sphere on it.
 for poly in body.data.polygons:
     p=body.matrix_world @ poly.center
-    if 1.51 < p.z < 1.68 and abs(p.x) < .12 and p.y < -.025:
+    if 1.615 < p.z < 1.695 and abs(p.x) < .113 and p.y < -.065:
         poly.material_index=1
 for o in bpy.context.scene.objects:
     if o.type=='MESH' and o!=body:
@@ -98,46 +98,24 @@ TORso_qa=build_torso_armor(body,extras,{
     "matte":METAL, "bright":EDGE, "dark":COWL,
     "soft":METAL, "seam":COWL, "crest":COWL,
 })
-# Belt with pouches and heavy buckle.
-bpy.ops.mesh.primitive_torus_add(major_segments=64,minor_segments=14,
-    location=(0,0,1.008),major_radius=.202,minor_radius=.014)
-o=bpy.context.object;o.name='Continuous brass tactical belt';o.data.materials.append(BELT);extras.append((o,'pelvis'))
-for j in range(-3,4):
-    if j==0:continue
-    x=j*.063
-    y=-.199+abs(x)*.13
-    bpy.ops.mesh.primitive_cube_add(size=1,location=(x,y,1.014))
-    o=bpy.context.object;o.name='Rectangular util pouch '+str(j)
-    o.dimensions=(.046,.029,.063)
-    bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-    o.data.materials.append(BELT)
-    bevel=o.modifiers.new('Soft pouch corners','BEVEL');bevel.width=.008;bevel.segments=2
-    extras.append((o,'pelvis'))
-bpy.ops.mesh.primitive_cube_add(size=1,location=(0,-.212,1.012))
-o=bpy.context.object;o.name='Bat clasp';o.dimensions=(.093,.030,.057)
-bpy.ops.object.transform_apply(location=False,rotation=False,scale=True)
-o.data.materials.append(BELT);extras.append((o,'pelvis'))
-# Proper human-head cowl, open mouth and jaw; nose comes from anatomical base face mesh.
-lathe('Top cowl dome',[
-   (1.662,.10,.09,0),(1.681,.118,.107,.014),(1.693,.125,.114,.010),
-   (1.748,.113,.107,.008),(1.785,.078,.075,.006),(1.795,.015,.025,.007)
+# Tailored belt and cowl use original CC0 topology, preserving existing body.
+from belt_face_refine import build_fitted_belt, build_fitted_cowl
+DARK_TRIM=material('Near-black tactical flex seals',(0.042,.049,.058),rough=.82,noise=True)
+BELT_STRAP=material('Belt fitted graphite webbing',(0.098,.082,.062),rough=.88,noise=True)
+BELT_MODULE=material('Muted machined utility module',(0.37,.275,.129),metal=.30,rough=.58)
+BELT_REFINE=build_fitted_belt(body,extras,{
+    "strap":BELT_STRAP,"trim":BELT,"pouch":BELT_MODULE,"dark":DARK_TRIM,
+})
+# Cowl head: preserve anatomical face and replace plastic-looking eye bars
+# and cone ears with molded curved brow / narrow inset sockets.
+lathe('Fitted carbon cowl dome',[
+    (1.661,.109,.105,.01),(1.687,.116,.115,.011),
+    (1.735,.119,.114,.012),(1.762,.106,.106,.010),
+    (1.787,.082,.082,.007),(1.805,.020,.031,.008)
 ],COWL,'Head')
-# mouth skin patch covers only lower central cowl so a face is visible
-# Lower face and chin are now the real continuous 3D human mesh, not an inserted oval.
-for s,side in [(1,'L'),(-1,'R')]:
-    # Ear wedge, narrow with believable cowl profile
-    verts=[(s*.065,-.03,1.764),(s*.128,-.03,1.764),
-           (s*.112,.05,1.76),(s*.065,.05,1.76),(s*.096,0,1.899)]
-    add('Cowl tapered ear '+side,verts,[(0,1,4),(1,2,4),(2,3,4),(3,0,4),(0,3,2,1)],COWL,'Head')
-    panel('Slanted eye mask border '+side,[(s*.026,1.70),(s*.107,1.709),
-          (s*.109,1.676),(s*.029,1.678)],-.126,COWL,'Head',.007)
-    panel('Thin inset lens '+side,[(s*.044,1.691),(s*.095,1.695),
-          (s*.09,1.686),(s*.044,1.684)],-.138,EYES,'Head',.004)
-    # Curved greaves on knees without ball caps
-    panel('Armored kneecap '+side,[(s*.069,.530),(s*.131,.545),(s*.159,.512),
-         (s*.151,.474),(s*.07,.472)],-.093,METAL,'calf_'+side.lower(),.020)
-    # Fin fitting is deferred until forearm skin-weight review; detached spikes removed.
-    # Preserve the underlying anatomically rigged forearm for reliable posing.
+build_fitted_cowl(extras,{
+    "mask":COWL,"raised":DARK_TRIM,"eyes":EYES,"crease":DARK_TRIM,
+})
 # A proper cloth cape surface with controlled folds and broad scalloped points
 verts=[];faces=[];NX=43;NZ=36
 for j in range(NZ):
@@ -197,5 +175,5 @@ with open(os.path.join(OUT,'README.txt'),'w') as q:
     q.write('Quaternius Universal Base Characters: CC0 1.0 public domain\n')
     q.write('Derived base from https://github.com/programasweights/avatar\n')
     q.write('Original RE-Justice Batman-themed art added with Blender.\n')
-    q.write('Modeling study: fitted torso armor, remaining areas need sculpting and skin-weight work. No game rip.\n')
+    q.write('Refined fitted torso, belt and cowl: editable work in progress, not approved for game.\n')
 print('CC0_BATMAN_GENERATION_SUCCESS',OUT)
