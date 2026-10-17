@@ -57,7 +57,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # Preserve newly built files while updating to the current branch;
+          # binary Blender renders cannot be reconciled by normal rebase.
+          mkdir -p /tmp/batman-result
+          cp -a generated/batman_cc0/. /tmp/batman-result/
+          git fetch origin batman-blender-asset
+          git reset --hard origin/batman-blender-asset
+          mkdir -p generated/batman_cc0
+          cp -a /tmp/batman-result/. generated/batman_cc0/
           git add generated/batman_cc0
-          git commit -m "Anatomical Batman Blender model based on CC0 humanoid [skip ci]"
-          git pull --rebase origin batman-blender-asset
+          git diff --cached --quiet || git commit -m "Batman fitted chest, belt and face polish [skip ci]"
           git push origin HEAD:batman-blender-asset
