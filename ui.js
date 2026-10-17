@@ -350,7 +350,7 @@
     c.restore();
   }
   class Renderer {
-    constructor(ctx,game){this.ctx=ctx;this.game=game;this.selectBg=null;this.portraitCache=new Map();}
+    constructor(ctx,game){this.ctx=ctx;this.game=game;this.selectBg=null;this.portraitCache=new Map();this.model3d=null;}
     render(){
       const g=this.game,c=this.ctx;
       c.save();c.clearRect(0,0,CW,CH);
@@ -660,7 +660,13 @@
       if(g.shake){const t=g.frame;const m=Math.min(7,g.shake)*.7;
         c.translate(Math.sin(t*47.25)*m,Math.cos(t*33.8)*m*.56);}
       const fx=[...g.fighters].sort((a,b)=>a.x-b.x);
-      for(const fighter of fx)figure(c,fighter,fighter.x,fighter.y,1,1,g.assets);
+      // Render-only 3D composition. Gameplay never depends on these visuals.
+      if(!this.model3d&&FG.Visual3D&&window.THREE)this.model3d=FG.Visual3D.create();
+      const rendered=this.model3d?.draw(c,g)||false;
+      for(const fighter of fx){
+        if(!rendered||!this.model3d.supported(fighter,g.assets))
+          figure(c,fighter,fighter.x,fighter.y,1,1,g.assets);
+      }
       for(const e of g.effects)this.spark(e);
       if(g.debug)this.hitboxes();
       c.restore();
