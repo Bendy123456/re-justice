@@ -147,10 +147,11 @@
         this.scene==='settings'?this.settingsHotspots():[];
       const hovered=hotspots.find(h=>this.pointInRect(p,h));
       this.uiHover=hovered?hovered.id:null;
+      this.uiHoverRow=hovered?.id==='settings-row'?hovered.row:null;
       this.canvas.style.cursor=hovered?'pointer':'default';
     }
     onPointerLeave(){
-      this.uiHover=null;
+      this.uiHover=null;this.uiHoverRow=null;
       if(this.canvas)this.canvas.style.cursor='default';
     }
     onPointerClick(event){
