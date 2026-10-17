@@ -1,154 +1,144 @@
 Blender 4.0.2
-Fra:1 Mem:21.48M (Peak 21.48M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
-Fra:1 Mem:21.56M (Peak 21.56M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge -2
-Fra:1 Mem:21.66M (Peak 21.66M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge -1
-Fra:1 Mem:21.69M (Peak 21.69M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge 2
-Fra:1 Mem:21.74M (Peak 21.74M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge 3
-Fra:1 Mem:21.83M (Peak 21.83M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt symbol buckle
-Fra:1 Mem:21.83M (Peak 21.83M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
-Fra:1 Mem:21.91M (Peak 21.91M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
-Fra:1 Mem:21.92M (Peak 21.92M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R2
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R1
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R0
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eye/lid R
-Fra:1 Mem:22.98M (Peak 22.98M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
-Fra:1 Mem:24.93M (Peak 24.93M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L2
-Fra:1 Mem:24.93M (Peak 24.93M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L1
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L0
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eye/lid L
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Exposed jaw opening
-Fra:1 Mem:24.94M (Peak 24.94M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
-Fra:1 Mem:25.25M (Peak 25.25M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor L
-Fra:1 Mem:25.29M (Peak 25.29M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector L
-Fra:1 Mem:25.31M (Peak 25.31M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L0
-Fra:1 Mem:25.30M (Peak 25.31M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L1
-Fra:1 Mem:25.30M (Peak 25.31M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R1
-Fra:1 Mem:25.34M (Peak 25.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor R
-Fra:1 Mem:25.34M (Peak 25.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R0
-Fra:1 Mem:25.34M (Peak 25.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector R
-Fra:1 Mem:25.52M (Peak 26.34M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
-Fra:1 Mem:21.23M (Peak 26.34M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
-Fra:1 Mem:21.23M (Peak 26.34M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
-Fra:1 Mem:21.23M (Peak 26.34M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
-Fra:1 Mem:21.23M (Peak 26.34M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
-Fra:1 Mem:21.32M (Peak 26.34M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
-Fra:1 Mem:21.33M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
-Fra:1 Mem:21.33M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
-Fra:1 Mem:21.33M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
-Fra:1 Mem:21.33M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
-Fra:1 Mem:21.83M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
-Fra:1 Mem:22.08M (Peak 26.34M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
-Fra:1 Mem:22.07M (Peak 26.34M) | Time:00:00.07 | Mem:0.26M, Peak:0.26M | Scene, ViewLayer | Updating Scene BVH | Building
-Fra:1 Mem:22.08M (Peak 26.34M) | Time:00:00.07 | Mem:0.26M, Peak:0.26M | Scene, ViewLayer | Updating Scene BVH | Building BVH
-Fra:1 Mem:22.08M (Peak 26.34M) | Time:00:00.07 | Mem:1.27M, Peak:1.27M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
-Fra:1 Mem:22.08M (Peak 26.34M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
-Fra:1 Mem:22.08M (Peak 26.34M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Mesh | Computing normals
-Fra:1 Mem:23.34M (Peak 26.34M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
-Fra:1 Mem:23.34M (Peak 26.34M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Objects Flags
-Fra:1 Mem:23.34M (Peak 26.34M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Primitive Offsets
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Images
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Camera Volume
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights | Computing distribution
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights | Computing tree
-Fra:1 Mem:23.35M (Peak 26.34M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Integrator
-Fra:1 Mem:24.35M (Peak 26.34M) | Time:00:00.08 | Mem:4.73M, Peak:4.73M | Scene, ViewLayer | Updating Film
-Fra:1 Mem:24.35M (Peak 26.34M) | Time:00:00.08 | Mem:4.65M, Peak:4.73M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:24.35M (Peak 26.34M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Updating Baking
-Fra:1 Mem:24.35M (Peak 26.34M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Updating Device | Writing constant memory
-Fra:1 Mem:24.35M (Peak 26.34M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Sample 0/24
-Fra:1 Mem:55.35M (Peak 55.35M) | Time:00:01.11 | Remaining:00:23.76 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Sample 1/24
-Fra:1 Mem:69.12M (Peak 96.67M) | Time:00:22.51 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Sample 24/24
-Fra:1 Mem:69.12M (Peak 96.67M) | Time:00:22.51 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Finished
+Fra:1 Mem:20.81M (Peak 20.81M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
+Fra:1 Mem:20.83M (Peak 20.83M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
+Fra:1 Mem:20.91M (Peak 20.91M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
+Fra:1 Mem:20.93M (Peak 20.93M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
+Fra:1 Mem:20.95M (Peak 20.95M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 2
+Fra:1 Mem:20.96M (Peak 20.96M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 3
+Fra:1 Mem:20.95M (Peak 20.96M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
+Fra:1 Mem:20.95M (Peak 20.96M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
+Fra:1 Mem:20.95M (Peak 20.96M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
+Fra:1 Mem:21.05M (Peak 21.05M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
+Fra:1 Mem:21.10M (Peak 21.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor L
+Fra:1 Mem:21.18M (Peak 21.18M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector L
+Fra:1 Mem:21.18M (Peak 21.18M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L0
+Fra:1 Mem:21.38M (Peak 21.38M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L1
+Fra:1 Mem:21.96M (Peak 21.96M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor R
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R0
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R1
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
+Fra:1 Mem:22.08M (Peak 22.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Injustice-era black bat symbol
+Fra:1 Mem:22.10M (Peak 22.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
+Fra:1 Mem:22.09M (Peak 22.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
+Fra:1 Mem:22.09M (Peak 22.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
+Fra:1 Mem:22.09M (Peak 22.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
+Fra:1 Mem:23.10M (Peak 23.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
+Fra:1 Mem:24.10M (Peak 24.10M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
+Fra:1 Mem:24.65M (Peak 25.47M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:20.59M (Peak 25.47M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:20.59M (Peak 25.47M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:20.59M (Peak 25.47M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:20.59M (Peak 25.47M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:20.68M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:20.69M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:20.69M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:20.69M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:20.69M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:21.14M (Peak 25.47M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.07 | Mem:0.23M, Peak:0.23M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.07 | Mem:0.23M, Peak:0.23M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.07 | Mem:1.14M, Peak:1.14M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:21.36M (Peak 25.47M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights | Computing distribution
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:22.50M (Peak 25.47M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:23.50M (Peak 25.47M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:23.51M (Peak 25.47M) | Time:00:00.08 | Mem:4.27M, Peak:4.35M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:23.51M (Peak 25.47M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:23.51M (Peak 25.47M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:23.51M (Peak 25.47M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:54.51M (Peak 54.51M) | Time:00:01.00 | Remaining:00:21.33 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:68.28M (Peak 95.82M) | Time:00:22.24 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:68.28M (Peak 95.82M) | Time:00:22.24 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Finished
 Saved: '/home/runner/work/re-justice/re-justice/generated/batman_cc0/batman_cc0_fullbody.png'
-Time: 00:22.73 (Saving: 00:00.21)
+Time: 00:22.46 (Saving: 00:00.21)
 
-Fra:1 Mem:23.75M (Peak 23.75M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
-Fra:1 Mem:23.77M (Peak 23.77M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge -2
-Fra:1 Mem:23.91M (Peak 23.91M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge -1
-Fra:1 Mem:23.95M (Peak 23.95M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge 1
-Fra:1 Mem:23.97M (Peak 23.97M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge 2
-Fra:1 Mem:24.02M (Peak 24.02M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt cartridge 3
-Fra:1 Mem:24.07M (Peak 24.07M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Belt symbol buckle
-Fra:1 Mem:24.08M (Peak 24.08M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
-Fra:1 Mem:24.09M (Peak 24.09M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
-Fra:1 Mem:24.18M (Peak 24.18M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyes
-Fra:1 Mem:24.19M (Peak 24.19M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R2
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R1
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin R0
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eye/lid R
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L2
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L1
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Gauntlet dorsal fin L0
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eye/lid L
-Fra:1 Mem:25.22M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
-Fra:1 Mem:25.17M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Exposed jaw opening
-Fra:1 Mem:25.13M (Peak 25.22M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
-Fra:1 Mem:25.48M (Peak 25.48M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor L
-Fra:1 Mem:25.49M (Peak 25.49M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector L
-Fra:1 Mem:25.59M (Peak 25.59M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L0
-Fra:1 Mem:25.60M (Peak 25.60M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L1
-Fra:1 Mem:25.62M (Peak 25.62M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor R
-Fra:1 Mem:25.61M (Peak 25.62M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector R
-Fra:1 Mem:25.57M (Peak 25.62M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Injustice-era black bat symbol
-Fra:1 Mem:25.57M (Peak 25.62M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R0
-Fra:1 Mem:25.59M (Peak 25.62M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R1
-Fra:1 Mem:25.52M (Peak 26.54M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
-Fra:1 Mem:21.23M (Peak 26.54M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
-Fra:1 Mem:21.23M (Peak 26.54M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
-Fra:1 Mem:21.23M (Peak 26.54M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
-Fra:1 Mem:21.23M (Peak 26.54M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
-Fra:1 Mem:21.32M (Peak 26.54M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
-Fra:1 Mem:21.33M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
-Fra:1 Mem:21.33M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems
-Fra:1 Mem:21.33M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
-Fra:1 Mem:21.33M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Meshes
-Fra:1 Mem:21.83M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Computing attributes
-Fra:1 Mem:22.08M (Peak 26.54M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
-Fra:1 Mem:22.07M (Peak 26.54M) | Time:00:00.07 | Mem:0.26M, Peak:0.26M | Scene, ViewLayer | Updating Scene BVH | Building
-Fra:1 Mem:22.08M (Peak 26.54M) | Time:00:00.07 | Mem:0.26M, Peak:0.26M | Scene, ViewLayer | Updating Scene BVH | Building BVH
-Fra:1 Mem:22.08M (Peak 26.54M) | Time:00:00.07 | Mem:1.27M, Peak:1.27M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
-Fra:1 Mem:22.08M (Peak 26.54M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
-Fra:1 Mem:22.08M (Peak 26.54M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Mesh | Computing normals
-Fra:1 Mem:23.34M (Peak 26.54M) | Time:00:00.08 | Mem:2.38M, Peak:3.40M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
-Fra:1 Mem:23.34M (Peak 26.54M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Objects Flags
-Fra:1 Mem:23.34M (Peak 26.54M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Primitive Offsets
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Images
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Camera Volume
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.65M, Peak:3.65M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights | Computing distribution
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Lights | Computing tree
-Fra:1 Mem:23.35M (Peak 26.54M) | Time:00:00.08 | Mem:3.73M, Peak:3.73M | Scene, ViewLayer | Updating Integrator
-Fra:1 Mem:24.35M (Peak 26.54M) | Time:00:00.08 | Mem:4.73M, Peak:4.73M | Scene, ViewLayer | Updating Film
-Fra:1 Mem:24.35M (Peak 26.54M) | Time:00:00.08 | Mem:4.65M, Peak:4.73M | Scene, ViewLayer | Updating Lookup Tables
-Fra:1 Mem:24.35M (Peak 26.54M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Updating Baking
-Fra:1 Mem:24.35M (Peak 26.54M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Updating Device | Writing constant memory
-Fra:1 Mem:24.35M (Peak 26.54M) | Time:00:00.08 | Mem:4.74M, Peak:4.74M | Scene, ViewLayer | Sample 0/24
-Fra:1 Mem:55.35M (Peak 55.35M) | Time:00:01.16 | Remaining:00:24.86 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Sample 1/24
-Fra:1 Mem:69.12M (Peak 96.67M) | Time:00:24.48 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Sample 24/24
-Fra:1 Mem:69.12M (Peak 96.67M) | Time:00:24.48 | Mem:35.72M, Peak:35.72M | Scene, ViewLayer | Finished
+Fra:1 Mem:23.06M (Peak 23.06M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Continuous brass tactical belt
+Fra:1 Mem:23.09M (Peak 23.09M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -2
+Fra:1 Mem:23.16M (Peak 23.16M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch -1
+Fra:1 Mem:23.18M (Peak 23.18M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 1
+Fra:1 Mem:23.18M (Peak 23.18M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Rectangular util pouch 3
+Fra:1 Mem:23.19M (Peak 23.19M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Bat clasp
+Fra:1 Mem:23.20M (Peak 23.20M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Sculpted lower-face jaw contour
+Fra:1 Mem:23.20M (Peak 23.20M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | STUDIO GROUND (render only)
+Fra:1 Mem:23.20M (Peak 23.20M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Eyebrows
+Fra:1 Mem:23.20M (Peak 23.20M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Scalloped black fabric cape
+Fra:1 Mem:23.61M (Peak 23.61M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | SuperHero_Male
+Fra:1 Mem:24.34M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap R
+Fra:1 Mem:24.30M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens R
+Fra:1 Mem:24.31M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border R
+Fra:1 Mem:24.27M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear R
+Fra:1 Mem:24.29M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Armored kneecap L
+Fra:1 Mem:24.29M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Thin inset lens L
+Fra:1 Mem:24.29M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Slanted eye mask border L
+Fra:1 Mem:24.33M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Cowl tapered ear L
+Fra:1 Mem:24.33M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector L
+Fra:1 Mem:24.33M (Peak 24.34M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Top cowl dome
+Fra:1 Mem:24.40M (Peak 24.40M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L0
+Fra:1 Mem:24.43M (Peak 24.43M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor L1
+Fra:1 Mem:24.44M (Peak 24.44M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Pectoral armor R
+Fra:1 Mem:24.45M (Peak 24.45M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Oblique protector R
+Fra:1 Mem:24.45M (Peak 24.45M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R0
+Fra:1 Mem:24.56M (Peak 24.56M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Abdominal armor R1
+Fra:1 Mem:24.63M (Peak 24.63M) | Time:00:00.06 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Synchronizing object | Injustice-era black bat symbol
+Fra:1 Mem:24.65M (Peak 25.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Initializing
+Fra:1 Mem:20.59M (Peak 25.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Waiting for render to start
+Fra:1 Mem:20.59M (Peak 25.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Loading render kernels (may take a few minutes the first time)
+Fra:1 Mem:20.59M (Peak 25.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Scene
+Fra:1 Mem:20.59M (Peak 25.67M) | Time:00:00.07 | Mem:0.00M, Peak:0.00M | Scene, ViewLayer | Updating Shaders
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Procedurals
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Background
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Camera
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes Flags
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects
+Fra:1 Mem:20.68M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Copying Transformations to device
+Fra:1 Mem:20.69M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Objects | Applying Static Transformations
+Fra:1 Mem:20.69M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Particle Systems
+Fra:1 Mem:20.69M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Particle Systems | Copying Particles to device
+Fra:1 Mem:20.69M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Meshes
+Fra:1 Mem:21.14M (Peak 25.67M) | Time:00:00.07 | Mem:0.01M, Peak:0.01M | Scene, ViewLayer | Updating Mesh | Computing attributes
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.07 | Mem:0.02M, Peak:0.02M | Scene, ViewLayer | Updating Mesh | Copying Attributes to device
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.07 | Mem:0.23M, Peak:0.23M | Scene, ViewLayer | Updating Scene BVH | Building
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.07 | Mem:0.23M, Peak:0.23M | Scene, ViewLayer | Updating Scene BVH | Building BVH
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.07 | Mem:1.14M, Peak:1.14M | Scene, ViewLayer | Updating Scene BVH | Building BVH 0%
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Scene BVH | Copying BVH to device
+Fra:1 Mem:21.36M (Peak 25.67M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Mesh | Computing normals
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:2.12M, Peak:3.03M | Scene, ViewLayer | Updating Mesh | Copying Mesh to device
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Objects Flags
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Primitive Offsets
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Images
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Camera Volume
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.27M, Peak:3.27M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights | Computing distribution
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Lights | Computing tree
+Fra:1 Mem:22.50M (Peak 25.67M) | Time:00:00.08 | Mem:3.35M, Peak:3.35M | Scene, ViewLayer | Updating Integrator
+Fra:1 Mem:23.50M (Peak 25.67M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Film
+Fra:1 Mem:23.51M (Peak 25.67M) | Time:00:00.08 | Mem:4.27M, Peak:4.35M | Scene, ViewLayer | Updating Lookup Tables
+Fra:1 Mem:23.51M (Peak 25.67M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Baking
+Fra:1 Mem:23.51M (Peak 25.67M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Updating Device | Writing constant memory
+Fra:1 Mem:23.51M (Peak 25.67M) | Time:00:00.08 | Mem:4.35M, Peak:4.35M | Scene, ViewLayer | Sample 0/24
+Fra:1 Mem:54.51M (Peak 54.51M) | Time:00:01.13 | Remaining:00:24.15 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Sample 1/24
+Fra:1 Mem:68.28M (Peak 95.82M) | Time:00:24.10 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Sample 24/24
+Fra:1 Mem:68.28M (Peak 95.82M) | Time:00:24.10 | Mem:35.34M, Peak:35.34M | Scene, ViewLayer | Finished
 Saved: '/home/runner/work/re-justice/re-justice/generated/batman_cc0/batman_cc0_closeup.png'
-Time: 00:24.61 (Saving: 00:00.13)
+Time: 00:24.24 (Saving: 00:00.13)
 
 Info: Total files 0 | Changed 0 | Failed 0
 /usr/share/blender/scripts/addons/io_scene_gltf2/io/exp/gltf2_io_image_data.py:25: SyntaxWarning: invalid escape sequence '\.'
@@ -158,75 +148,67 @@ Info: Total files 0 | Changed 0 | Failed 0
 Data are loaded, start creating Blender stuff
 glTF import finished in 0.09s
 Info: Saved "REJustice_Batman_CC0_Base.blend"
-22:25:12 | ERROR: Draco mesh compression is not available because library could not be found at /usr/bin/4.0/python/lib/python3.12/site-packages/libextern_draco.so
-22:25:12 | INFO: Starting glTF 2.0 export
-22:25:12 | INFO: Extracting primitive: Abdominal armor L0
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Abdominal armor L1
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Abdominal armor R0
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Abdominal armor R1
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Armored kneecap L
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Armored kneecap R
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.002
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.001
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.003
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.004
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.005
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.006
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Torus
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Cowl tapered ear L
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Cowl tapered ear R
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Exposed jaw opening
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Eye/lid L
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Eye/lid R
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin L0
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin L1
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin L2
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin R0
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin R1
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Gauntlet dorsal fin R2
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Injustice-era black bat symbol
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Oblique protector L
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Oblique protector R
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Pectoral armor L
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Pectoral armor R
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Scalloped black fabric cape
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Sphere.005_Retopology.004
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Extracting primitive: Top cowl dome
-22:25:12 | INFO: Primitives created: 1
-22:25:12 | INFO: Finished glTF 2.0 export in 0.21802878379821777 s
+22:28:59 | ERROR: Draco mesh compression is not available because library could not be found at /usr/bin/4.0/python/lib/python3.12/site-packages/libextern_draco.so
+22:28:59 | INFO: Starting glTF 2.0 export
+22:28:59 | INFO: Extracting primitive: Abdominal armor L0
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Abdominal armor L1
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Abdominal armor R0
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Abdominal armor R1
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Armored kneecap L
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Armored kneecap R
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.007
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Torus
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cowl tapered ear L
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cowl tapered ear R
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Injustice-era black bat symbol
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Oblique protector L
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Oblique protector R
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Pectoral armor L
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Pectoral armor R
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.003
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.002
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.001
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.004
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.005
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Cube.006
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Scalloped black fabric cape
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Sphere
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Slanted eye mask border L
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Slanted eye mask border R
+22:28:59 | INFO: Primitives created: 1
+22:28:59 | INFO: Extracting primitive: Sphere.005_Retopology.004
+22:29:00 | INFO: Primitives created: 1
+22:29:00 | INFO: Extracting primitive: Thin inset lens L
+22:29:00 | INFO: Primitives created: 1
+22:29:00 | INFO: Extracting primitive: Thin inset lens R
+22:29:00 | INFO: Primitives created: 1
+22:29:00 | INFO: Extracting primitive: Top cowl dome
+22:29:00 | INFO: Primitives created: 1
+22:29:00 | INFO: Finished glTF 2.0 export in 0.1928238868713379 s
 
 CC0_BATMAN_GENERATION_SUCCESS /home/runner/work/re-justice/re-justice/generated/batman_cc0
 
