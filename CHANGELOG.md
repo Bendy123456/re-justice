@@ -1,5 +1,16 @@
 # Changelog
 
+## Batman Blender — Continuous Sculpted Cowl (2026-10-17)
+
+- Replaced the sphere/lathe helmet cap and detached visor/ear components with a new anatomical cowl surface in `blender/cowl_sculpt.py`.
+- Shaped a continuous brow/crown/temple shell with a tapered rear portion extending into the neckline; removed the hard rear helmet rim.
+- Rebuilt pointed ears with narrow, swept, overlapping roots instead of the former blunt cones/triangular attachments.
+- Set inset eye optics close to the new shell surface and reduced the oversized nose bridge.
+- Added head-front and head-profile QA cameras/renders in addition to the existing full-body and torso close-up renders.
+- Ran Blender in GitHub Actions; geometry generation, four renders, editable `.blend` save, and rigged `.glb` export passed.
+- No changes to original CC0 humanoid body geometry, gameplay, combat data, hitboxes, navigation, or production hosting.
+- Known limitation: modeled cowl remains a stylized mid-poly fan-art study, not a high-resolution hand-sculpted Injustice production asset. Full topology/rig deformation and PBR material polish remain for future refinement.
+
 ## Batman Blender refinement — belt, chest, face (2026-10-17)
 
 - Retrieved the prior editable art from the existing `batman-blender-asset` GitHub branch; no user re-upload required.
