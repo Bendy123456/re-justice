@@ -54,11 +54,15 @@ def build_torso_armor(body, extras, materials):
         direction = inverse.to_3x3() @ front
         direction.normalize()
         location, _, _, _ = tree.ray_cast(origin, direction, M["ray_length"])
+        # At the outer ribs some rays hit the arm or the *back* of the
+        # humanoid mesh (positive Y). Reject these false "front" surfaces:
+        # they caused the old rib plates to flare dramatically off the body.
+        anatomical_front = -0.109 + .34 * x*x + .022 * abs(z - 1.40)
         if location is not None:
             result = (matrix @ location).y
-            return result
-        # Smooth fallback outside the anatomical body silhouette. Keep off torso edges.
-        return -0.125 + 0.26 * abs(x)**2 + .09 * (z - 1.33)**2
+            if result < -0.050:
+                return max(result, anatomical_front - .024)
+        return anatomical_front
 
     for x,z in [(0,1.40),(.1,1.40),(.22,1.40),(.27,1.43),(.07,1.29)]:
         probes.append((x,z,round(skin_front_y(x,z),4)))
@@ -162,6 +166,19 @@ def build_torso_armor(body, extras, materials):
             P([(.018,1.447),(.017,1.405),(.019,1.358)]),
             seam,"spine_03",.026,.0022)
 
+    # Central abdomen: low-profile articulated scales gradually disappear
+    # into the original fabric rather than forming a rigid stack of rectangles.
+    for sign,side in [(-1,"R"),(1,"L")]:
+        for tier in range(3):
+            ztop = 1.262 - tier*.044
+            width = .125 - tier*.012
+            shape = [
+                (sign*.033, ztop), (sign*(width*.67), ztop+.008),
+                (sign*width,ztop-.005), (sign*(width*.87),ztop-.034),
+                (sign*.04,ztop-.031)
+            ]
+            armor_shell("Fitted abdominal scale • "+side+" "+str(tier+1),
+                shape,soft,"spine_02",.009,.0055,.0027,.18)
     # Clavicle/neck armor transition only; shoulder mass and arms untouched.
     armor_shell("Fitted sternum bridge",
         [(-.027,1.472),(.027,1.472),(.044,1.436),
