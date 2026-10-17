@@ -1,0 +1,7 @@
+Blender Batman editable modeling study, NOT an official NetherRealm model
+Meshes: 88
+Raw mesh vertices: 12577
+Bones: 17
+Armature: RIG_Batman
+Height target: 2.25 Blender units; +Z up, face toward -Y
+Preview and GLB exported; 36-frame animated idle loop
