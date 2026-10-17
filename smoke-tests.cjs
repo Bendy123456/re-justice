@@ -14,7 +14,7 @@ const storage={values:{},getItem(key){return this.values[key]??null;},setItem(ke
 const window={FG:{},document,navigator:{getGamepads:()=>[]},localStorage:storage,addEventListener(){},removeEventListener(){},devicePixelRatio:1};
 const sandbox={window,document,localStorage:storage,navigator:window.navigator,structuredClone,console,Math,Date,JSON,setTimeout,clearTimeout};
 vm.createContext(sandbox);
-const files=['assets.js','characters.js','stages.js','audio.js','input.js','ai.js','engine.js','ui.js','tests.js'];
+const files=['assets.js','characters.js','stages.js','audio.js','input.js','ai.js','engine.js','fighter-rig.js','ui.js','tests.js'];
 for(const file of files)vm.runInContext(fs.readFileSync(path.join(root,file),'utf8'),sandbox,{filename:file});
 const result=window.__testResult;
 if(!result)throw new Error('Browser test harness did not publish a result');
