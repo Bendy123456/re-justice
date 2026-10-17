@@ -9,7 +9,7 @@
   function gradient(ctx,x,y,w,h,a,b){const g=ctx.createLinearGradient(x,y,x,y+h);g.addColorStop(0,a);g.addColorStop(1,b);return g;}
   function label(ctx,text,x,y,size=20,color='#fff',align='left',weight='900'){
     ctx.textAlign=align;ctx.textBaseline='alphabetic';ctx.fillStyle=color;
-    ctx.font=`${weight} ${size}px "Arial Narrow", Impact, Arial, sans-serif`;
+    ctx.font=`${weight} ${size}px "Segoe UI", Arial, sans-serif`;
     ctx.fillText(text,x,y);
   }
   function panel(ctx,x,y,w,h,opacity=.68){
@@ -359,106 +359,182 @@
     }
     dashboardBackground(){
       const c=this.ctx,g=this.game;
-      this.stageBackdrop(FG.STAGES['orbital-station'],g.frame,true);
-      c.fillStyle='rgba(7,10,15,.78)';c.fillRect(0,0,CW,CH);
-      const haze=c.createLinearGradient(0,0,0,CH);
-      haze.addColorStop(0,'rgba(255,255,255,.02)');
-      haze.addColorStop(1,'rgba(0,0,0,.42)');
-      c.fillStyle=haze;c.fillRect(0,0,CW,CH);
+      c.fillStyle='#080e18';c.fillRect(0,0,CW,CH);
+      const bg=c.createLinearGradient(0,0,CW,CH);
+      bg.addColorStop(0,'#111d2e');bg.addColorStop(.5,'#0d1624');
+      bg.addColorStop(1,'#080d16');c.fillStyle=bg;c.fillRect(0,0,CW,CH);
+      // Very faint structural detail; no blurred bitmap or dense fog overlays.
+      c.save();c.strokeStyle='rgba(98,142,178,.055)';c.lineWidth=1;
+      for(let i=-550;i<1800;i+=93)line(c,i,60,i+465,720,'rgba(120,161,193,.047)',1);
+      c.restore();
+      const aura=c.createRadialGradient(1100,320,30,1100,320,590);
+      aura.addColorStop(0,'rgba(46,92,137,.11)');aura.addColorStop(1,'rgba(46,92,137,0)');
+      c.fillStyle=aura;c.fillRect(0,60,CW,660);
+      c.fillStyle='rgba(2,7,13,.35)';c.fillRect(0,664,CW,56);
     }
     topStatusBar(){
       const c=this.ctx;
-      c.fillStyle='rgba(10,13,18,.92)';c.fillRect(0,0,CW,46);
-      c.strokeStyle='rgba(144,160,173,.26)';c.lineWidth=1;c.strokeRect(.5,.5,CW-1,45);
-      c.beginPath();c.arc(56,23,16,0,Math.PI*2);c.fillStyle='#171d25';c.fill();
-      c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2;c.stroke();
-      line(c,52,23,60,23,'rgba(255,255,255,.75)',2);line(c,56,19,56,27,'rgba(255,255,255,.75)',2);
-      label(c,'RE-Justice',120,22,18,'#ecf2f6','left','700');
-      label(c,'DEV BUILD',232,22,14,'#a7b9c5','left','700');
-      c.fillStyle='#1fa3eb';c.fillRect(870,12,13,22);label(c,'10 / 20',892,28,14,'#eff8ff');
-      c.fillStyle='#84d8ff';c.fillRect(1020,13,90,18);c.fillStyle='#31404e';c.fillRect(1066,13,44,18);
-      label(c,'4:31',1118,28,13,'#d9eaf3');
-      c.beginPath();c.arc(1237,23,16,0,Math.PI*2);c.fillStyle='#171d25';c.fill();c.strokeStyle='rgba(255,255,255,.55)';c.lineWidth=2;c.stroke();
-      c.fillStyle='rgba(255,255,255,.84)';c.fillRect(1230,17,14,12);c.fillRect(1234,13,6,5);
+      c.fillStyle='#070d16';c.fillRect(0,0,CW,60);
+      c.fillStyle='#3caed9';c.fillRect(0,0,5,60);
+      line(c,0,59,CW,59,'rgba(148,186,214,.19)',1);
+      c.save();c.translate(38,29);
+      c.strokeStyle='#77cde9';c.lineWidth=2;
+      c.beginPath();c.moveTo(0,-15);c.lineTo(15,0);c.lineTo(0,15);c.lineTo(-15,0);c.closePath();c.stroke();
+      c.fillStyle='#f0f8ff';c.fillRect(-3,-3,6,6);c.restore();
+      label(c,'RE-JUSTICE',70,37,23,'#eff6ff','left','900');
+      line(c,245,14,245,46,'rgba(187,210,224,.20)',1);
+      label(c,'BROWSER EDITION',265,35,12,'#8da8bc','left','700');
+      // Real state labels rather than the old fake XP/currency/time counters.
+      c.fillStyle='rgba(71,192,234,.11)';rounded(c,996,16,118,29,8);c.fill();
+      label(c,'EARLY ACCESS',1055,35,12,'#8fdaef','center','800');
+      c.fillStyle='#9cbdcf';c.beginPath();c.arc(1136,30,3,0,Math.PI*2);c.fill();
+      label(c,'BUILD 0.1.5',1153,35,12,'#c1d4e1','left','700');
     }
-    sideTab(x,y,w,h,text,selected,badge){
+    sideTab(x,y,w,h,text,selected){
       const c=this.ctx;
-      c.fillStyle=selected?'rgba(128,145,157,.86)':'rgba(124,132,141,.62)';c.fillRect(x,y,w,h);
-      c.strokeStyle='rgba(255,255,255,.34)';c.lineWidth=1;c.strokeRect(x+.5,y+.5,w-1,h-1);
-      line(c,x+11,y+11,x+w-11,y+h-11,'rgba(233,239,243,.14)',1);line(c,x+w-11,y+11,x+11,y+h-11,'rgba(233,239,243,.14)',1);
-      label(c,text,x+w/2,y+h/2+7,18,selected?'#fff':'#f0f0f0','center','700');
-      if(badge!==undefined){c.fillStyle='#27b3ea';c.fillRect(x+w-10,y-4,12,12);label(c,String(badge),x+w-4,y+6,9,'#fff','center','900');}
+      const hover=this.game.uiHover===(text==='FIGHT'?'fight-tab':'settings-tab');
+      c.save();
+      rounded(c,x,y,w,h,10);c.fillStyle=selected?'#213c50':hover?'#1a2d40':'#121f2e';c.fill();
+      c.strokeStyle=selected?'#75ceec':hover?'#4a7e9b':'rgba(161,192,209,.22)';
+      c.lineWidth=selected?2:1;c.stroke();
+      if(selected){c.fillStyle='#70d3f2';rounded(c,x+2,y+12,3,h-24,2);c.fill();}
+      const cx=x+w/2,cy=y+31;
+      c.strokeStyle=selected?'#b2e6f5':'#7f9bb0';c.lineWidth=2;
+      c.beginPath();
+      if(text==='FIGHT'){
+        c.moveTo(cx-13,cy-6);c.lineTo(cx-4,cy+3);c.lineTo(cx+6,cy-8);
+        c.moveTo(cx-6,cy+9);c.lineTo(cx+5,cy-2);c.lineTo(cx+14,cy+7);
+      }else{
+        c.arc(cx,cy,10,0,Math.PI*2);
+        c.moveTo(cx-4,cy);c.lineTo(cx+4,cy);
+        c.moveTo(cx,cy-4);c.lineTo(cx,cy+4);
+      }
+      c.stroke();
+      label(c,text,cx,y+69,13,selected?'#fff':'#a7bfce','center','800');
+      c.restore();
     }
-    dashboardCard(x,y,w,h,title,body,selected,accent='#27b3ea',sub=''){ 
+    modeCard(x,y,w,h,title,eyebrow,description,sub,selected,hovered,online){
       const c=this.ctx;
-      c.fillStyle=selected?'rgba(104,107,112,.86)':'rgba(86,88,94,.82)';c.fillRect(x,y,w,h);
-      c.strokeStyle=selected?'rgba(248,248,250,.85)':'rgba(208,214,219,.44)';c.lineWidth=1;c.strokeRect(x+.5,y+.5,w-1,h-1);
-      line(c,x+6,y+6,x+w-6,y+h-6,'rgba(255,255,255,.17)',1);line(c,x+w-6,y+6,x+6,y+h-6,'rgba(255,255,255,.17)',1);
-      if(selected){c.fillStyle=accent;c.fillRect(x-4,y,4,h);} 
-      label(c,title,x+18,y+40,34,'#ffffff');
-      if(sub)label(c,sub,x+w-22,y+40,16,'#e8eef2','right','700');
-      if(body)label(c,body,x+16,y+h-18,15,'#f0f0f0');
+      const accent=online?'#69d1f5':'#f0bd70';
+      c.save();rounded(c,x,y,w,h,15);c.clip();
+      const fill=c.createLinearGradient(x,y,x+w,y+h);
+      fill.addColorStop(0,online?'#142e43':'#2f2a29');
+      fill.addColorStop(.54,online?'#142232':'#25262b');
+      fill.addColorStop(1,'#121c2a');c.fillStyle=fill;c.fillRect(x,y,w,h);
+      // Decorative arena blueprint instead of the giant grey placeholder X.
+      const px=x+w-123,py=y+167;
+      c.strokeStyle=online?'rgba(105,209,245,.17)':'rgba(240,189,112,.16)';
+      c.lineWidth=1;
+      for(const r of [55,83,111]){
+        c.beginPath();c.arc(px,py,r,0,Math.PI*2);c.stroke();
+      }
+      c.beginPath();c.moveTo(px-145,py);c.lineTo(px+145,py);
+      c.moveTo(px,py-145);c.lineTo(px,py+145);c.stroke();
+      c.save();c.translate(px,py);c.rotate(-.3);
+      c.strokeStyle=online?'rgba(135,221,247,.23)':'rgba(250,203,140,.23)';
+      c.lineWidth=6;c.beginPath();c.moveTo(-26,75);c.lineTo(-16,-35);
+      c.lineTo(0,-74);c.lineTo(16,-35);c.lineTo(26,75);c.stroke();c.restore();
+      c.fillStyle=online?'rgba(105,209,245,.10)':'rgba(240,189,112,.11)';
+      c.fillRect(x,y,5,h);c.restore();
+      c.strokeStyle=selected?'#d6e7ee':hovered?'rgba(160,217,238,.66)':'rgba(147,173,193,.27)';
+      c.lineWidth=selected?2:1;rounded(c,x+.5,y+.5,w-1,h-1,15);c.stroke();
+      c.fillStyle=accent;c.beginPath();c.arc(x+34,y+42,5,0,Math.PI*2);c.fill();
+      label(c,eyebrow,x+49,y+47,13,online?'#95d8ef':'#f2cb91','left','800');
+      const pill=online?'COMING SOON':'PLAY NOW';
+      c.save();rounded(c,x+w-162,y+26,138,32,16);
+      c.fillStyle=online?'rgba(93,184,213,.12)':'rgba(244,185,101,.16)';c.fill();
+      c.strokeStyle=online?'rgba(106,206,238,.25)':'rgba(247,191,111,.31)';c.lineWidth=1;c.stroke();
+      label(c,pill,x+w-93,y+47,12,online?'#a4d5e8':'#ffdc9f','center','800');c.restore();
+      label(c,title,x+32,y+132,39,'#f5f9fc','left','900');
+      label(c,description,x+33,y+178,17,'#d4e3ed','left','600');
+      line(c,x+32,y+h-83,x+w-32,y+h-83,'rgba(192,214,227,.17)',1);
+      label(c,sub,x+32,y+h-38,13,'#9db5c6','left','700');
+      if(selected||hovered){
+        c.strokeStyle=accent;c.lineWidth=3;
+        line(c,x+25,y+h-2,x+152,y+h-2,accent,3);
+      }
     }
     title(){
       const c=this.ctx,g=this.game;
       this.dashboardBackground();this.topStatusBar();
-      const sidebarX=10,tabW=72,tabH=84;
-      this.sideTab(sidebarX,65,tabW,tabH,'FIGHT',g.menuCursor!==2,5);
-      this.sideTab(sidebarX,152,tabW,tabH,'SETTINGS',g.menuCursor===2,4);
+      c.fillStyle='rgba(5,11,19,.69)';c.fillRect(0,60,104,660);
+      line(c,103,60,103,720,'rgba(124,158,178,.16)',1);
+      this.sideTab(12,82,78,88,'FIGHT',g.menuCursor!==2);
+      this.sideTab(12,181,78,88,'SETTINGS',g.menuCursor===2);
+      label(c,'CHOOSE YOUR MODE',134,125,32,'#f4f8fd','left','900');
+      label(c,'Enter the arena. Select how you want to fight.',134,156,16,'#a2bbcc','left','500');
       const selected=g.menuItems[g.menuCursor];
-      const onlineHovered=g.uiHover==='online',cpuHovered=g.uiHover==='cpu',fightHovered=g.uiHover==='fight-tab';
-      const onlineSelected=selected==='online'||onlineHovered;
-      const cpuSelected=selected==='cpu'||fightHovered||cpuHovered;
-      this.dashboardCard(92,65,564,260,'1V1 ONLINE','ONLINE PLAY COMING LATER',onlineSelected,'#27b3ea');
-      this.dashboardCard(674,65,596,260,'1V1 VS BOT','CLICK TO CHOOSE A FIGHTER AND CHALLENGE THE CPU',cpuSelected,'#f6c278');
-      const bottom=c.createLinearGradient(0,335,0,705);
-      bottom.addColorStop(0,'rgba(3,7,14,.65)');
-      bottom.addColorStop(1,'rgba(4,7,13,.04)');
-      c.fillStyle=bottom;c.fillRect(90,337,1180,290);
-      label(c,'RE-JUSTICE',110,417,44,'#f2f4f6');
-      label(c,'CHOOSE YOUR FIGHT',110,456,21,'#d1dae3','left','700');
-      if(selected==='online'){
-        label(c,'ONLINE MULTIPLAYER IS STILL IN DEVELOPMENT',110,519,17,'#99d7f4','left','700');
-      }else{
-        label(c,'SELECT A MODE ABOVE OR USE THE SETTINGS TAB TO CHANGE YOUR CONTROLS',110,519,17,'#c2d5e2','left','700');
-      }
-      label(c,'CLICK TO SELECT    •    ARROWS / D-PAD TO NAVIGATE    •    ENTER / A TO CONFIRM',640,675,17,'#e4edf5','center','700');
+      this.modeCard(132,205,540,320,'1V1 ONLINE','01  /  NETWORK','Face another player in a future online update.',
+        'MULTIPLAYER NETWORKING IN DEVELOPMENT',selected==='online',g.uiHover==='online',true);
+      this.modeCard(692,205,552,320,'1V1 VS BOT','02  /  SOLO','Practice your skills against the CPU.',
+        'CHARACTER SELECT  /  LOCAL SOLO MATCH',selected==='cpu',g.uiHover==='cpu',false);
+      c.save();rounded(c,132,549,1112,91,12);c.fillStyle='rgba(15,27,40,.93)';c.fill();
+      c.strokeStyle='rgba(143,177,200,.22)';c.lineWidth=1;c.stroke();c.restore();
+      c.fillStyle='#75cfec';c.beginPath();c.arc(165,594,5,0,Math.PI*2);c.fill();
+      label(c,'READY WHEN YOU ARE',181,601,17,'#eff7fc','left','800');
+      label(c,'Mouse, keyboard and Xbox / PlayStation controllers supported',181,622,13,'#9bb5c6','left','500');
+      c.save();rounded(c,979,571,235,41,9);c.fillStyle='rgba(124,177,201,.1)';c.fill();
+      c.strokeStyle='rgba(126,185,212,.23)';c.stroke();
+      label(c,'CLICK A MODE TO START',1096,596,13,'#d4eaf4','center','800');c.restore();
+      label(c,'ARROWS / D-PAD   NAVIGATE       ENTER / A   CONFIRM',690,682,13,'#8aa6ba','center','700');
     }
     settings(){
       const c=this.ctx,g=this.game,input=g.input,actions=FG.InputUtils.ACTIONS;
       this.dashboardBackground();this.topStatusBar();
-      const sidebarX=10,tabW=72,tabH=84;
-      this.sideTab(sidebarX,65,tabW,tabH,'FIGHT',false,5);
-      this.sideTab(sidebarX,152,tabW,tabH,'SETTINGS',true,4);
-      this.dashboardCard(92,65,1178,94,'SETTINGS','CHANGE KEY BINDS OR CONTROLLER BINDS',true,'#f6c278');
-      panel(c,92,170,1178,500,.78);
-      label(c,'PLAYER',122,209,16,'#9dd9f1','left','700');
-      label(c,'DEVICE',338,209,16,'#9dd9f1','left','700');
-      const playerSelected=g.settingsRow===-2,deviceSelected=g.settingsRow===-1;
-      panel(c,122,222,154,42,playerSelected ? .94 : .58);label(c,'P'+g.settingsPlayer,199,250,26,'#fff','center');
-      panel(c,338,222,208,42,deviceSelected ? .94 : .58);label(c,g.settingsDevice==='keyboard'?'KEYBOARD':'CONTROLLER',442,250,22,'#fff','center');
-      label(c,'ACTION',122,295,15,'#8db6ca','left','700');label(c,'BINDING',725,295,15,'#8db6ca','left','700');
-      const prettyAction=a=>a.toUpperCase().replace('MEDIUM','MEDIUM ATTACK').replace('HEAVY','HEAVY ATTACK').replace('LIGHT','LIGHT ATTACK').replace('POWER','POWER').replace('SUPER','SUPER').replace('THROW','THROW').replace('BLOCK','BLOCK').replace('BURN','METER BURN').replace('PAUSE','PAUSE').replace('RESET','TRAINING RESET');
-      for(let i=0;i<actions.length;i++){
-        const y=308+i*22,selected=g.settingsRow===i;
-        if(selected){c.fillStyle='rgba(246,194,120,.18)';c.fillRect(114,y-14,1125,21);} 
-        label(c,prettyAction(actions[i]),122,y,14,selected?'#ffffff':'#d8e0e6','left','700');
-        const value=g.settingsDevice==='keyboard'?input.prettyKey(input.bindings.keyboard[g.settingsPlayer][actions[i]]):input.glyph(g.settingsPlayer,actions[i])+'  (B'+input.bindings.pad[g.settingsPlayer][actions[i]]+')';
-        label(c,value,725,y,14,selected?'#f8d999':'#b6dceb','left','700');
+      c.fillStyle='rgba(5,11,19,.69)';c.fillRect(0,60,104,660);
+      line(c,103,60,103,720,'rgba(124,158,178,.16)',1);
+      this.sideTab(12,82,78,88,'FIGHT',false);
+      this.sideTab(12,181,78,88,'SETTINGS',true);
+      label(c,'CONTROLS',134,119,32,'#f3f8fd','left','900');
+      label(c,'Personalize keyboard and controller bindings for each player.',134,151,16,'#a2bbcc','left','500');
+      c.save();rounded(c,132,172,1112,77,12);c.fillStyle='rgba(18,34,49,.92)';c.fill();
+      c.strokeStyle='rgba(142,182,203,.21)';c.lineWidth=1;c.stroke();c.restore();
+      const selector=(x,y,w,h,title,value,on)=>{
+        label(c,title,x,y-7,12,'#85a6bb','left','800');
+        c.save();rounded(c,x,y,w,h,8);c.fillStyle=on?'#28465b':'#142738';c.fill();
+        c.strokeStyle=on?'#91d9ef':'rgba(152,188,210,.3)';c.lineWidth=on?2:1;c.stroke();
+        label(c,value,x+17,y+30,17,'#f3f9fc','left','800');
+        label(c,'↔',x+w-20,y+29,18,'#8fcae3','center','700');c.restore();
+      };
+      selector(146,188,179,48,'PLAYER','PLAYER '+g.settingsPlayer,g.settingsRow===-2);
+      selector(354,188,250,48,'INPUT DEVICE',g.settingsDevice==='keyboard'?'KEYBOARD':'CONTROLLER',g.settingsRow===-1);
+      label(c,'CLICK A BINDING TO CHANGE IT',776,217,14,'#b9d0df','left','600');
+      const names={left:'MOVE LEFT',right:'MOVE RIGHT',up:'JUMP / UP',down:'CROUCH / DOWN',
+        light:'LIGHT ATTACK',medium:'MEDIUM ATTACK',heavy:'HEAVY ATTACK',
+        power:'CHARACTER POWER',super:'SUPER MOVE',throw:'THROW',block:'BLOCK',
+        burn:'METER BURN',pause:'PAUSE',reset:'TRAINING RESET'};
+      const total=actions.length+2;
+      for(let row=0;row<total;row++){
+        const col=Math.floor(row/8),idx=row%8;
+        const x=134+560*col,y=282+44*idx,w=534,h=38;
+        const selected=g.settingsRow===row,hovered=g.uiHover==='settings-row'&&g.uiHoverRow===row;
+        c.save();rounded(c,x,y,w,h,7);c.fillStyle=selected?'#28445a':hovered?'#1b3448':'rgba(17,31,46,.94)';c.fill();
+        c.strokeStyle=selected?'rgba(120,215,245,.91)':'rgba(118,152,175,.21)';c.lineWidth=selected?1.5:1;c.stroke();
+        if(selected){c.fillStyle='#78d8f0';c.fillRect(x+1,y+7,3,h-14);}
+        const action=actions[row];
+        const name=row<actions.length?names[action]:row===actions.length?'CONTROLLER VIBRATION':'RESTORE DEFAULT CONTROLS';
+        let value;
+        if(row<actions.length){
+          value=g.settingsDevice==='keyboard'?input.prettyKey(input.bindings.keyboard[g.settingsPlayer][action]):
+            input.glyph(g.settingsPlayer,action)+'  /  B'+input.bindings.pad[g.settingsPlayer][action];
+        }else{value=row===actions.length?(input.rumbleEnabled?'ON':'OFF'):'RESET ALL';}
+        label(c,name,x+17,y+25,15,selected?'#ffffff':'#c6d6e2','left','700');
+        const vtext=String(value||'—');
+        const tw=Math.max(64,Math.min(152,c.measureText(vtext).width+25));
+        const vx=x+w-13-tw;
+        rounded(c,vx,y+6,tw,26,5);c.fillStyle=selected?'#3e657b':'#263e50';c.fill();
+        label(c,vtext,vx+tw/2,y+24,13,selected?'#ecfbff':'#c7e3ef','center','800');
+        c.restore();
       }
-      const rumbleRow=actions.length,resetRow=actions.length+1;
-      const yR=308+rumbleRow*22,yReset=308+resetRow*22;
-      if(g.settingsRow===rumbleRow){c.fillStyle='rgba(246,194,120,.18)';c.fillRect(114,yR-14,1125,21);} 
-      label(c,'RUMBLE',122,yR,14,g.settingsRow===rumbleRow?'#fff':'#d8e0e6','left','700');
-      label(c,input.rumbleEnabled?'ON':'OFF',725,yR,14,g.settingsRow===rumbleRow?'#f8d999':'#b6dceb','left','700');
-      if(g.settingsRow===resetRow){c.fillStyle='rgba(246,194,120,.18)';c.fillRect(114,yReset-14,1125,21);} 
-      label(c,'RESET TO DEFAULTS',122,yReset,14,g.settingsRow===resetRow?'#fff':'#d8e0e6','left','700');
-      label(c,'CONFIRM',725,yReset,14,g.settingsRow===resetRow?'#f8d999':'#b6dceb','left','700');
+      label(c,'CLICK A ROW TO REBIND  •  LEFT / RIGHT SWITCH COLUMNS  •  ESC / B RETURN',690,680,13,'#9ab4c7','center','700');
       if(g.rebinding){
-        panel(c,309,548,744,82,.96);label(c,'PRESS A '+(g.rebinding.device==='keyboard'?'KEY':'CONTROLLER BUTTON')+' FOR '+g.rebinding.action.toUpperCase(),681,582,22,'#fff','center');
-        label(c,'ESC / B TO CANCEL',681,611,14,'#c0d8e6','center');
-      } else {
-        label(c,'UP / DOWN MOVE    LEFT / RIGHT CHANGE PLAYER OR DEVICE    ENTER / A REBIND    ESC / B BACK',681,636,15,'#d5e1e9','center','700');
+        c.fillStyle='rgba(3,8,14,.75)';c.fillRect(104,60,1176,660);
+        c.save();rounded(c,356,253,630,216,15);c.fillStyle='#142638';c.fill();
+        c.strokeStyle='#75cae7';c.lineWidth=2;c.stroke();
+        label(c,'REMAP CONTROL',386,304,20,'#8ad8f1','left','900');
+        label(c,g.rebinding.action.toUpperCase().replaceAll('_',' '),386,348,28,'#fff','left','800');
+        label(c,g.rebinding.device==='keyboard'?'Press the new key on your keyboard':'Press the new button on your controller',386,388,17,'#c7dbe7','left','600');
+        label(c,'ESC / B  CANCEL',386,437,14,'#9dbacb','left','800');c.restore();
       }
     }
     portraitFor(def){
