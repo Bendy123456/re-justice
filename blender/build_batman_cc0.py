@@ -46,16 +46,13 @@ SKIN=material('Exposed face',(0.46,.30,.22),rough=.83)
 BELT=material('Old-gold utility pouches',(0.33,.25,.11),metal=.35,rough=.70)
 CAPE=material('Heavy black cape',(0.018,.024,.033),rough=.98,noise=True)
 EYES=material('Cowl white slit lenses',(.76,.84,.88),rough=.24)
-body.data.materials.clear();body.data.materials.append(FABRIC)
-body.data.materials.append(SKIN)
-# Paint the actual imported anatomical face polygons, rather than placing a sphere on it.
-for poly in body.data.polygons:
-    p=body.matrix_world @ poly.center
-    if 1.615 < p.z < 1.695 and abs(p.x) < .113 and p.y < -.065:
-        poly.material_index=1
-for o in bpy.context.scene.objects:
-    if o.type=='MESH' and o!=body:
-        o.data.materials.clear();o.data.materials.append(EYES)
+# Match the entire bald anatomical head to the SAME graphite material as
+# the original body, exactly as in the approved visual reference.
+from bald_head_sculpt import apply_bald_head
+base_eyes=next((o for o in bpy.context.scene.objects if o.type=='MESH' and o.name.startswith('Eyes')),None)
+base_brows=next((o for o in bpy.context.scene.objects if o.type=='MESH' and o.name.startswith('Eyebrows')),None)
+NEUTRAL_EYES=material('Natural dark eyes — non-glowing',(0.095,.115,.139),rough=.96)
+BALD_HEAD_QA=apply_bald_head(body,base_eyes,base_brows,FABRIC,FABRIC,NEUTRAL_EYES)
 extras=[]
 def add(name,verts,faces,m,bone='spine_03',smooth=False,solid=0):
     d=bpy.data.meshes.new(name);d.from_pydata(verts,[],faces);d.update()
@@ -108,14 +105,10 @@ BELT_MODULE=material('Muted machined utility module',(0.37,.275,.129),metal=.30,
 BELT_REFINE=build_fitted_belt(body,extras,{
     "strap":BELT_STRAP,"trim":BELT,"pouch":BELT_MODULE,"dark":DARK_TRIM,
 })
-# True anatomical cowl: one sculpted angular crown/brow/temple shell.
-# Replaces the spherical lathe, square eye plates and stuck-on triangles.
-# This is a render-only mesh and inherits the existing Head bone.
-from cowl_sculpt import build_sculpted_cowl
-COWL_SEAM=material('Under-cowl optical shadow',(0.016,.022,.032),rough=.90)
-COWL_QA=build_sculpted_cowl(extras,{
-    "shell":COWL,"seam":COWL_SEAM,"lens":EYES
-})
+# APPROVED NEW HEAD: bald, normal unmasked human face.
+# The anatomical base skull supplies the entire head, forehead, cheeks,
+# nose and jaw. No cowl, ears, helmet, mask, hair or floating glasses.
+# Preserve the current body armor, fitted belt, cape and skeleton.
 # A proper cloth cape surface with controlled folds and broad scalloped points
 verts=[];faces=[];NX=43;NZ=36
 for j in range(NZ):
@@ -163,21 +156,26 @@ C.camera=full;C.render.filepath=os.path.join(OUT,'batman_cc0_fullbody.png')
 bpy.ops.render.render(write_still=True)
 C.camera=face;C.render.filepath=os.path.join(OUT,'batman_cc0_closeup.png')
 bpy.ops.render.render(write_still=True)
-# Studio closeups expressly for quality-checking skull profile, ear roots,
-# forehead integration and exposed lower face (not in the exported character).
-front_head=cam('Cowl inspection — true front',(0,-3.3,1.71),(0,0,1.74),.57)
-side_head=cam('Cowl inspection — profile',(3.3,-.45,1.71),(0,0,1.74),.57)
+# Review the bald face from front / true profile / 3-quarter; these are
+# Blender render cameras, not changes to in-game camera or gameplay.
+front_head=cam('Bald anatomical head — front',(0,-3.3,1.71),(0,0,1.70),.65)
+side_head=cam('Bald anatomical head — profile',(3.3,-.1,1.71),(0,0,1.70),.65)
+threeq_head=cam('Bald anatomical head — three-quarter',(2.3,-3.2,1.99),(0,0,1.67),.77)
 C.camera=front_head
-C.render.filepath=os.path.join(OUT,'batman_cowl_front.png')
+C.render.filepath=os.path.join(OUT,'batman_bald_front.png')
 bpy.ops.render.render(write_still=True)
 C.camera=side_head
-C.render.filepath=os.path.join(OUT,'batman_cowl_profile.png')
+C.render.filepath=os.path.join(OUT,'batman_bald_profile.png')
+bpy.ops.render.render(write_still=True)
+C.camera=threeq_head
+C.render.filepath=os.path.join(OUT,'batman_bald_threequarter.png')
 bpy.ops.render.render(write_still=True)
 C.camera=full
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT,'REJustice_Batman_CC0_Base.blend'))
 bpy.ops.object.select_all(action='DESELECT')
 rig.select_set(True)
-for ob in (body,*[x for x,b in extras]):ob.select_set(True)
+for ob in (body,*[x for x,b in extras],*[x for x in (base_eyes,base_brows) if x is not None]):
+    ob.select_set(True)
 bpy.context.view_layer.objects.active=rig
 bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,'REJustice_Batman_CC0_Base.glb'),
     export_format='GLB',use_selection=True,export_animations=True)
@@ -185,5 +183,5 @@ with open(os.path.join(OUT,'README.txt'),'w') as q:
     q.write('Quaternius Universal Base Characters: CC0 1.0 public domain\n')
     q.write('Derived base from https://github.com/programasweights/avatar\n')
     q.write('Original RE-Justice Batman-themed art added with Blender.\n')
-    q.write('Refined fitted torso, belt and cowl: editable work in progress, not approved for game.\n')
+    q.write('Head pass: bald, mask-free, hair-free face, identical graphite body material; sculpt key.\n')
 print('CC0_BATMAN_GENERATION_SUCCESS',OUT)
