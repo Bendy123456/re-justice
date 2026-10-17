@@ -108,12 +108,12 @@ def build_sculpted_cowl(extras,materials):
     earverts=[];earfaces=[]
     K=COWL["ear_segments"]
     profile=[
-        (1.733,.050,.028,.076,.020),
-        (1.760,.046,.029,.079,.021),
-        (1.790,.036,.024,.083,.024),
-        (1.830,.024,.018,.087,.030),
-        (1.878,.009,.008,.093,.038),
-        (COWL["ear_tip_z"],.0011,.0015,.096,.041),
+        (1.738,.036,.020,.078,.013),
+        (1.764,.036,.021,.080,.017),
+        (1.795,.027,.017,.085,.025),
+        (1.838,.017,.012,.091,.032),
+        (1.882,.007,.006,.097,.041),
+        (COWL["ear_tip_z"],.001,.001,.100,.045),
     ]
     for side in (-1,1):
         offset=len(earverts)
@@ -138,21 +138,21 @@ def build_sculpted_cowl(extras,materials):
     for sign,side in ((-1,"R"),(1,"L")):
         # Dark recessed socket floats only 1-2 mm above the shell edge.
         eye=[
-            (sign*.036,-.124,1.697),(sign*.083,-.112,1.704),
-            (sign*.093,-.105,1.696),(sign*.079,-.114,1.685),
-            (sign*.044,-.128,1.687)
+            (sign*.036,-.117,1.697),(sign*.083,-.107,1.704),
+            (sign*.093,-.103,1.696),(sign*.079,-.111,1.685),
+            (sign*.044,-.123,1.687)
         ]
         _bend_plate("COWL | narrow recessed eye socket "+side,eye,seam,extras,.002)
         lit=[
-            (sign*.043,-.129,1.697),(sign*.080,-.115,1.700),
-            (sign*.077,-.118,1.695),(sign*.049,-.132,1.690)
+            (sign*.043,-.123,1.697),(sign*.080,-.109,1.700),
+            (sign*.077,-.113,1.695),(sign*.049,-.126,1.690)
         ]
         _bend_plate("COWL | almond-shaped inset optic "+side,lit,lens,extras,.0015)
     # Small center nose crest *shares cowl color* and tapers into exposed nose.
     bridge=[
-        (-.020,-.123,1.699),(.020,-.123,1.699),
-        (.018,-.131,1.684),(0,-.146,1.660),
-        (-.018,-.131,1.684)
+        (-.016,-.121,1.699),(.016,-.121,1.699),
+        (.013,-.129,1.686),(0,-.138,1.675),
+        (-.013,-.129,1.686)
     ]
     _bend_plate("COWL | sculpted nasal bridge",bridge,matte,extras,.002)
     print("COWL_GEOMETRY_QA",{
