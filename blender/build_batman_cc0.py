@@ -2,8 +2,9 @@
 The input source is a public-domain Quaternius-derived mesh, not extracted DC game geometry.
 Outputs are a Blender scene, GLB, and two inspection renders.
 """
-import bpy, math, os
+import bpy, math, os, sys
 from math import sin,cos,pi
+sys.path.insert(0,os.path.dirname(__file__))
 from mathutils import Vector
 BASE=os.path.abspath(os.path.join(os.path.dirname(__file__),'..'))
 OUT=os.path.join(BASE,'generated','batman_cc0')
