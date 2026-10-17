@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.4 — Settings mouse navigation fix (2026-10-17)
+
+- Fixed the left **FIGHT** tab so it returns from Settings to the main menu when clicked.
+- Added mouse selection for player 1 / player 2, keyboard / controller, all action binding rows, rumble, and reset-to-defaults controls.
+- Mouse click coordinates are converted to canvas coordinates, so the controls work when the game is letterboxed or resized.
+- Added a regression test for navigating out of Settings during a pending rebind.
+- **30/30 automated tests** passed using the local logic-test harness; direct click checks also passed.
+
 ## 0.1.2 — Dashboard main menu + rebindable settings (2026-10-17)
 
 ### Included
