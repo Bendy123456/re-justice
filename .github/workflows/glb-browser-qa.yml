@@ -4,6 +4,7 @@ on:
     branches: [roster-glb-integration]
     paths:
       - 'assets/models/*.glb'
+      - 'glb-visuals.js'
       - '.github/workflows/glb-browser-qa.yml'
   workflow_dispatch:
 permissions:
