@@ -133,3 +133,15 @@ generated in the browser: no third-party assets, network fetches, or static
 background screenshot. Both Sandbox and 1V1 VS BOT render the same sky.
 The sky system is visual only and does not change fighters, collisions,
 controls, existing Blender terrain, or the combat simulation.
+
+## Relaxed neutral standing pose
+
+When a player stops walking, the animation now eases from the last planted
+step into a narrow stance. Both feet return beneath the hips; elbows relax
+and hands hang along the outer thighs instead of rising into a boxing guard.
+The actual joint lengths of the male and female Blender models determine how
+far the wrists and ankles extend, so the bones do not stretch unnaturally.
+Transition blending occurs over simulation frames rather than snapping when
+movement input stops. Fighting guard, blocking, walking arm swing, dashing,
+and attacks keep their separate intended animations. A 3D-browser regression
+test measures real arm/leg positions on both rigs and captures a front view.
