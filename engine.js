@@ -122,7 +122,8 @@
         {id:'fight-tab',x:12,y:82,w:78,h:88,cursor:1},
         {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:2},
         {id:'online',x:132,y:205,w:540,h:320,cursor:0},
-        {id:'cpu',x:692,y:205,w:552,h:320,cursor:1}
+        {id:'cpu',x:692,y:205,w:552,h:320,cursor:1},
+        {id:'mode-confirm',x:913,y:570,w:300,h:43,cursor:this.menuCursor}
       ];
     }
     settingsHotspots(){
@@ -227,6 +228,7 @@
           if(spot.id==='fight-tab'){this.menuCursor=1;this.audio.play('confirm',.16);return;}
           if(spot.id==='online'){this.menuCursor=0;this.activateMenuItem();return;}
           if(spot.id==='cpu'){this.menuCursor=1;this.activateMenuItem();return;}
+          if(spot.id==='mode-confirm'){this.activateMenuItem();return;}
         }
       }
     }
