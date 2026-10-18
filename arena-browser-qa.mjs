@@ -65,11 +65,12 @@ try{
      !treeQA.hasTreeBark||treeQA.triangles<100000)
     throw Error('The old primitive tree was served instead of the new sculpt');
   await page.evaluate(()=>{
-    const arena=window.game.arena3d;
-    // A true eye-level in-game render of the centerpiece, without hiding
-    // it behind the main gameplay camera or arena walls.
-    arena.camera.position.set(0,5.3,-21);
-    arena.camera.lookAt(0,9.3,0);
+    const game=window.game,arena=game.arena3d;
+    // Freeze the original requestAnimationFrame loop so the player-follow
+    // camera cannot overwrite our intended static tree-inspection view.
+    game.running=false;
+    arena.camera.position.set(0,7.8,-22);
+    arena.camera.lookAt(0,10.5,0);
     arena.renderer.render(arena.scene,arena.camera);
     arena.hudCtx.clearRect(0,0,1280,720);
   });
