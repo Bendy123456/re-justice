@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
+import {poseFighter} from './arena-animator.js';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
@@ -58,7 +59,7 @@ class Combatant {
     this.grounded=true;this.health=this.maxHealth;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.combo=0;this.comboTicks=0;
-    this.dash=0;this.dashCooldown=0;this.backpedal=false;
+    this.dash=0;this.dashCooldown=0;this.dashElapsed=0;this.landingFrames=0;this.backpedal=false;
     this.facing={x:this.slot===1?1:-1,z:0};
     this.travel={x:0,z:0};
     this.visualYaw=this.prevVisualYaw=Math.PI/2*(this.slot===1?1:-1);
@@ -167,9 +168,9 @@ class Arena3D {
     const model=cloneSkeleton(this.models[key]||this.models.male);
     const root=new THREE.Group();root.add(model);root.name='3d-fighter-'+actor.slot;
     this.scene.add(root);
-    const bones=new Map(),rests=new Map();
+    const bones=new Map(),rests=new Map(),restPositions=new Map();
     model.traverse(node=>{
-      if(node.isBone){bones.set(node.name.toLowerCase(),node);rests.set(node.name.toLowerCase(),node.quaternion.clone());}
+      if(node.isBone){bones.set(node.name.toLowerCase(),node);rests.set(node.name.toLowerCase(),node.quaternion.clone());restPositions.set(node.name.toLowerCase(),node.position.clone());}
       if(node.isMesh){node.frustumCulled=false;}
     });
     // Soft contact shadow stays on the arena floor during jump, instead of
@@ -180,7 +181,7 @@ class Arena3D {
     shadow.rotation.x=-Math.PI/2;
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
-    return {actor,root,bones,rests,key,shadow};
+    return {actor,root,bones,rests,restPositions,key,shadow,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
     for(const o of this.views){
@@ -280,6 +281,7 @@ class Arena3D {
     a.travel={x:0,z:0};
     a.backpedal=(control.y||0)>.2;
     if(a.dashCooldown>0)a.dashCooldown--;
+    if(a.landingFrames>0)a.landingFrames--;
     if(a.flash>0)a.flash--;
     if(a.comboTicks>0)a.comboTicks--;else a.combo=0;
     const stunned=a.stun>0;
@@ -293,7 +295,7 @@ class Arena3D {
       if((control.pressed.burn||human&&keys.has('ShiftLeft'))&&!a.dashCooldown&&a.grounded){
         const x=control.x||0,z=-(control.y||0);
         a.dashDirection=unit(right.x*x+forward.x*z,right.z*x+forward.z*z,forward);
-        a.dash=DASH_FRAMES;a.dashCooldown=DASH_COOLDOWN;
+        a.dash=DASH_FRAMES;a.dashElapsed=0;a.dashCooldown=DASH_COOLDOWN;
       }
       for(const button of ['light','medium','heavy']){
         if(control.pressed[button]&&a.attackWith(button)){
@@ -322,7 +324,7 @@ class Arena3D {
         a.x+=a.dashDirection.x*DASH*STEP;
         a.z+=a.dashDirection.z*DASH*STEP;
         a.travel={...a.dashDirection};
-        a.dash--;a.state='dash';
+        a.dash--;a.dashElapsed++;a.state='dash';
       }else if(control.x||control.y){
         const dx=control.x||0,dz=-(control.y||0);
         const direction=unit(right.x*dx+forward.x*dz,right.z*dx+forward.z*dz);
@@ -340,7 +342,7 @@ class Arena3D {
     }else if(a.attack)a.state='attack';
     if(!a.grounded){
       a.vy-=GRAVITY*STEP;a.y+=a.vy*STEP;
-      if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;}
+      if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;a.landingFrames=7;}
     }
     constrain(a);
     // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
@@ -380,63 +382,9 @@ class Arena3D {
     this.effects.push({x:(a.x+b.x)/2,z:(a.z+b.z)/2,y:1.2+(a.y+b.y)/2,life:15});
     this.game.audio.play(blocked?'block':'hit',.38);
   }
-  // Blender's forward is glTF local +Z. Pose limbs into that hemisphere;
-  // the previous -Z arm directions placed both hands behind the character.
-  pose(view,alpha){
-    const a=view.actor,root=view.root;
-    const yaw=a.prevVisualYaw+angleDelta(a.visualYaw,a.prevVisualYaw)*alpha;
-    const pitch=lerp(a.prevLean,a.lean,alpha);
-    const roll=lerp(a.prevBank,a.bank,alpha);
-    const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
-    const running=a.state==='walk'||a.state==='dash';
-    const rhythm=a.animClock*(a.state==='dash'?.4:.27);
-    const gait=running?Math.sin(rhythm):0;
-    const bob=running&&a.grounded?Math.abs(gait)*.037:0;
-    root.position.set(px,lerp(a.prevY,a.y,alpha)+bob,pz);
-    view.shadow.position.set(px,.018,pz);
-    view.shadow.material.opacity=.74/(1+a.y*.18);
-    root.rotation.order='YXZ';
-    root.rotation.set(pitch,yaw,roll);
-    for(const [name,bone] of view.bones)bone.quaternion.copy(view.rests.get(name));
-    root.updateWorldMatrix(true,true);
-
-    // Rotate existing joint-to-joint vectors; imported bone local axes vary.
-    // World targets are rotated by the heading, preserving correct +Z forward.
-    const facingQ=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);
-    function aim(name,child,target){
-      const bone=view.bones.get(name),end=view.bones.get(child);
-      if(!bone||!end)return;
-      const start=bone.getWorldPosition(new THREE.Vector3());
-      const current=end.getWorldPosition(new THREE.Vector3()).sub(start);
-      if(current.lengthSq()<1e-8)return;
-      current.normalize();
-      const desired=new THREE.Vector3(...target).normalize().applyQuaternion(facingQ);
-      const change=new THREE.Quaternion().setFromUnitVectors(current,desired);
-      const parent=bone.parent.getWorldQuaternion(new THREE.Quaternion());
-      bone.quaternion.premultiply(parent.clone().invert().multiply(change).multiply(parent)).normalize();
-      bone.updateWorldMatrix(false,true);
-    }
-
-    let strike=0;
-    if(a.attack){
-      if(a.attackTick<a.attack.startup)strike=-.18;
-      else if(a.attackTick<a.attack.startup+a.attack.active)strike=1;
-      else strike=clamp(1-(a.attackTick-a.attack.startup-a.attack.active)/a.attack.recovery,0,1);
-    }
-    const guard=a.state==='block';
-    const stride=gait*(a.state==='dash'?.54:.42);
-    // Both forearms rise in FRONT of the chest, not behind the spine.
-    // Left hand extends through strike startup/active/recovery.
-    aim('upperarm_l','lowerarm_l',[-.29,-.72+(guard?.12:0)+strike*.48,.40-stride*.25+strike*.56]);
-    aim('upperarm_r','lowerarm_r',[.29,-.72+(guard?.12:0),.40+stride*.25]);
-    aim('lowerarm_l','hand_l',[-.13,.58+strike*.10,.78+strike*.35]);
-    aim('lowerarm_r','hand_r',[.13,.58,.78]);
-    // Alternate legs along +Z/-Z (depth), rather than swaying side to side.
-    aim('thigh_l','calf_l',[-.085,-.94,.06+stride]);
-    aim('thigh_r','calf_r',[.085,-.94,.06-stride]);
-    aim('calf_l','foot_l',[-.02,-.96,.12+Math.max(0,-stride)*.42]);
-    aim('calf_r','foot_r',[.02,-.96,.12+Math.max(0,stride)*.42]);
-  }
+  // Full-body animation is separated from gameplay and authored in the
+  // rig-aware keyframe animation library.
+  pose(view,alpha){poseFighter(view,alpha);}
   render(alpha){
     if(!this.active)return;
     try{
