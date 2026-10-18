@@ -162,8 +162,8 @@ export function poseFighter(view,alpha){
   // abdomen whenever the torso counter-rotated. Blend in the guard only when
   // stopping or engaging in combat; arms pump opposite the corresponding leg.
   const pump=drive*stride;
-  const idleL=[-.43,-.57,.59],idleR=[.43,-.57,.59];
-  const idleForeL=[-.25,.39,.88],idleForeR=[.25,.39,.88];
+  const idleL=[-.43,-.58,.55],idleR=[.43,-.58,.55];
+  const idleForeL=[-.26,.39,.81],idleForeR=[.26,.39,.81];
   const walkL=[-.58,-.85,.19-pump*.62];
   const walkR=[.58,-.85,.19+pump*.62];
   const walkForeL=[-.25,-.69,.30-pump*.16];
