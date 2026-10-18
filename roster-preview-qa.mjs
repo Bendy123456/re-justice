@@ -22,6 +22,44 @@ try{
       p.loaded.has('batman')&&window.game.arena3d?.ready;
   },null,{timeout:120000});
 
+  // Current canvas title screen: test real mouse and keyboard selection,
+  // rather than treating decorative UI as an inert mockup.
+  await page.evaluate(()=>{
+    const g=window.game;g.scene='title';g.menuCursor=1;g.uiHover=null;g.frame=260;
+    g.render();
+  });
+  await page.screenshot({path:'ci-images/cinematic-mode-menu.png'});
+  const titleShot=await page.screenshot({type:'jpeg',quality:51});
+  const encoded=titleShot.toString('base64').match(/.{1,4000}/g)||[];
+  encoded.forEach((part,i)=>console.log('CINEMATIC_MENU_FRAME:'+i+'/'+encoded.length+':'+part));
+  console.log('CINEMATIC_MENU_FRAME_FINISH:'+encoded.length);
+  const menuCheck=await page.evaluate(()=>{
+    const g=window.game;
+    const hotspots=g.titleHotspots();
+    const bothCards=hotspots.some(h=>h.id==='online'&&h.w===540)&&
+      hotspots.some(h=>h.id==='cpu'&&h.w===552);
+    g.menuCursor=1;
+    g.updateTitle(new Set(['ArrowLeft']));
+    const left=g.menuItems[g.menuCursor];
+    g.updateTitle(new Set(['ArrowRight']));
+    const right=g.menuItems[g.menuCursor];
+    return {bothCards,left,right,scene:g.scene};
+  });
+  console.log('CINEMATIC_MENU_NAV',JSON.stringify(menuCheck));
+  if(!menuCheck.bothCards||menuCheck.left!=='online'||
+     menuCheck.right!=='cpu'||menuCheck.scene!=='title')
+    throw Error('New mode menu broke keyboard/controller navigation');
+  // Click the actual canvas's SOLO mode selection at its original hitbox.
+  await page.mouse.click(982,365);
+  const afterMouse=await page.evaluate(()=>window.game.scene);
+  console.log('CINEMATIC_MENU_MOUSE',afterMouse);
+  if(afterMouse!=='versus')throw Error('Mode card no longer opens the playable fight roster');
+  await page.evaluate(()=>{const g=window.game;g.scene='title';g.menuCursor=1;});
+  await page.mouse.click(50,221);
+  const settingsMenu=await page.evaluate(()=>window.game.scene);
+  if(settingsMenu!=='settings')throw Error('Menu redesign broke Settings button');
+  await page.evaluate(()=>{const g=window.game;g.scene='title';g.menuCursor=1;});
+
   // In real game UI, drawSelect now invokes poseRelaxed. Test the resulting
   // actual rig bones rather than only calling the pose helper in isolation.
   for(const [character,key] of [['cyborg','male'],['wonder-woman','female'],['batman','batman']]){
