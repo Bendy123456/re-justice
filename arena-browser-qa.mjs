@@ -73,7 +73,7 @@ try{
     const dashStarted=A.dash>0;
     for(let i=0;i<20;i++)g.move(A,B,window.FG.InputUtils.emptyFrame(),new Set(),true);
     // Test a real heavy move from unchanged character frame data.
-    A.x=-2;A.z=-7;B.x=.7;B.z=-7;
+    A.x=-2;A.z=-7;B.x=0;B.z=-7;
     A.facing={x:1,z:0};B.health=B.maxHealth;A.stun=0;
     A.attack=null;A.attackWith('heavy');A.attackTick=A.attack.startup;
     const before=B.health;
