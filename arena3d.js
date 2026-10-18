@@ -345,6 +345,25 @@ class Arena3D {
       l:naturalSide('thigh_l',pelvis,-1),
       r:naturalSide('thigh_r',pelvis,1)
     };
+    // Ground-contact calibration is taken from THIS character's actual
+    // Blender rig, rather than guessing the ankle height from leg length.
+    // The foot pivot is above the sole; toe bones reveal that offset.
+    const footSoleHeights={};
+    for(const side of ['l','r']){
+      const foot=bones.get('foot_'+side);
+      const footRestY=foot?.getWorldPosition(new THREE.Vector3()).y??.10;
+      let toeRestY=Infinity;
+      for(const [name,bone] of bones){
+        if(name.startsWith('toe')&&name.endsWith('_'+side)){
+          toeRestY=Math.min(toeRestY,
+            bone.getWorldPosition(new THREE.Vector3()).y);
+        }
+      }
+      const pivotAboveSole=Number.isFinite(toeRestY)?
+        footRestY-Math.min(footRestY,toeRestY):
+        footRestY;
+      footSoleHeights[side]=clamp(pivotAboveSole,.035,.24);
+    }
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.65),
       new THREE.MeshBasicMaterial({map:this.shadowMap,transparent:true,
         opacity:.78,depthWrite:false,side:THREE.DoubleSide}));
@@ -352,7 +371,7 @@ class Arena3D {
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
     return {actor,root,bones,rests,restPositions,key,shadow,
-      armSides,legSides,walkWeight:0,dashWeight:0,lastStateTick:-1};
+      armSides,legSides,footSoleHeights,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
     for(const o of this.views){
