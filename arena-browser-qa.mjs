@@ -576,6 +576,9 @@ try{
         const right=v.root.position.clone().set(root[0],root[1],root[2]).normalize();
         const lHand=world('hand_l'),rHand=world('hand_r');
         const lShoulder=world('upperarm_l'),rShoulder=world('upperarm_r');
+        const lElbow=world('lowerarm_l'),rElbow=world('lowerarm_r');
+        const lReach=lShoulder.distanceTo(lElbow)+lElbow.distanceTo(lHand);
+        const rReach=rShoulder.distanceTo(rElbow)+rElbow.distanceTo(rHand);
         const lHip=world('thigh_l'),rHip=world('thigh_r');
         const lFoot=world('foot_l'),rFoot=world('foot_r');
         const side=(point,pivot,sign)=>sign*point.clone().sub(pivot).dot(right);
@@ -584,6 +587,8 @@ try{
           elbowL:v.poseMetrics.elbowL,elbowR:v.poseMetrics.elbowR,
           kneeL:v.poseMetrics.kneeL,kneeR:v.poseMetrics.kneeR,
           leftHandDown:lShoulder.y-lHand.y,rightHandDown:rShoulder.y-rHand.y,
+          leftArmVertical:(lShoulder.y-lHand.y)/lReach,
+          rightArmVertical:(rShoulder.y-rHand.y)/rReach,
           leftHandSide:side(lHand,lShoulder,v.armSides.l),
           rightHandSide:side(rHand,rShoulder,v.armSides.r),
           leftHandHipHeight:lHand.y-lHip.y,rightHandHipHeight:rHand.y-rHip.y,
@@ -604,11 +609,13 @@ try{
   console.log('RELAXED_IDLE_POSE_QA',JSON.stringify(idleQA));
   if(idleQA.some(r=>{
     const end=r.angles.at(-1),before=r.angles[0];
-    return end.idleWeight<.99||end.leftHandDown<.51||
-      end.rightHandDown<.51||end.leftHandSide<.08||
-      end.rightHandSide<.08||end.feetSpread>before.feetSpread+
-      .08||end.feetSpread>end.hipSpread+.35||
-      ![end.leftHandDown,end.rightHandDown,end.feetSpread].every(Number.isFinite);
+    return end.idleWeight<.99||end.leftArmVertical<.92||
+      end.rightArmVertical<.92||end.leftHandSide<.045||
+      end.rightHandSide<.045||end.feetSpread>before.feetSpread+.08||
+      end.feetSpread>end.hipSpread+.13||
+      end.elbowL>.45||end.elbowR>.45||
+      end.kneeL>.44||end.kneeR>.44||
+      ![end.leftArmVertical,end.rightArmVertical,end.feetSpread].every(Number.isFinite);
   }))throw Error('Idle must lower hands and settle feet beneath hips on both real rigs');
   await page.evaluate(()=>{
     const g=window.game,arena=g.arena3d,a=arena.fighters[0],v=arena.views[0];
