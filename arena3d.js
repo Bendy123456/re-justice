@@ -40,7 +40,7 @@ function separate(a,b){
 }
 class Combatant {
   constructor(def,slot,x,z){
-    this.def=def;this.slot=slot;this.maxHealth=def.maxHealth;
+    this.def=def;this.slot=slot;this.maxHealth=def.maxHealth||1000;
     this.x=x;this.z=z;this.y=0;
     this.prevX=x;this.prevZ=z;this.prevY=0;
     this.vy=0;this.grounded=true;this.facing={x:1,z:0};
@@ -226,13 +226,25 @@ class Arena3D {
   }
   start(options){
     if(!this.ready)throw new Error('3D assets not loaded');
-    const p1=FG.CHARACTERS[options.p1],p2=FG.CHARACTERS[options.p2];
-    if(!p1?.playable||!p2?.playable)throw new Error('Only fighters with real moves can fight');
+    const sandbox=options.mode==='sandbox';
+    const p1=FG.CHARACTERS[options.p1],p2=sandbox?null:FG.CHARACTERS[options.p2];
+    // Sandbox can use ANY roster preview model. A duel still needs two
+    // playable fighters with moves and a genuine bot opponent.
+    if(!p1||(!sandbox&&(!p1.playable||!p2?.playable)))
+      throw new Error('Invalid character choice for this arena mode');
     this.clearAvatars();
-    this.fighters=[new Combatant(p1,1,-11,-7),new Combatant(p2,2,11,-7)];
+    this.mode=sandbox?'sandbox':options.mode||'cpu';
+    this.fighters=sandbox?[new Combatant(p1,1,-11,-9)]:
+      [new Combatant(p1,1,-11,-7),new Combatant(p2,2,11,-7)];
     this.views=this.fighters.map(a=>this.createAvatar(a));
-    this.round=1;this.wins=[0,0];this.startRound();
-    this.mode=options.mode||'cpu';this.tick=0;
+    this.tick=0;this.round=1;this.wins=[0,0];this.effects.length=0;
+    this.koFrames=0;this.winner=0;this.flashTicks=0;
+    if(sandbox){
+      const a=this.fighters[0];
+      a.reset(-11,-9);a.visualYaw=a.prevVisualYaw=0;
+      a.facing={x:0,z:1};
+      this.phase='live';this.intro=0;this.roundFrames=Infinity;
+    }else this.startRound();
     this.active=true;this.paused=false;this.initialCamera=false;
     this.show(true);
   }
@@ -264,6 +276,20 @@ class Arena3D {
     }
     if(this.paused){
       if(keys.has('KeyQ'))this.end();
+      return;
+    }
+    if(this.mode==='sandbox'){
+      const a=this.fighters[0];
+      if(keys.has('KeyR')||input?.frame(1)?.pressed?.reset){
+        a.reset(-11,-9);a.visualYaw=a.prevVisualYaw=0;
+        a.facing={x:0,z:1};this.initialCamera=false;
+      }
+      a.prevX=a.x;a.prevZ=a.z;a.prevY=a.y;a.animClock++;
+      a.prevVisualYaw=a.visualYaw;a.prevLean=a.lean;a.prevBank=a.bank;
+      a.prevGaitPhase=a.gaitPhase;
+      this.move(a,null,input?.frame(1)||FG.InputUtils.emptyFrame(),keys,true);
+      // No CPU, rival model, opponent attacks, round clock or victory flow.
+      this.effects.length=0;
       return;
     }
     if(this.phase==='intro'){if(--this.intro<=0)this.phase='live';return;}
@@ -303,10 +329,13 @@ class Arena3D {
   }
   move(a,b,control,keys,human){
     const startMoveX=a.x,startMoveZ=a.z;
-    const forward=unit(b.x-a.x,b.z-a.z),right={x:-forward.z,z:forward.x};
+    // A solo session uses a stable camera-relative travel direction.
+    // Duels still orient around the actual opponent.
+    const forward=b?unit(b.x-a.x,b.z-a.z):{x:0,z:1};
+    const right={x:-forward.z,z:forward.x};
     // Keep combat targeting/strike cones on the opponent, but let the mesh
     // turn into actual travel, like a third-person arena fighter.
-    a.facing=forward;
+    a.facing=b?forward:unit(Math.sin(a.visualYaw),Math.cos(a.visualYaw));
     a.travel={x:0,z:0};
     a.backpedal=(control.y||0)>.2;
     if(a.dashCooldown>0)a.dashCooldown--;
@@ -423,11 +452,60 @@ class Arena3D {
   // Full-body animation is separated from gameplay and authored in the
   // rig-aware keyframe animation library.
   pose(view,alpha){poseFighter(view,alpha);}
+  renderSandbox(alpha){
+    const a=this.fighters[0];
+    const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
+    const py=lerp(a.prevY,a.y,alpha);
+    // Stable third-person follow camera with no invisible opponent/lock-on.
+    const desired=new THREE.Vector3(px+1.15,CAM_HEIGHT+py*.5,pz-CAM_DIST-1.25);
+    const distance=Math.hypot(desired.x,desired.z);
+    const limit=ARENA_RADIUS-WALL_GAP-.5;
+    if(distance>limit){desired.x*=limit/distance;desired.z*=limit/distance;}
+    if(Math.hypot(desired.x,desired.z)<TREE_RADIUS+1.1){
+      const dir=unit(desired.x,desired.z,{x:-1,z:-1});
+      desired.x=dir.x*(TREE_RADIUS+1.1);
+      desired.z=dir.z*(TREE_RADIUS+1.1);
+    }
+    const focus=new THREE.Vector3(px,1.45+py*.35,pz+1.05);
+    if(!this.initialCamera){
+      this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;
+    }else{
+      this.camera.position.lerp(desired,CAM_LERP);
+      this.cameraFocus.lerp(focus,CAM_LERP);
+    }
+    this.camera.lookAt(this.cameraFocus);
+    this.renderer.render(this.scene,this.camera);
+    this.drawSandboxHUD();
+  }
+  drawSandboxHUD(){
+    const c=this.hudCtx;c.clearRect(0,0,1280,720);
+    c.fillStyle='rgba(5,18,26,.70)';c.fillRect(20,18,390,72);
+    c.fillStyle='#88e5cf';c.font='900 23px Arial, sans-serif';
+    c.fillText('SANDBOX',36,49);
+    c.fillStyle='#effaf8';c.font='700 15px Arial, sans-serif';
+    c.fillText(this.fighters[0].def.name+'  ·  FREE ROAM / NO BOT',36,74);
+    c.fillStyle='rgba(5,18,26,.77)';c.fillRect(20,666,1240,45);
+    c.fillStyle='#d5f3ef';c.font='700 15px Arial, sans-serif';
+    c.fillText('WASD / LEFT STICK  MOVE     SPACE / A  JUMP     SHIFT / RB  DASH',38,685);
+    c.fillStyle='#9cc8c6';c.font='700 13px Arial, sans-serif';
+    c.fillText('R / RESET  RETURN TO SPAWN      ESC / START  PAUSE      Q (PAUSED)  MENU',38,704);
+    if(this.paused){
+      c.fillStyle='rgba(6,12,19,.83)';c.fillRect(0,0,1280,720);
+      c.textAlign='center';
+      c.fillStyle='#f6f6ef';c.font='900 68px Arial, sans-serif';
+      c.fillText('SANDBOX PAUSED',640,310);
+      c.font='700 23px Arial, sans-serif';
+      c.fillText('ESC / START  RESUME',640,360);
+      c.fillText('Q  RETURN TO MENU',640,405);
+      c.textAlign='left';
+    }
+  }
   render(alpha){
     if(!this.active)return;
     try{
       alpha=clamp(alpha,0,1);
       for(const o of this.views)this.pose(o,alpha);
+      if(this.mode==='sandbox'){this.renderSandbox(alpha);return;}
       const [a,b]=this.fighters;
       const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha),py=lerp(a.prevY,a.y,alpha);
       const forward=unit(b.x-px,b.z-pz);
@@ -532,6 +610,22 @@ function install(game){
   game.arena3d=new Arena3D(game);
   const start=game.startMatch.bind(game);
   game.startMatch=function(opts){
+    if(opts?.mode==='sandbox'){
+      if(!this.arena3d.ready){
+        this.input?.toast?.('Training arena is still loading — please wait');
+        return false;
+      }
+      try{
+        this.arena3d.start(opts);
+        this.scene='arena3d';
+        return true;
+      }catch(e){
+        console.warn('Sandbox launch failed',e);
+        this.arena3d.show(false);this.scene='versus';
+        this.input?.toast?.('Could not enter Sandbox');
+        return false;
+      }
+    }
     if(opts?.mode==='cpu'&&!this.arena3d.ready&&!this.arena3d.failure){
       this.input?.toast?.('Building 3D arena — wait a moment, then press FIGHT');
       return false;
