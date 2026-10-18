@@ -1,5 +1,16 @@
 # Changelog
 
+## Native female anatomical model replaces male-derived placeholder (2026-10-17)
+
+- Replaced the previously modified male mesh with the actual **Quaternius Superhero Female** model from the CC0 Universal Base Characters Standard pack, keeping the same humanoid 65-bone rig.
+- New native female torso and face geometry have distinct shoulder taper, hips, waist, jaw and bust without trying to warp the male anatomy.
+- Preserved the bald, hair-free, armor-free visual direction and the same matte blue-gray material as all existing unarmored male roster models.
+- Added a small non-destructive medium bust sculpt on the true female mesh; all other dimensions retain native female topology.
+- Regenerated `assets/models/female-unarmored.glb` and editable `female-unarmored.blend` with full-body, front, profile and face renders from Blender.
+- All eight female roster slots still use this one shared model. Male models, Batman armor, character controls, hitboxes, frame data and combat remain unchanged.
+- Blender 65-bone compatibility probe, build, GLB export, all roster tests, combat smoke and Chromium character selection, Batman matchup and female mirror match checks passed.
+- Source and license details: `blender/FEMALE_BASE_SOURCE.md`. Character-specific hairstyles, armor and facial details remain later art tasks.
+
 ## Shared female base — medium chest refinement (2026-10-17)
 
 - Increased medium bust contour settings in `blender/build_game_female_base.py` (volume 0.032 → 0.052, width 0.083 → 0.094, height 0.068 → 0.078, position adjusted slightly).
