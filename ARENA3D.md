@@ -168,3 +168,17 @@ within a browser file/triangle budget, and produces separate close-up
 wall/grass, tree-trunk and tree-canopy previews for manual inspection.
 The goal is substantially richer detail at gameplay distance, not literally
 quintupling every polygon, which would harm browser FPS.
+
+## Longer-stride, moving-ribcage walk (October 2026)
+
+The visual locomotion pass widens the anatomical heel-to-toe travel from
+0.76 to 0.99 normalized leg units and uses the same planted-foot distance to
+advance the gait phase. At unchanged game movement speed the animation cycles
+approximately 23% less often. The upper spine and shoulder girdle now pitch,
+roll and counter-rotate with the supporting hip so the torso does not appear
+static while arms and legs move. Walking still uses articulated elbow/knee
+solvers and world-space stance-foot anchors; these are cleared on movement
+changes and spawn resets. The actual 3D male/female rigs are validated for
+chest rotation, longer ankle excursion, smooth idle transition, and world-space
+foot contact. Combat hitboxes, physics movement speed and environment assets
+remain unchanged.
