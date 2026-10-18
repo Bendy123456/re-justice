@@ -1,5 +1,15 @@
 # Changelog
 
+## Shared female Blender base for all eight women (2026-10-17)
+
+- Added an original proportion-adjusted, bald, armor-free female body built in Blender from the approved CC0 humanoid, preserving the imported 65-bone skeleton and original mesh deformation.
+- Added non-destructive editable female anatomy sculpt controls for face, shoulders, bust, waist, hips, legs, and neck, with the **same exact** matte blue-gray material as the male base. No hair, cape, costume, or mask on the shared body.
+- Generated `assets/models/female-unarmored.blend` and `female-unarmored.glb`, with full-body and face renders.
+- All eight female slots now use the same shared `female-unarmored.glb` in select-screen previews, portrait tiles, and fights. Armor for each fighter will be a future art pass.
+- Batman and the other 21 men retain their earlier 3D visual assets. No change to gameplay, move data, hitboxes, health, timer, or input controls.
+- Blender build, 30-roster model tests, existing gameplay smoke tests, Chromium WebGL selection render, Wonder Woman vs Batman, Wonder Woman mirror match and 3D heavy attack animation checks all passed.
+- Known limitations: shared placeholders are intentionally not individual costumes. The sculpt is still a mid-poly base and will require character-specific hair and clothing work; real GLB characters still require the optional Three.js CDN to load, with original drawings as fallback if unavailable.
+
 ## Real Blender GLB Models Integrated — Male Roster (2026-10-17)
 
 - Added a shared anatomically rigged blue-gray bald male GLB base for 21 unarmored male roster slots, preserving 65 imported humanoid bones. Batman uses the separately finished armored model.

@@ -13,7 +13,7 @@ assert.equal(a.MALE.length,22);
 assert.equal(a.FEMALE.length,8);
 assert.equal(a.heroModel('batman'),'batman');
 for(const id of a.MALE.filter(x=>x!=='batman'))assert.equal(a.heroModel(id),'male',id);
-for(const id of a.FEMALE)assert.equal(a.heroModel(id),null,id);
+for(const id of a.FEMALE)assert.equal(a.heroModel(id),'female',id);
 assert.equal(a.heroModel('unregistered-character'),null);
 assert.ok(a.MODEL_PATHS.batman.endsWith('.glb'));
 assert.ok(a.MODEL_PATHS.male.endsWith('.glb'));

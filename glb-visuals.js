@@ -49,6 +49,7 @@ class RosterGLBPresentation {
       this.enabled=true;
       this.loadModel('batman');
       this.loadModel('male');
+      this.loadModel('female');
     }catch(error){
       this.error=String(error);
       this.enabled=false;

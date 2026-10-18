@@ -15,9 +15,10 @@
   const BASE='assets/models/';
   const MODEL_PATHS=Object.freeze({
     male:BASE+'male-unarmored.glb',
+    female:BASE+'female-unarmored.glb',
     batman:BASE+'batman-armored.glb'
   });
   const MALE_SET=new Set(MALE),FEMALE_SET=new Set(FEMALE);
-  const heroModel=id=>FEMALE_SET.has(id)?null:id==='batman'?'batman':MALE_SET.has(id)?'male':null;
+  const heroModel=id=>FEMALE_SET.has(id)?'female':id==='batman'?'batman':MALE_SET.has(id)?'male':null;
   FG.MODEL_ROSTER=Object.freeze({MALE,FEMALE,MODEL_PATHS,heroModel});
 })();
