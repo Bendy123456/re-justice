@@ -442,20 +442,24 @@ export function poseFighter(view,alpha){
       // Manual QA pose scrubbing without character travel uses the analytic
       // step curve above, so static inspection remains deterministic.
       if(!view.footPlants)view.footPlants={l:null,r:null};
-      const planted=view.footPlants[side];
       const movingRoot=Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.0001;
+      const worldHip=hip.getWorldPosition(vec());
+      let planted=view.footPlants[side];
+      // After a teleport, reset or large displacement, discard a cached
+      // contact point rather than pulling the leg toward the old location.
+      if(planted&&(worldHip.distanceTo(planted.world)>length*1.22||
+          Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.65)){
+        view.footPlants[side]=null;planted=null;
+      }
       if(!foot.contact){
         view.footPlants[side]=null;
       }else if(naturalWalk&&(movingRoot||planted)){
-        const worldHip=hip.getWorldPosition(vec());
-        if(!planted||planted.lastRootDistance>2.2){
+        if(!planted){
           const worldFoot=vec(...walkTarget).applyQuaternion(rootQ).add(worldHip);
-          view.footPlants[side]={world:worldFoot.clone(),lastRootDistance:0};
-        }else{
-          planted.lastRootDistance=worldHip.distanceTo(planted.world);
+          planted={world:worldFoot};
+          view.footPlants[side]=planted;
         }
-        const anchor=view.footPlants[side].world;
-        const locked=anchor.clone().sub(worldHip).
+        const locked=planted.world.clone().sub(worldHip).
           applyQuaternion(rootQ.clone().invert()).toArray();
         target=blendVec(target,locked,blend);
       }
