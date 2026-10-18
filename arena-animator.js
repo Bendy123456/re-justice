@@ -84,6 +84,25 @@ function rotate(view,name,localAxis,amount,rootQ){
   bone.updateWorldMatrix(false,true);
 }
 const blendVec=(a,b,t)=>a.map((x,i)=>lerp(x,b[i],clamp(t)));
+
+// One anatomical walk step: the planted foot rolls backward under the body
+// for 60% of its cycle; the other 40% lifts, clears the ground and swings ahead.
+// Continuous positions at toe-off/heel-strike, not independent sine-wave legs.
+function walkStep(phase){
+  const TAU=Math.PI*2;
+  const u=((phase/TAU)%1+1)%1;
+  const stance=.60;
+  if(u<stance){
+    const t=u/stance;
+    return {contact:true,travel:lerp(.28,-.28,t),lift:0,
+      roll:t<.18?lerp(.12,0,t/.18):t>.77?lerp(0,-.19,(t-.77)/.23):0,
+      support:Math.sin(Math.PI*t)**2};
+  }
+  const t=(u-stance)/(1-stance);
+  return {contact:false,travel:lerp(-.28,.28,ease(t)),
+    lift:.17*Math.sin(Math.PI*t),roll:Math.sin(Math.PI*t)*.11,
+    support:0};
+}
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
 // Unlike directing both segments toward fixed angles, the elbow/knee is
 // placed geometrically between its shoulder/hip and the moving hand/foot.
@@ -135,6 +154,7 @@ export function poseFighter(view,alpha){
   const yaw=a.prevVisualYaw+
     Math.atan2(sin(a.visualYaw-a.prevVisualYaw),cos(a.visualYaw-a.prevVisualYaw))*alpha;
   const locomoting=a.state==='walk',dashing=a.state==='dash';
+  const naturalWalk=locomoting&&!a.attack&&!a.blocking&&a.grounded;
   // Only the rendered skeleton is animated; hitboxes remain fixed.
   const attack=strikePose(a);
   const airborne=!a.grounded||a.state==='jump';
@@ -155,6 +175,8 @@ export function poseFighter(view,alpha){
   const walk=locomoting?Math.max(.17,view.walkWeight||0):view.walkWeight||0;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
+  const walkAmount=naturalWalk?clamp(walk):0;
+  const leftStep=walkStep(strideClock),rightStep=walkStep(strideClock+Math.PI);
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
   const dashIgnite=dashing?1-ease(dashFrames/3):0;
   const dashBurst=dashing?ease(dashFrames/3)*(1-ease((dashFrames-9)/3)):0;
@@ -163,12 +185,17 @@ export function poseFighter(view,alpha){
   const land=clamp(Number(a.landingFrames||0)/7);
   const breath=sin((a.animClock+alpha)*.063);
   // Superhero/anime: crouched ignition, flying acceleration and a skid stop.
-  const bob=drive*(.009+abs(stride)*.049)+dashBurst*.022-
-    dashIgnite*.085-dashBrake*.038-(attack?.crouch||0)*.11-land*.09;
+  // Two subtle weight rises per stride; no bouncy vertical sliding.
+  const walkBob=walkAmount*(.019-.011*Math.cos(2*strideClock));
+  const bob=(naturalWalk?walkBob:drive*(.009+abs(stride)*.049))+
+    dashBurst*.022-dashIgnite*.085-dashBrake*.038-
+    (attack?.crouch||0)*.11-land*.09;
   const lean=lerp(a.prevLean,a.lean,alpha)+(attack?.lean||0)-(hit?.21:0);
-  const bank=lerp(a.prevBank,a.bank,alpha)+drive*step*.047+
+  const bank=lerp(a.prevBank,a.bank,alpha)+
+    (naturalWalk?walkAmount*.019*step:drive*step*.047)+
     (attack?.impact||0)*.02;
-  const pitch=lean+dash*.23+dashBurst*.12-dashIgnite*.06-
+  const pitch=lean+(naturalWalk?walkAmount*.022:0)+
+    dash*.23+dashBurst*.12-dashIgnite*.06-
     dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
     lerp(a.prevY,a.y,alpha)+bob,lerp(a.prevZ,a.z,alpha));
@@ -185,13 +212,23 @@ export function poseFighter(view,alpha){
   }
   root.updateWorldMatrix(true,true);
 
+  // Weight shifts onto each planted leg. The original torso can rotate,
+  // but this lateral pelvis translation makes support actually visible.
+  if(naturalWalk){
+    const hips=view.bones.get('hips')||view.bones.get('pelvis');
+    if(hips)hips.position.x+=walkAmount*.029*step;
+    root.updateWorldMatrix(true,true);
+  }
+
   // Pelvis leads the stride, ribs/shoulders counter-rotate and head stabilizes.
   // Spine chain makes a strike originate at the feet, not from a disembodied arm.
   // Hips initiate the stride and strike; shoulders counter-rotate.
-  const hipTwist=drive*stride*.19+(attack?.hip||0)+dashKick*.055;
-  const torsoTwist=-drive*stride*.16+(attack?.twist||0)-dashKick*.075;
-  const torsoBend=drive*abs(step)*.047+(attack?.lean||0)*.20+
-    dashBurst*.045;
+  const hipTwist=(naturalWalk?walkAmount*.16:drive*.19)*stride+
+    (attack?.hip||0)+dashKick*.055;
+  const torsoTwist=-(naturalWalk?walkAmount*.14:drive*.16)*stride+
+    (attack?.twist||0)-dashKick*.075;
+  const torsoBend=(naturalWalk?walkAmount*.018:drive*.047)*abs(step)+
+    (attack?.lean||0)*.20+dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
   rotate(view,'pelvis',Y,hipTwist,rootQ);
   rotate(view,'spine_01',Y,torsoTwist*.31,rootQ);
@@ -200,12 +237,15 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',X,torsoBend*.25,rootQ);
   rotate(view,'spine_02',X,torsoBend*.45+(hit?-.13:0),rootQ);
   rotate(view,'spine_03',X,torsoBend*.30+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',Z,drive*stride*.046+(attack?.twist||0)*-.07,rootQ);
+  rotate(view,'spine_03',Z,(naturalWalk?walkAmount*.017:drive*.046)*
+    stride+(attack?.twist||0)*-.07,rootQ);
   rotate(view,'neck_01',X,-pitch*.21,rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
   rotate(view,'head',X,-pitch*.25+breath*.012,rootQ);
-  rotate(view,'clavicle_l',Z,-.025+drive*stride*.04,rootQ);
-  rotate(view,'clavicle_r',Z,.025-drive*stride*.04,rootQ);
+  rotate(view,'clavicle_l',Z,-.025+
+    (naturalWalk?walkAmount*.025:drive*.04)*stride,rootQ);
+  rotate(view,'clavicle_r',Z,.025-
+    (naturalWalk?walkAmount*.025:drive*.04)*stride,rootQ);
 
   // A relaxed walk keeps the hands OUTSIDE the ribs and down beside
   // the hips. The old perpetual high boxing guard sent wrists through the
@@ -300,6 +340,14 @@ export function poseFighter(view,alpha){
       // swing down/back with a straighter elbow, independently of shoulder.
       let handX=.32,handY=-.68+travel*.16;
       let handZ=.16+travel*.43;
+      if(naturalWalk){
+        // Opposite the same-side leg: a loose elbow, relaxed wrist and
+        // a visible but restrained shoulder swing around the rib cage.
+        const contra=side==='l'?-Math.cos(strideClock):Math.cos(strideClock);
+        handX=.37;
+        handY=-.71+.055*contra;
+        handZ=.11+.31*contra;
+      }
       if(dashing){
         handX=.42;
         handY=-.57+travel*.09;
@@ -309,7 +357,7 @@ export function poseFighter(view,alpha){
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*.95,.12,-.32],rootQ);
+        [sgn*.95,.12,naturalWalk?-.10:-.32],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
@@ -346,16 +394,27 @@ export function poseFighter(view,alpha){
     const length=hip.getWorldPosition(vec()).distanceTo(knee.getWorldPosition(vec()))+
       knee.getWorldPosition(vec()).distanceTo(ankle.getWorldPosition(vec()));
     const stepMotion=swing*strideDamp;
-    const lift=Math.max(0,stepMotion); // recovery foot leaves the ground
+    const lift=Math.max(0,stepMotion);
     let target=[sign*length*.12,
       -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
       length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
+    if(naturalWalk){
+      const foot=side==='l'?leftStep:rightStep;
+      const blend=walkAmount;
+      // Foot planted ~60% of cycle. During swing, ankle rises and the
+      // knee flexes naturally as the foot clears the ground.
+      const walkTarget=[sign*length*.13,
+        -length*(.948-foot.lift),length*(.06+foot.travel)];
+      target=blendVec(target,walkTarget,blend);
+    }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
     solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
       target,[sign*.12,.15,1],rootQ);
   }
-  rotate(view,'foot_l',X,-leftLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
-  rotate(view,'foot_r',X,-rightLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
+  rotate(view,'foot_l',X,(naturalWalk?leftStep.roll*walkAmount:
+    -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
+  rotate(view,'foot_r',X,(naturalWalk?rightStep.roll*walkAmount:
+    -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
 
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
@@ -377,6 +436,8 @@ export function poseFighter(view,alpha){
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
     state:a.state,hipTwist,torsoTwist,lean:pitch,walk:drive,
+    walkContactL:leftStep.contact,walkContactR:rightStep.contact,
+    walkLiftL:leftStep.lift,walkLiftR:rightStep.lift,walkBob,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
