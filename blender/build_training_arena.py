@@ -137,8 +137,8 @@ scene.render.filepath=os.path.join(OUTPUT,"training-ground-preview.png")
 bpy.ops.render.render(write_still=True)
 # Explicit tree-focused art QA renders to judge the shapes in perspective,
 # not just an overhead arena shot where poor branch silhouette is easy to miss.
-cam.location=(23,-28,18)
-cam.rotation_euler=(Vector((0,0,9.2))-cam.location).to_track_quat("-Z","Y").to_euler()
+cam.location=(17,-20,17.5)
+cam.rotation_euler=(Vector((0,0,9.0))-cam.location).to_track_quat("-Z","Y").to_euler()
 camd.ortho_scale=39
 scene.render.filepath=os.path.join(OUTPUT,"training-tree-detail.png")
 bpy.ops.render.render(write_still=True)
