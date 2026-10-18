@@ -44,14 +44,14 @@ class Combatant {
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
     this.combo=0;this.comboTicks=0;this.dash=0;this.dashCooldown=0;
-    this.dashDirection={x:1,z:0};this.knock={x:0,z:0};
+    this.dashDirection={x:1,z:0};this.knock={x:0,z:0};this.backpedal=false;
   }
   reset(x,z){
     this.x=this.prevX=x;this.z=this.prevZ=z;this.y=this.prevY=this.vy=0;
     this.grounded=true;this.health=this.maxHealth;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.combo=0;this.comboTicks=0;
-    this.dash=0;this.dashCooldown=0;
+    this.dash=0;this.dashCooldown=0;this.backpedal=false;
   }
   attackWith(button){
     if(this.stun||this.attack||this.health<=0)return false;
@@ -112,8 +112,8 @@ class Arena3D {
       this.renderer.toneMapping=THREE.ACESFilmicToneMapping;
       this.renderer.toneMappingExposure=1.20;
       this.scene=new THREE.Scene();
-      this.scene.background=new THREE.Color('#a8d6f7');
-      this.scene.fog=new THREE.FogExp2('#afcfe1',.0045);
+      this.scene.background=new THREE.Color('#add3f0');
+      this.scene.fog=new THREE.FogExp2('#b8d6cf',.0055);
       this.camera=new THREE.PerspectiveCamera(58,1280/720,.08,200);
       this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,2.2));
       const sunlight=new THREE.DirectionalLight(0xffebbf,3.2);
@@ -262,7 +262,10 @@ class Arena3D {
   }
   move(a,b,control,keys,human){
     const forward=unit(b.x-a.x,b.z-a.z),right={x:-forward.z,z:forward.x};
+    // Lock-on facing is always the direction to the rival, never the input
+    // direction. Backwards movement should never flip the character.
     a.facing=forward;
+    a.backpedal=(control.y||0)>.2;
     if(a.dashCooldown>0)a.dashCooldown--;
     if(a.flash>0)a.flash--;
     if(a.comboTicks>0)a.comboTicks--;else a.combo=0;
@@ -356,7 +359,10 @@ class Arena3D {
   // both sexes); the simulation never queries the meshes for any decision.
   pose(view,alpha){
     const a=view.actor,root=view.root;
-    const yaw=Math.atan2(-a.facing.x,-a.facing.z);
+    // Imported Quaternius humanoids face local +Z in Three.js (Blender -Y).
+    // The old yaw treated them as -Z, rotating both characters 180 degrees:
+    // the player appeared to walk face-first toward the camera.
+    const yaw=Math.atan2(a.facing.x,a.facing.z);
     const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
     root.position.set(px,lerp(a.prevY,a.y,alpha),pz);
     view.shadow.position.set(px,.018,pz);
@@ -382,7 +388,7 @@ class Arena3D {
       else if(a.attackTick<a.attack.startup+a.attack.active)strike=1;
       else strike=clamp(1-(a.attackTick-a.attack.startup-a.attack.active)/a.attack.recovery,0,1);
     }
-    const swing=a.state==='walk'?Math.sin(a.animClock*.24)*.20:0;
+    const swing=a.state==='walk'?Math.sin(a.animClock*.24)*.20*(a.backpedal?-1:1):0;
     aim('upperarm_l','lowerarm_l',[-.29,-.72,-.34-strike*.68]);
     aim('upperarm_r','lowerarm_r',[.29,-.72,-.34]);
     aim('lowerarm_l','hand_l',[-.14,.61,-.72-strike*.23]);
