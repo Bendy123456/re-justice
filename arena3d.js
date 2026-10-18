@@ -296,7 +296,7 @@ class Arena3D {
   async loadAssets(){
     try{
       const files=[
-        'assets/arena/training-ground.glb?v=light-vertical-stone-3',
+        'assets/arena/training-ground.glb?v=high-detail-environment-5',
         'assets/models/male-unarmored.glb',
         'assets/models/female-unarmored.glb',
         'assets/models/batman-armored.glb'
