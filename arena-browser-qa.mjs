@@ -530,7 +530,7 @@ try{
       a.gaitPhase=a.prevGaitPhase=phase;a.animClock++;
       v.walkWeight=1;v.dashWeight=0;
       arena.pose(v,1);
-      arena.camera.position.set(a.x+3.3,2.35,a.z+5.0);
+      arena.camera.position.set(a.x+1.35,1.75,a.z+2.75);
       arena.camera.lookAt(a.x,1,a.z);
       arena.renderer.render(arena.scene,arena.camera);
     },phase);
