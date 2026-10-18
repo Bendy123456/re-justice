@@ -69,7 +69,7 @@
       this.input=options.input|| (typeof window!=='undefined'?new FG.InputManager():null);
       this.cpu=new FG.BasicAI();this.sounds=true;
       this.scene='title';this.titleIndex=1;this.mode='cpu';
-      this.menuItems=['online','cpu','settings'];this.menuCursor=1;
+      this.menuItems=['online','cpu','sandbox','settings'];this.menuCursor=1;
       this.settingsPlayer=1;this.settingsDevice='keyboard';this.settingsRow=-2;
       this.rebinding=null;this.rebindDelay=0;
       this.p1Id='flash';this.p2Id='batman';this.stageId='neon-rooftop';
@@ -123,7 +123,7 @@
         {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:2},
         {id:'online',x:132,y:205,w:540,h:320,cursor:0},
         {id:'cpu',x:692,y:205,w:552,h:320,cursor:1},
-        {id:'mode-confirm',x:913,y:570,w:300,h:43,cursor:this.menuCursor}
+        {id:'sandbox',x:132,y:549,w:1112,h:135,cursor:2}
       ];
     }
     settingsHotspots(){
@@ -186,7 +186,7 @@
       const p=this.pointerToCanvas(event);
       if(!p)return;
       if(this.scene==='versus'){
-        this.selectPortraitAt(p,event.shiftKey?2:1);
+        this.selectPortraitAt(p,this.mode==='sandbox'?1:event.shiftKey?2:1);
         return;
       }
       if(this.scene==='settings'){
@@ -228,7 +228,7 @@
           if(spot.id==='fight-tab'){this.menuCursor=1;this.audio.play('confirm',.16);return;}
           if(spot.id==='online'){this.menuCursor=0;this.activateMenuItem();return;}
           if(spot.id==='cpu'){this.menuCursor=1;this.activateMenuItem();return;}
-          if(spot.id==='mode-confirm'){this.activateMenuItem();return;}
+          if(spot.id==='sandbox'){this.menuCursor=2;this.activateMenuItem();return;}
         }
       }
     }
@@ -300,7 +300,7 @@
         this.input?.toast?.('1v1 Online UI added · networking is not implemented yet');
         this.audio.play('confirm',.26);return;
       }
-      this.enterVersus('cpu');this.audio.play('confirm');
+      this.enterVersus(item==='sandbox'?'sandbox':'cpu');this.audio.play('confirm');
     }
     capturePadButton(){
       for(const pad of this.input?.rawPads||[]){
@@ -333,7 +333,8 @@
       }
       if(navLeft||navRight){
         if(this.menuCursor===0||this.menuCursor===1){this.menuCursor=this.menuCursor===0?1:0;this.audio.play('confirm',.16);}
-        else if(navRight){this.menuCursor=1;this.audio.play('confirm',.16);}
+        else if(this.menuCursor===2){this.menuCursor=1;this.audio.play('confirm',.16);}
+        else if(navRight){this.menuCursor=2;this.audio.play('confirm',.16);}
       }
       if(confirm)this.activateMenuItem();
     }
@@ -410,7 +411,7 @@
     cycleCharacter(player,direction){this.moveSelection(player,direction,0);}
     toggleSelectLock(player){
       const id=player===1?this.p1Id:this.p2Id;
-      if(!FG.CHARACTERS[id].playable){
+      if(!FG.CHARACTERS[id].playable&&this.mode!=='sandbox'){
         this.input?.toast?.(FG.CHARACTERS[id].name+' is a roster preview — coming in later phases');
         return false;
       }
@@ -438,11 +439,11 @@
       } else if(this.scene==='settings'){
         this.updateSettings(keys);
       } else if(this.scene==='versus'){
-        for(const p of [1,2])this.input?.checkKeyboardJoin(p);
+        for(const p of (this.mode==='sandbox'?[1]:[1,2]))this.input?.checkKeyboardJoin(p);
         if(keys.has('Escape')||(this.input?.padFor(1)&&this.input?.frame(1).pressed.heavy)){
           this.scene='title';return;
         }
-        for(const p of [1,2]){
+        for(const p of (this.mode==='sandbox'?[1]:[1,2])){
           const f=this.input?.frame(p)||empty();
           this.selectNavCooldown[p]=Math.max(0,this.selectNavCooldown[p]-1);
           let dx=Number(f.pressed.right)-Number(f.pressed.left);
@@ -461,13 +462,16 @@
         const p1Joined=this.input?.keyboardJoined[1]||this.input?.padSlots[1]!==null;
         const p2Joined=this.input?.keyboardJoined[2]||this.input?.padSlots[2]!==null;
         if((keys.has('Enter')||keys.has('Space')||this.input?.anyPress('pause'))){
-          const valid=FG.CHARACTERS[this.p1Id].playable&&FG.CHARACTERS[this.p2Id].playable;
+          const valid=Boolean(FG.CHARACTERS[this.p1Id])&&
+            (this.mode==='sandbox'||(FG.CHARACTERS[this.p1Id].playable&&FG.CHARACTERS[this.p2Id].playable));
           if(!valid){this.input?.toast?.('Choose a READY fighter (Flash, Batman, Superman, Wonder Woman)');}
           else if(!p1Joined||this.mode==='versus'&&!p2Joined){
             this.input?.toast?.('P'+(!p1Joined?1:2)+' must press a key or gamepad button to join');
           }else{
-            this.startMatch({p1:this.p1Id,p2:this.p2Id,stage:this.stageId,mode:this.mode});
-            this.audio.play('confirm');
+            if(this.startMatch({p1:this.p1Id,
+              ...(this.mode==='sandbox'?{}:{p2:this.p2Id}),
+              stage:this.stageId,mode:this.mode})!==false)
+              this.audio.play('confirm');
           }
         }
       } else if(this.scene==='fight'){
