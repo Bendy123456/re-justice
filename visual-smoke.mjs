@@ -46,6 +46,18 @@ try{
     g.startMatch({p1:'batman',p2:'superman',stage:'neon-rooftop',mode:'cpu'});
   });
   await page.waitForTimeout(350);
+  // Force the very first post-menu 3D frame: software WebGL may not have
+  // reached the next requestAnimationFrame after expensive portrait caches.
+  const forced=await page.evaluate(()=>{
+    const g=window.game;
+    let result='ok';
+    try{g.render();}catch(e){result=String(e.stack||e);}
+    return {result,scene:g.scene,frame:g.frame,
+      loaded:[...g.renderer.model3d.loaded],
+      supported:g.fighters.map(f=>g.renderer.model3d.supported(f,g.assets)),
+      instanceKeys:[...g.renderer.model3d.instances.keys()]};
+  });
+  console.log('Forced first fight frame:',JSON.stringify(forced));
   const loadedFight=await page.evaluate(()=>{
     const g=window.game;
     const p=g.renderer.model3d;
