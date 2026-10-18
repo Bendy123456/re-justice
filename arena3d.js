@@ -345,28 +345,51 @@ class Arena3D {
       l:naturalSide('thigh_l',pelvis,-1),
       r:naturalSide('thigh_r',pelvis,1)
     };
-    // Ground-contact calibration is taken from THIS character's actual
-    // Blender rig, rather than guessing the ankle height from leg length.
-    // The foot pivot is above the sole; toe bones reveal that offset.
-    const footSoleHeights={},footRestWorldQuats={};
+    // Calibrate where the SKINNED FOOT MESH actually touches the ground.
+    // A toe/ankle bone's translation is not the sole: earlier offsets were
+    // estimated and made the feet hover on some character models.
+    // Measure weighted vertices once at spawn; do not raycast every frame.
+    root.updateWorldMatrix(true,true);
+    const footSoleHeights={},footRestWorldQuats={},soleSamples={};
+    const skinMeshes=[];
+    model.traverse(o=>{
+      if(o.isSkinnedMesh&&o.geometry?.getAttribute('skinIndex')&&
+          o.geometry?.getAttribute('skinWeight'))skinMeshes.push(o);
+    });
     for(const side of ['l','r']){
       const foot=bones.get('foot_'+side);
-      // Capture the sole's original rest orientation (flat to ground) so
-      // shin bend cannot accidentally make the toes point into the air.
+      const footRestY=foot?.getWorldPosition(new THREE.Vector3()).y??.095;
       footRestWorldQuats[side]=foot?.getWorldQuaternion(new THREE.Quaternion())||
         new THREE.Quaternion();
-      const footRestY=foot?.getWorldPosition(new THREE.Vector3()).y??.10;
-      let toeRestY=Infinity;
-      for(const [name,bone] of bones){
-        if(name.startsWith('toe')&&name.endsWith('_'+side)){
-          toeRestY=Math.min(toeRestY,
-            bone.getWorldPosition(new THREE.Vector3()).y);
+      const partNames=['foot_'+side,'ball_'+side,'ball_leaf_'+side];
+      let soleY=Infinity,sampleCount=0;
+      for(const skinned of skinMeshes){
+        const boneIndices=partNames.map(name=>
+          skinned.skeleton.bones.findIndex(b=>b.name.toLowerCase()===name))
+          .filter(n=>n>=0);
+        if(!boneIndices.length)continue;
+        const indices=skinned.geometry.getAttribute('skinIndex');
+        const weights=skinned.geometry.getAttribute('skinWeight');
+        const worldVertex=new THREE.Vector3();
+        for(let i=0;i<indices.count;i++){
+          let relevance=0;
+          for(let c=0;c<4;c++){
+            if(boneIndices.includes(indices.getComponent(i,c)))
+              relevance+=weights.getComponent(i,c);
+          }
+          if(relevance<.24)continue;
+          skinned.getVertexPosition(i,worldVertex);
+          worldVertex.applyMatrix4(skinned.matrixWorld);
+          if(!Number.isFinite(worldVertex.y))continue;
+          soleY=Math.min(soleY,worldVertex.y);
+          sampleCount++;
         }
       }
-      const pivotAboveSole=Number.isFinite(toeRestY)?
-        footRestY-Math.min(footRestY,toeRestY):
-        footRestY;
-      footSoleHeights[side]=clamp(pivotAboveSole,.035,.24);
+      const offset=Number.isFinite(soleY)?footRestY-soleY:footRestY;
+      // Bounds only guard degenerate rigs; ordinarily the original skinned
+      // mesh dictates the contact offset, including toes and heel geometry.
+      footSoleHeights[side]=clamp(offset,.008,.26);
+      soleSamples[side]=sampleCount;
     }
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.65),
       new THREE.MeshBasicMaterial({map:this.shadowMap,transparent:true,
@@ -375,7 +398,7 @@ class Arena3D {
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
     return {actor,root,bones,rests,restPositions,key,shadow,
-      armSides,legSides,footSoleHeights,footRestWorldQuats,walkWeight:0,dashWeight:0,lastStateTick:-1};
+      armSides,legSides,footSoleHeights,footRestWorldQuats,soleSamples,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
     for(const o of this.views){
