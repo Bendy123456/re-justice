@@ -273,8 +273,12 @@
     if(!state.temple)state.temple=templeBackdrop();
     if(!state.sandbox)state.sandbox=sandboxScene();
     if(g.frame!==state.last){
+      const pointerOnMode=MODES.some(mode=>g.uiHover===mode.id);
       for(const mode of MODES){
-        const isHot=g.uiHover===mode.id||g.menuItems[g.menuCursor]===mode.id;
+        // Pointer hover temporarily wins over gamepad focus; only the card
+        // under the mouse glows. Focus resumes when the pointer leaves.
+        const isHot=pointerOnMode?g.uiHover===mode.id:
+          g.menuItems[g.menuCursor]===mode.id;
         state.alpha[mode.id]=lerp(state.alpha[mode.id],isHot?1:0,.15);
       }
       state.alpha.settings=lerp(state.alpha.settings,
