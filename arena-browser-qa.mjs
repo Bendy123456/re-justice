@@ -556,6 +556,78 @@ try{
     v.minHandSide<.12))
     throw Error('One or more male/female elbows, shoulders, knees or hips is stiff or clips torso');
 
+  // Neutral idle regression: evaluate actual rendered bones, not the
+  // character's state label. Include a full walk-to-idle recovery to catch
+  // stiff elbows, spread legs, sudden foot jumps and hidden boxer guard.
+  const idleQA=await page.evaluate(()=>{
+    const g=window.game,arena=g.arena3d,report=[];
+    g.running=false;
+    for(const [i,a] of arena.fighters.entries()){
+      const v=arena.views[i];a.reset(i?12:-12,-8);
+      a.visualYaw=a.prevVisualYaw=0;
+      a.grounded=true;a.attack=null;a.blocking=false;a.stun=0;
+      v.walkWeight=1;v.lastStateTick=-1;v.dashWeight=0;
+      const world=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+      a.state='walk';a.gaitPhase=a.prevGaitPhase=1.52;a.animClock++;
+      arena.pose(v,1);
+      const results=[];
+      const measures=(frame)=>{
+        const root=v.root.matrixWorld.elements;
+        const right=v.root.position.clone().set(root[0],root[1],root[2]).normalize();
+        const lHand=world('hand_l'),rHand=world('hand_r');
+        const lShoulder=world('upperarm_l'),rShoulder=world('upperarm_r');
+        const lHip=world('thigh_l'),rHip=world('thigh_r');
+        const lFoot=world('foot_l'),rFoot=world('foot_r');
+        const side=(point,pivot,sign)=>sign*point.clone().sub(pivot).dot(right);
+        return {frame,
+          w:v.walkWeight,idleWeight:v.poseMetrics.idleWeight,
+          elbowL:v.poseMetrics.elbowL,elbowR:v.poseMetrics.elbowR,
+          kneeL:v.poseMetrics.kneeL,kneeR:v.poseMetrics.kneeR,
+          leftHandDown:lShoulder.y-lHand.y,rightHandDown:rShoulder.y-rHand.y,
+          leftHandSide:side(lHand,lShoulder,v.armSides.l),
+          rightHandSide:side(rHand,rShoulder,v.armSides.r),
+          leftHandHipHeight:lHand.y-lHip.y,rightHandHipHeight:rHand.y-rHip.y,
+          handForward:(lHand.z-lShoulder.z+rHand.z-rShoulder.z)/2,
+          feetSpread:Math.abs(lFoot.clone().sub(rFoot).dot(right)),
+          hipSpread:Math.abs(lHip.clone().sub(rHip).dot(right))};
+      };
+      results.push(measures('walking'));
+      a.state='idle';
+      for(let f=1;f<=32;f++){
+        a.animClock++;arena.pose(v,1);
+        if([1,3,6,10,18,32].includes(f))results.push(measures(f));
+      }
+      report.push({model:v.key,angles:results});
+    }
+    return report;
+  });
+  console.log('RELAXED_IDLE_POSE_QA',JSON.stringify(idleQA));
+  if(idleQA.some(r=>{
+    const end=r.angles.at(-1),before=r.angles[0];
+    return end.idleWeight<.99||end.leftHandDown<.51||
+      end.rightHandDown<.51||end.leftHandSide<.08||
+      end.rightHandSide<.08||end.feetSpread>before.feetSpread+
+      .08||end.feetSpread>end.hipSpread+.35||
+      ![end.leftHandDown,end.rightHandDown,end.feetSpread].every(Number.isFinite);
+  }))throw Error('Idle must lower hands and settle feet beneath hips on both real rigs');
+  await page.evaluate(()=>{
+    const g=window.game,arena=g.arena3d,a=arena.fighters[0],v=arena.views[0];
+    a.reset(-12,-8);a.visualYaw=a.prevVisualYaw=0;
+    a.state='idle';a.grounded=true;a.attack=null;
+    v.walkWeight=0;v.dashWeight=0;v.lastStateTick=-1;
+    a.animClock++;arena.pose(v,1);
+    arena.camera.position.set(a.x,1.85,a.z+4.6);
+    arena.camera.lookAt(a.x,1.12,a.z);
+    arena.updateSky(0);
+    arena.renderer.render(arena.scene,arena.camera);
+    arena.hudCtx.clearRect(0,0,1280,720);
+  });
+  await page.screenshot({path:'arena-qa-images/relaxed-idle-front.png'});
+  const idleImage=await page.screenshot({type:'jpeg',quality:60});
+  const idleChunks=idleImage.toString('base64').match(/.{1,4000}/g)||[];
+  idleChunks.forEach((part,i)=>console.log('IDLE_MODEL_FRAME:'+i+'/'+idleChunks.length+':'+part));
+  console.log('IDLE_MODEL_FRAME_FINISH:'+idleChunks.length);
+
   // Show actual animation posture at a stride recovery frame.
   await page.evaluate(()=>{
     const game=window.game,arena=game.arena3d,a=arena.fighters[0],v=arena.views[0];
