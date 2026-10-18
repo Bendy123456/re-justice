@@ -41,6 +41,52 @@ try{
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
+  // Native 3D meshes are Blender -Y -> glTF +Z forward.
+  // Neither backward motion nor strafing may turn either mesh away from target.
+  const facingQA=await page.evaluate(()=>{
+    const game=window.game,arena=game.arena3d;
+    game.running=false;
+    arena.phase='live';
+    const [a,b]=arena.fighters;
+    arena.move(b,a,window.FG.InputUtils.emptyFrame(),new Set(),false);
+    const start={x:a.x,z:a.z};
+    const retreat=window.FG.InputUtils.emptyFrame();
+    retreat.y=1;retreat.down=true;
+    arena.move(a,b,retreat,new Set(),true);
+    arena.render(1);
+    const vector=(actor,view)=>{
+      const m=view.root.matrixWorld.elements;
+      const dx=actor.slot===1?b.x-actor.x:a.x-actor.x;
+      const dz=actor.slot===1?b.z-actor.z:a.z-actor.z;
+      return (m[8]*dx+m[10]*dz)/Math.hypot(dx,dz);
+    };
+    const back=vector(a,arena.views[0]);
+    const enemy=vector(b,arena.views[1]);
+    const away=(a.x-start.x)*(b.x-start.x)+(a.z-start.z)*(b.z-start.z)<0;
+    const backFlag=a.backpedal===true;
+    const strafe=window.FG.InputUtils.emptyFrame();
+    strafe.x=1;strafe.right=true;
+    arena.move(a,b,strafe,new Set(),true);
+    arena.render(1);
+    const sideways=vector(a,arena.views[0]);
+    const towards=window.FG.InputUtils.emptyFrame();
+    towards.y=-1;towards.up=true;
+    arena.move(a,b,towards,new Set(),true);
+    arena.render(1);
+    const forward=vector(a,arena.views[0]);
+    return {back,enemy,sideways,forward,away,backFlag,
+      positions:[start,[a.x,a.z]]};
+  });
+  console.log('LOCKON_FACING_QA',JSON.stringify(facingQA));
+  if(!facingQA.away||!facingQA.backFlag||
+      Math.min(facingQA.back,facingQA.enemy,facingQA.sideways,facingQA.forward)<.97)
+    throw Error('Model forward direction or backward lock-on locomotion is inverted');
+  await page.screenshot({path:'arena-qa-images/locked-facing.png'});
+  await page.evaluate(()=>{
+    const arena=window.game.arena3d;
+    arena.fighters[0].reset(-11,-7);arena.fighters[1].reset(11,-7);
+    arena.phase='live';
+  });
   const rules=await page.evaluate(()=>{
     const game=window.game,g=game.arena3d;
     game.running=false; // freeze browser RAF for deterministic isolated QA

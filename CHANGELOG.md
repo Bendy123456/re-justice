@@ -1,5 +1,17 @@
 # Changelog
 
+## Anime training grounds visual overhaul + lock-on facing fix (2026-10-17)
+
+- Resculpted the existing original **Blender** training arena without changing its gameplay colliders or radius: multi-course carved stone perimeter, decorative pilasters, engraved bands, nuanced packed-earth floor, concentric training rings, weathered patches and leaf/moss detailing.
+- Refined the giant central tree with extra bark flutes, asymmetric spreading roots, winding branches, and layered foliage sprays for a fuller anime training-ground silhouette.
+- Rebaked the editable `assets/arena/training-ground.blend`, updated `training-ground.glb`, and inspected the Blender overview and actual browser fight screenshots.
+- Corrected the 3D character mesh's 180° facing mismatch: the imported Quaternius rig looks along local **+Z**, not **-Z**. `arena3d.js` now uses opponent-directed yaw, preserving lock-on orientation during forward movement, backward walking and strafing.
+- Reversed walk-cycle stride direction when backpedaling, without changing the actual game input layer or movement speeds.
+- Added regression assertions to `arena-browser-qa.mjs` for signed opponent-facing forward vector, backwards movement displacement, strafing, and forward movement.
+- Tuned in-game exposure, daylight, fill and fog so the revised wall and floor materials remain visible instead of washing out. Versioned the arena GLB and arena module URLs to avoid stale browser caches.
+- The arena retains the same 34m radius, 12.5m walls, solid central-tree collider, all existing four-fighter data, gamepad support, camera controls, CPU attacks and original game fallback.
+- Remaining art tasks: stylized grass/leaf motion, bespoke moves and more advanced third-person animation; full multiplayer remains unimplemented.
+
 ## Full 3D arena-fighter training grounds prototype — 2026-10-17
 
 - Created a new original daytime anime training ground in **Blender**: a 34m-radius circular fighting floor, a large sculpted central tree and 12.5m continuous enclosing stone walls. Exported editable `assets/arena/training-ground.blend`, game-ready `.glb` and QA render.
