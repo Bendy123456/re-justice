@@ -5,6 +5,7 @@ Visual meshes only: arena3d.js retains the existing analytical collisions.
 import bpy
 import math
 import random
+import os
 from mathutils import Vector
 
 SEED = 11703
@@ -51,7 +52,24 @@ class Painter:
     def finish(self,prefix):
         outputs=[]
         for key,v in self.layers.items():
-            outputs.append(new_mesh(prefix+' | '+key,v['v'],v['f'],v['material']))
+            obj=new_mesh(prefix+' | '+key,v['v'],v['f'],v['material'])
+            # Long vertical stone slabs get real, repeatable UVs from their
+            # curved horizontal position and height. Without these, a PNG
+            # stone texture would never show up in the in-game GLB.
+            if prefix.startswith('WALL '):
+                uv=obj.data.uv_layers.new(name='Stone surface UV')
+                for polygon in obj.data.polygons:
+                    indices=list(polygon.loop_indices)
+                    angles=[]
+                    for li in indices:
+                        p=obj.data.vertices[obj.data.loops[li].vertex_index].co
+                        angles.append(math.atan2(p.y,p.x))
+                    center=angles[0]
+                    angles=[a+2*PI*round((center-a)/(2*PI)) for a in angles]
+                    for li,theta in zip(indices,angles):
+                        vtx=obj.data.vertices[obj.data.loops[li].vertex_index].co
+                        uv.data[li].uv=(theta*34/2.7,vtx.z/2.7)
+            outputs.append(obj)
         return outputs
 
 def ring_quad(p,mat,r0,r1,a0,a1,z):
@@ -150,6 +168,46 @@ def solid_stone_slab(p,material,inner,outer,a0,a1,z0,z1):
     p.quad(material,i0b,o0b,o0t,i0t) # left cut edge
     p.quad(material,i1b,i1t,o1t,o1b) # right cut edge
 
+def make_stone_grain():
+    """One reusable embedded PNG with stone pores, pale mineral flecks,
+    shallow natural vertical grain and tiny creases (not brick-like rows).
+    """
+    size=768
+    root=os.path.abspath(os.path.join(os.path.dirname(__file__),'..','assets','arena'))
+    os.makedirs(root,exist_ok=True)
+    out=os.path.join(root,'stone-grain.png')
+    rng=random.Random(SEED+502)
+    pixels=[0.0]*(size*size*4)
+    for y in range(size):
+        v=2*PI*y/size
+        for x in range(size):
+            u=2*PI*x/size
+            broad=.42*math.sin(2*u+1.5*math.sin(v*3))+.21*math.sin(4*v-3*u)
+            grain=.15*math.sin(20*u+6*v)+.10*math.sin(51*v-16*u)
+            fine=rng.uniform(-.036,.036)
+            pits=-.075 if rng.random()<.0035 else 0
+            mineral=.075 if rng.random()<.0021 else 0
+            var=broad*.034+grain*.036+fine+pits+mineral
+            idx=4*(y*size+x)
+            pixels[idx]=max(.45,min(.78,.659+var))
+            pixels[idx+1]=max(.46,min(.79,.669+var))
+            pixels[idx+2]=max(.48,min(.81,.679+var))
+            pixels[idx+3]=1.0
+    img=bpy.data.images.new('Subtle porous light-gray stone surface',size,size,alpha=True)
+    img.pixels.foreach_set(pixels)
+    img.filepath_raw=out;img.file_format='PNG';img.save()
+    tex=bpy.data.images.load(out,check_existing=False)
+    tex.colorspace_settings.name='sRGB'
+    print('HIGH_DETAIL_STONE_QA',size,'texture','small mineral pores')
+    return tex
+
+def apply_stone_texture(material,texture):
+    bsdf=material.node_tree.nodes.get('Principled BSDF')
+    img=material.node_tree.nodes.new('ShaderNodeTexImage')
+    img.image=texture;img.extension='REPEAT'
+    img.interpolation='Linear'
+    material.node_tree.links.new(img.outputs['Color'],bsdf.inputs['Base Color'])
+
 def wall_details(radius=34.0,height=12.5):
     """Tall, pale-gray monolithic slabs from grass to the upper cap.
 
@@ -171,6 +229,10 @@ def wall_details(radius=34.0,height=12.5):
     bevel=paint('WALL VERTICAL | soft chiseled edge',(.674,.684,.696),.89)
     crack=paint('WALL VERTICAL | faint hairline fissures',(.558,.571,.586),.96)
     cap=paint('WALL VERTICAL | continuous light-gray cap',(.650,.663,.676),.92)
+    tooling=paint('WALL VERTICAL | subtle vertical tooling',(.603,.617,.635),.95)
+    stone_image=make_stone_grain()
+    for finish in pale+[cap]:
+        apply_stone_texture(finish,stone_image)
     p=Painter()
     n=34
     angular_seam=.00075  # <6 cm total gap, never large dark gaps
@@ -215,6 +277,16 @@ def wall_details(radius=34.0,height=12.5):
             solid_stone_slab(p,crack,inner_face+offset-.011,
                 inner_face+offset-.005,theta,theta+thin,
                 z0+2.0,z0+4.1)
+        # Deliberately sparse worn marks at varied heights, following each
+        # monolithic stone instead of dividing it into little brick courses.
+        for scratch in range(4):
+            zlow=rng.uniform(.9,height-3.0)
+            line_length=rng.uniform(.25,1.4)
+            theta=a0+(a1-a0)*rng.uniform(.12,.86)
+            width=rng.uniform(.00025,.00055)
+            solid_stone_slab(p,tooling,inner_face+offset-.013,
+                inner_face+offset-.008,theta,theta+width,
+                zlow,zlow+line_length)
         # A simple individual matching-gray top stone, one per vertical
         # panel, rather than the previous 64-piece structural trim.
         solid_stone_slab(p,cap,inner_face-.13,outer_face+.13,
