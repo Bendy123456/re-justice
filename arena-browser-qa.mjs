@@ -185,6 +185,102 @@ try{
      animationQA.heavy.recover>=animationQA.heavy.attackReach*.55)
     throw Error('Full-body gait, punch, or dash motion is not visible on real rigs');
   await page.screenshot({path:'arena-qa-images/full-body-animation.png'});
+
+  // Superhero motion QA: both Blender rigs must visibly move their feet,
+  // initiate dashes with an anticipation, lean into burst, and recoil on exit.
+  const heroQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d,results=[];
+    for(const [i,a] of arena.fighters.entries()){
+      const v=arena.views[i];
+      a.reset(i?-11:11,-7);a.grounded=true;
+      v.walkWeight=1;v.dashWeight=0;
+      const pose=(state,phase)=>{
+        a.state=state;
+        a.gaitPhase=a.prevGaitPhase=phase;
+        a.animClock++;v.lastStateTick=-1;
+        arena.pose(v,1);
+        return {...v.poseMetrics};
+      };
+      const runA=pose('walk',.2),runB=pose('walk',1.85);
+      a.dashElapsed=1;a.lean=a.prevLean=.1;
+      const ignition=pose('dash',.2);
+      a.dashElapsed=5;
+      const burst=pose('dash',1.3);
+      a.dashElapsed=11;
+      const end=pose('dash',2.0);
+      a.dashRecovery=5;
+      a.lean=a.prevLean=0;
+      const brake=pose('idle',2.0);
+      const attacks=[];
+      for(const type of ['light','medium','heavy']){
+        a.reset(i?-11:11,-7);a.attackWith(type);
+        a.attackTick=Math.max(1,Math.floor(a.attack.startup*.85));
+        a.state='attack';const chamber=pose('attack',0);
+        a.attackTick=a.attack.startup+Math.floor(a.attack.active/2);
+        const impact=pose('attack',0);
+        a.attackTick=a.attack.startup+a.attack.active+
+          Math.floor(a.attack.recovery*.7);
+        const recovery=pose('attack',0);
+        attacks.push({type,chamber:chamber.attackWind,
+          impact:impact.attackImpact,twist:impact.torsoTwist,
+          reach:impact.attackReach,recover:recovery.attackReach});
+      }
+      results.push({model:v.key,run:{hipA:runA.hipTwist,hipB:runB.hipTwist,
+        torsoA:runA.torsoTwist,torsoB:runB.torsoTwist},
+        dash:{ignite:ignition.dashIgnite,burst:burst.dashBurst,
+          burstLean:burst.lean,brake:brake.dashBrake,brakeLean:brake.lean},
+        attacks});
+    }
+    arena.fighters[0].reset(-11,-7);
+    arena.fighters[1].reset(11,-7);
+    return results;
+  });
+  console.log('SUPERHERO_MOTION_QA',JSON.stringify(heroQA));
+  if(heroQA.some(v=>{
+    const [jab,cross,heavy]=v.attacks;
+    return Math.abs(v.run.hipA-v.run.hipB)<.12||
+      Math.abs(v.run.torsoA-v.run.torsoB)<.12||
+      v.dash.ignite<.5||v.dash.burst<.6||
+      v.dash.burstLean<.30||v.dash.brake<.5||
+      jab.chamber<.7||jab.impact<.4||
+      jab.twist>=-.10||cross.twist<.12||
+      heavy.twist<=cross.twist+.10||
+      heavy.recover>=heavy.reach*.55;
+  }))throw Error('Superhero gait/dash/punch animation is missing or too stiff');
+
+  // Capture actual THREE.JS model poses from a close three-quarter angle.
+  await page.evaluate(()=>{
+    const arena=window.game.arena3d,a=arena.fighters[0],v=arena.views[0];
+    a.reset(-11,-7);a.grounded=true;
+    a.state='walk';a.gaitPhase=a.prevGaitPhase=1.4;v.walkWeight=1;
+    a.animClock++;arena.pose(v,1);
+    arena.camera.position.set(a.x+4.0,2.7,a.z+5.3);
+    arena.camera.lookAt(a.x,1.1,a.z);
+    arena.renderer.render(arena.scene,arena.camera);
+  });
+  await page.screenshot({path:'arena-qa-images/superhero-run-close.png'});
+  await page.evaluate(()=>{
+    const arena=window.game.arena3d,a=arena.fighters[0],v=arena.views[0];
+    a.state='dash';a.dashElapsed=5;a.dashRecovery=0;
+    a.lean=a.prevLean=.13;a.gaitPhase=a.prevGaitPhase=1.5;
+    a.animClock++;arena.pose(v,1);
+    arena.renderer.render(arena.scene,arena.camera);
+  });
+  await page.screenshot({path:'arena-qa-images/superhero-dash-close.png'});
+  await page.evaluate(()=>{
+    const arena=window.game.arena3d,a=arena.fighters[0],v=arena.views[0];
+    a.attack=null;a.attackWith('heavy');
+    a.attackTick=a.attack.startup+Math.floor(a.attack.active/2);
+    a.lean=a.prevLean=0;a.state='attack';a.animClock++;
+    arena.pose(v,1);
+    arena.renderer.render(arena.scene,arena.camera);
+  });
+  await page.screenshot({path:'arena-qa-images/superhero-heavy-punch-close.png'});
+  await page.evaluate(()=>{
+    const arena=window.game.arena3d;
+    arena.fighters[0].reset(-11,-7);arena.fighters[1].reset(11,-7);
+  });
+
   // Sweep the complete walking cycle on both currently loaded humanoid
   // rigs. Check arm clearance in the fighter's LOCAL chest coordinate system,
   // not only the world-facing direction: wrists must not enter the ribs while
