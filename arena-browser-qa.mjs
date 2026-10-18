@@ -184,6 +184,58 @@ try{
      animationQA.heavy.recover>=animationQA.heavy.attackReach*.55)
     throw Error('Full-body gait, punch, or dash motion is not visible on real rigs');
   await page.screenshot({path:'arena-qa-images/full-body-animation.png'});
+  // Sweep the complete walking cycle on both currently loaded humanoid
+  // rigs. Check arm clearance in the fighter's LOCAL chest coordinate system,
+  // not only the world-facing direction: wrists must not enter the ribs while
+  // the body turns and the arms swing backward.
+  const armClearanceQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d,[a,b]=arena.fighters;
+    const names=['female','batman'];
+    const result=[];
+    for(const [index,actor] of [a,b].entries()){
+      const v=arena.views[index];
+      const get=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+      const measurements=[];
+      actor.reset(index?-11:11,-7);
+      actor.state='walk';actor.grounded=true;
+      v.walkWeight=1;v.lastStateTick=-1;
+      for(let phase=0;phase<24;phase++){
+        actor.gaitPhase=actor.prevGaitPhase=phase*Math.PI/12;
+        actor.animClock++; // advance state blending exactly once per tick
+        actor.visualYaw=actor.prevVisualYaw=phase%8<4?Math.PI/2:-Math.PI/2;
+        arena.pose(v,1);
+        const m=v.root.matrixWorld.elements;
+        const right={x:m[0],y:m[1],z:m[2]};
+        const front={x:m[8],y:m[9],z:m[10]};
+        const chest=get('spine_02');
+        const handInfo=['l','r'].map((side,i)=>{
+          const hand=get('hand_'+side);
+          const elbow=get('lowerarm_'+side);
+          const sign=i?1:-1;
+          const coord=p=>({side:sign*((p.x-chest.x)*right.x+(p.y-chest.y)*right.y+(p.z-chest.z)*right.z),
+            front:(p.x-chest.x)*front.x+(p.y-chest.y)*front.y+(p.z-chest.z)*front.z});
+          return {hand:coord(hand),elbow:coord(elbow)};
+        });
+        measurements.push({phase,handInfo});
+      }
+      const handSides=measurements.flatMap(f=>f.handInfo.map(h=>h.hand.side));
+      const elbowSides=measurements.flatMap(f=>f.handInfo.map(h=>h.elbow.side));
+      const minSide=Math.min(...handSides);
+      const minElbow=Math.min(...elbowSides);
+      const behindAtCenter=measurements.flatMap(f=>f.handInfo).filter(x=>
+        x.hand.side<.17&&x.hand.front<.22).length;
+      result.push({model:names[index],minSide,minElbow,behindAtCenter,
+        minHandFront:Math.min(...measurements.flatMap(f=>f.handInfo.map(h=>h.hand.front))),
+        extrema:measurements.filter(f=>f.phase%6===0)});
+    }
+    a.reset(-11,-7);b.reset(11,-7);
+    return result;
+  });
+  console.log('WALK_HAND_CLEARANCE_QA',JSON.stringify(armClearanceQA));
+  if(armClearanceQA.some(x=>x.minSide<.14||x.minElbow<.14||
+    x.behindAtCenter>0))
+    throw Error('Walking wrists/elbows intersect the chest on a real GLB rig');
+  await page.screenshot({path:'arena-qa-images/walk-arms-clear.png'});
   await page.evaluate(()=>{
     const arena=window.game.arena3d;
     arena.fighters[0].reset(-11,-7);arena.fighters[1].reset(11,-7);
