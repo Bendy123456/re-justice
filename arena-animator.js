@@ -7,6 +7,8 @@
  * Poses are expressed anatomically, then solved into each rig's bone space.
  */
 import * as THREE from 'three';
+import {animateShoulders,animateFingers,animateFootBalls}
+  from './arena-anatomy.js?v=human-articulation-1';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -383,6 +385,10 @@ export function poseFighter(view,alpha){
   rotate(view,'clavicle_r',Z,.025-
     (walkingMotion?walkAmount*.045:drive*.04)*stride+
     idlePose*COMBAT_IDLE.clavicleR[2],rootQ);
+  // Independently drive the shoulder girdle before two-bone arm IK, so
+  // the arm follows the rolling clavicle instead of detaching from it.
+  const shoulderFlex=animateShoulders(view,{rootQ,walkAmount,runMix,
+    idlePose,strideClock,attack,blocked,airborne,dashing,breath});
 
   // Asymmetric loose guard at rest. Attack and block still get their own
   // authored arm positions; the guard is an idle-only procedural layer.
@@ -518,6 +524,11 @@ export function poseFighter(view,alpha){
       (attack?.impact||0)*-.06,rootQ);
     rotate(view,'hand_'+side,Y,sign*(.045+drive*.035),rootQ);
   }
+  // The Blender mesh already has 3 deforming joints and a tip per
+  // finger. Pose them independently, splaying each digit and curling
+  // real knuckles instead of rotating the whole fused-looking hand.
+  const digitPose=animateFingers(view,{idlePose,walkAmount,runMix,
+    strideClock,breath,attack,blocked,hit,airborne});
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
@@ -617,10 +628,17 @@ export function poseFighter(view,alpha){
     }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
     const kneeSculpt=side==='l'?COMBAT_IDLE.leadKneePole:COMBAT_IDLE.trailKneePole;
+    const kneeStep=side==='l'?leftStep:rightStep;
+    // Pole follows forward recoveries and lateral stepping. The shin must
+    // fold in the true travel direction while the planted knee straightens.
+    const kneeLift=walkingMotion&&!kneeStep.contact?
+      kneeStep.lift*walkAmount:0;
+    const kneeSide=walkingMotion?localSide*walkAmount*.19:0;
     const kneePole=[
-      sign*lerp(.12,kneeSculpt[0],idlePose),
-      lerp(.15,kneeSculpt[1],idlePose),
-      lerp(1,kneeSculpt[2],idlePose)
+      sign*lerp(.12,kneeSculpt[0],idlePose)+kneeSide,
+      lerp(.15,kneeSculpt[1],idlePose)+kneeLift*.30,
+      lerp(1,kneeSculpt[2],idlePose)+kneeLift*.72+
+        (walkingMotion?.11*runMix:0)
     ];
     solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
       target,kneePole,rootQ);
@@ -661,6 +679,11 @@ export function poseFighter(view,alpha){
     view.bones.get('foot_r').getWorldPosition(vec()).y-
     (view.footSoleHeights?.r??.09):null;
 
+  // Forward push-off bends the skinned ball/toe hinge after ankle leveling.
+  // The model has ball_l/ball_r and weighted toe tips, not five separate
+  // toe chains, so use its real existing skinned anatomy.
+  const toeChains=animateFootBalls(view,{rootQ,leftStep,rightStep,idlePose,
+    walkAmount,runMix,airborne,dashing,dash,land});
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
   const jointBends={
@@ -669,17 +692,10 @@ export function poseFighter(view,alpha){
     kneeL:bendAngle(view,'thigh_l','calf_l','foot_l'),
     kneeR:bendAngle(view,'thigh_r','calf_r','foot_r')
   };
-  // The rigs also include finer hand/toe articulation. Respect whichever
-  // matching finger/toe joints are present, without changing their bind pose.
-  for(const [name,bone] of view.bones){
-    if(/^(?:thumb|index|middle|ring|pinky|finger|toe)/.test(name)){
-      const side=name.endsWith('_l')?-1:1;
-      rotate(view,name,X,breath*.025+
-        (attack?.wind||0)*.035+(attack?.reach||0)*-.06,rootQ);
-    }
-  }
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
+    articulatedFingers:digitPose.digitChains,grip:digitPose.grip,
+    toeChains,shoulderFlex,
     localForward,localSide,gaitWeight:walkAmount,groundSpeed:motion.speed,runMix,
     state:a.state,hipTwist,torsoTwist,chestRoll,chestPitch,chestLead,
     lean:pitch,walk:drive,
