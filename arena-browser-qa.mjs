@@ -90,7 +90,7 @@ try{
     g.step(null,new Set());
     const pausedTimer=g.roundFrames;g.paused=false;
     A.attack=null;B.attack=null;B.blocking=false;
-    A.setRound(-11,-7);B.setRound(11,-7);
+    A.reset(-11,-7);B.reset(11,-7);
     g.roundFrames=99*60;g.phase='live';g.render(1);
     return {treeDist,wallDist,moved,jumped,landed,dashStarted,
       attackHit,chip,paused:timer===pausedTimer,before,after,second};
