@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: rejustice-fighter-movement-browser
+  group: rejustice-fighter-movement-browser-arm-clearance
   cancel-in-progress: true
 
 jobs:
