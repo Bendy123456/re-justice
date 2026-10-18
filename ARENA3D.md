@@ -152,7 +152,7 @@ The same circular training ground, central tree, light-gray tall stone panels,
 sky, and walkable terrain are preserved. A Blender build now creates:
 
 - A 768 × 768 embedded meadow color texture instead of 384 × 384, finer
-  layered ground variation, 22,500 short grass tufts with bent blade tips,
+  layered ground variation, 20,000 articulated short grass tufts with bent blade tips,
   and restrained small clover growth
 - A baked, UV-mapped 768 × 768 pale-gray porous stone surface shared across
   the full-height slabs, plus subtle hand-tooled vertical scoring and
