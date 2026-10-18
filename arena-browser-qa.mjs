@@ -869,6 +869,31 @@ try{
   if(footPlantQA.some(r=>r.segments.length<5||r.totalDistance<5||
       r.maxDrift>.17||r.maxHeightVariation>.19))
     throw Error('Walking planted feet slide or hover excessively in the world');
+  // A teleport/reset must invalidate planted anchors from the old world
+  // position. This regression caught an outward-kicking leg in the close-up.
+  const footResetQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d;
+    const values=[];
+    for(let i=0;i<2;i++){
+      const a=arena.fighters[i],v=arena.views[i];
+      a.reset(i?11:-11,-7);
+      a.visualYaw=a.prevVisualYaw=0;a.state='walk';a.grounded=true;
+      a.gaitPhase=a.prevGaitPhase=0;
+      v.walkWeight=1;v.lastStateTick=-1;
+      const far=v.root.position.clone().set(a.x-12,0,a.z-12);
+      v.footPlants={l:{world:far.clone()},r:{world:far.clone()}};
+      a.animClock++;arena.pose(v,1);
+      const hip=v.bones.get('thigh_l').getWorldPosition(v.root.position.clone());
+      const foot=v.bones.get('foot_l').getWorldPosition(v.root.position.clone());
+      const distance=Math.hypot(foot.x-hip.x,foot.z-hip.z);
+      values.push({rig:v.key,ankleHorizontalDistance:distance,
+        hasStaleAnchor:!!v.footPlants.l,footSideX:foot.x-hip.x});
+    }
+    return values;
+  });
+  console.log('RESET_FOOT_PLANT_QA',JSON.stringify(footResetQA));
+  if(footResetQA.some(x=>x.ankleHorizontalDistance>.90||
+      x.hasStaleAnchor))throw Error('Teleport caused a stale IK foot to kick sideways');
   // Emit compressed frames as bounded log chunks for hands-on visual review.
   // This supplements, rather than replaces, the geometric regression checks.
   for(const [tag,phase] of [['heel-strike',0],['toe-off',2.9],['mid-swing',4.2]]){
