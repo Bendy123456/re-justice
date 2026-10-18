@@ -75,47 +75,60 @@ try{
     arena.hudCtx.clearRect(0,0,1280,720);
   });
   await page.screenshot({path:'arena-qa-images/tree-in-game.png'});
-  // Native 3D meshes are Blender -Y -> glTF +Z forward.
-  // Neither backward motion nor strafing may turn either mesh away from target.
-  const facingQA=await page.evaluate(()=>{
-    const game=window.game,arena=game.arena3d;
+  // +Z-forward rig: hands must stay ahead of the body, and the visible
+  // character must turn into movement. Combat still aims at the opponent.
+  const movementQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d;
     game.running=false;
     arena.phase='live';
-    const [a,b]=arena.fighters;
+    const [a,b]=arena.fighters,view=arena.views[0],enemyView=arena.views[1];
     arena.move(b,a,window.FG.InputUtils.emptyFrame(),new Set(),false);
-    const start={x:a.x,z:a.z};
-    const retreat=window.FG.InputUtils.emptyFrame();
-    retreat.y=1;retreat.down=true;
-    arena.move(a,b,retreat,new Set(),true);
-    arena.render(1);
-    const vector=(actor,view)=>{
-      const m=view.root.matrixWorld.elements;
-      const dx=actor.slot===1?b.x-actor.x:a.x-actor.x;
-      const dz=actor.slot===1?b.z-actor.z:a.z-actor.z;
-      return (m[8]*dx+m[10]*dz)/Math.hypot(dx,dz);
+    const facing=(v)=>({x:v.root.matrixWorld.elements[8],z:v.root.matrixWorld.elements[10]});
+    const dot=(u,v)=>u.x*v.x+u.z*v.z;
+    const direction=(x,z)=>{const n=Math.hypot(x,z);return {x:x/n,z:z/n};};
+    const travel=(dx,dy,steps=24)=>{
+      const ctrl=window.FG.InputUtils.emptyFrame();ctrl.x=dx;ctrl.y=dy;
+      const before={x:a.x,z:a.z};
+      for(let i=0;i<steps;i++)arena.move(a,b,ctrl,new Set(),true);
+      arena.pose(view,1);
+      return dot(facing(view),direction(a.x-before.x,a.z-before.z));
     };
-    const back=vector(a,arena.views[0]);
-    const enemy=vector(b,arena.views[1]);
-    const away=(a.x-start.x)*(b.x-start.x)+(a.z-start.z)*(b.z-start.z)<0;
-    const backFlag=a.backpedal===true;
-    const strafe=window.FG.InputUtils.emptyFrame();
-    strafe.x=1;strafe.right=true;
-    arena.move(a,b,strafe,new Set(),true);
-    arena.render(1);
-    const sideways=vector(a,arena.views[0]);
-    const towards=window.FG.InputUtils.emptyFrame();
-    towards.y=-1;towards.up=true;
-    arena.move(a,b,towards,new Set(),true);
-    arena.render(1);
-    const forward=vector(a,arena.views[0]);
-    return {back,enemy,sideways,forward,away,backFlag,
-      positions:[start,[a.x,a.z]]};
+    arena.pose(view,1);
+    arena.pose(enemyView,1);
+    const base={x:a.x,z:a.z};
+    const enemy=direction(b.x-a.x,b.z-a.z);
+    const enemyFacing=dot(facing(enemyView),{x:-enemy.x,z:-enemy.z});
+    const retreat=travel(0,1);
+    const movedAway=(a.x-base.x)*enemy.x+(a.z-base.z)*enemy.z<0;
+    const sideways=travel(1,0);
+    const forward=travel(0,-1);
+    const shoulderL=view.bones.get('upperarm_l').getWorldPosition(new THREE.Vector3());
+    const shoulderR=view.bones.get('upperarm_r').getWorldPosition(new THREE.Vector3());
+    const handL=view.bones.get('hand_l').getWorldPosition(new THREE.Vector3());
+    const handR=view.bones.get('hand_r').getWorldPosition(new THREE.Vector3());
+    const armsAhead=[handL,handR].map((hand,i)=>{
+      const shoulder=i?shoulderR:shoulderL;
+      const forward=facing(view);
+      return (hand.x-shoulder.x)*forward.x+(hand.z-shoulder.z)*forward.z;
+    });
+    // Starting a strike realigns with the opponent instead of swinging away.
+    const strike=window.FG.InputUtils.emptyFrame();
+    strike.light=true;strike.pressed.light=true;
+    arena.move(a,b,strike,new Set(),true);
+    for(let i=0;i<8;i++)arena.move(a,b,window.FG.InputUtils.emptyFrame(),new Set(),true);
+    arena.pose(view,1);
+    const rival=direction(b.x-a.x,b.z-a.z);
+    const attacking=dot(facing(view),rival);
+    return {enemyFacing,retreat,sideways,forward,movedAway,
+      armsAhead,attacking,lean:a.lean,bank:a.bank};
   });
-  console.log('LOCKON_FACING_QA',JSON.stringify(facingQA));
-  if(!facingQA.away||!facingQA.backFlag||
-      Math.min(facingQA.back,facingQA.enemy,facingQA.sideways,facingQA.forward)<.97)
-    throw Error('Model forward direction or backward lock-on locomotion is inverted');
-  await page.screenshot({path:'arena-qa-images/locked-facing.png'});
+  console.log('LOCOMOTION_FACING_QA',JSON.stringify(movementQA));
+  if(!movementQA.movedAway||
+     Math.min(movementQA.enemyFacing,movementQA.retreat,
+       movementQA.sideways,movementQA.forward,movementQA.attacking)<.94||
+     Math.min(...movementQA.armsAhead)<.06)
+    throw Error('3D fighter no longer faces travel or hands are behind the chest');
+  await page.screenshot({path:'arena-qa-images/locomotion-facing.png'});
   await page.evaluate(()=>{
     const arena=window.game.arena3d;
     arena.fighters[0].reset(-11,-7);arena.fighters[1].reset(11,-7);
