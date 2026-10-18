@@ -132,6 +132,24 @@ def ground_details(radius=34.0):
     print('GRASS_QA',tufts,'tufts',sum(len(o.data.polygons) for o in out),
           'triangles',len(out),'materials')
 
+def solid_stone_slab(p,material,inner,outer,a0,a1,z0,z1):
+    """Six real faces with correct outward normals for both sides of arena.
+
+    Three.js renders front faces: inner stone faces must face the arena and
+    outer faces away from it. Wrong winding gives dark checker-shaped spots.
+    """
+    def at(r,a,z):return (r*math.cos(a),r*math.sin(a),z)
+    i0b=at(inner,a0,z0);i1b=at(inner,a1,z0)
+    i0t=at(inner,a0,z1);i1t=at(inner,a1,z1)
+    o0b=at(outer,a0,z0);o1b=at(outer,a1,z0)
+    o0t=at(outer,a0,z1);o1t=at(outer,a1,z1)
+    p.quad(material,i0b,i0t,i1t,i1b) # inside faces the center
+    p.quad(material,o0b,o1b,o1t,o0t) # outside faces away
+    p.quad(material,i0t,o0t,o1t,i1t) # top upwards
+    p.quad(material,i0b,i1b,o1b,o0b) # base downwards
+    p.quad(material,i0b,o0b,o0t,i0t) # left cut edge
+    p.quad(material,i1b,i1t,o1t,o1b) # right cut edge
+
 def wall_details(radius=34.0,height=12.5):
     """Clean superhero training arena: three courses of enormous gray slabs.
 
@@ -180,28 +198,22 @@ def wall_details(radius=34.0,height=12.5):
             a0=2*PI*(k+offset)/n+gap
             a1=2*PI*(k+offset+1)/n-gap
             mat=slab[(k+row*3)%len(slab)]
-            # Interior 3D slab face; depth forms real chiseled seam reveals.
-            cylinder_ribbon(p,mat,inside,radius+.03,a0,a1,z_lo,z_hi)
-            # Exterior 3D slab, outward-facing with reversed winding.
-            r=outside
-            p.quad(mat,
-               (r*math.cos(a1),r*math.sin(a1),z_lo),
-               (r*math.cos(a0),r*math.sin(a0),z_lo),
-               (r*math.cos(a0),r*math.sin(a0),z_hi),
-               (r*math.cos(a1),r*math.sin(a1),z_hi))
-            # A narrow bevel across the top of each huge panel.
-            cylinder_ribbon(p,bevel,inside-.005,inside+.005,
-                a0+.002,a1-.002,z_hi-.058,z_hi-.013)
-            # Tiny undercut; not a heavy decorative brick course.
-            cylinder_ribbon(p,shade,inside-.002,inside+.006,
-                a0+.002,a1-.002,z_lo+.015,z_lo+.045)
+            # Real thick blocks, with inward-facing interior and
+            # outward-facing exterior normals (no invisible backfaces).
+            solid_stone_slab(p,mat,inside,radius+.03,a0,a1,z_lo,z_hi)
+            solid_stone_slab(p,mat,outside-.10,outside+.025,a0,a1,z_lo,z_hi)
+            # Very narrow bevels, both in the same gray family.
+            solid_stone_slab(p,bevel,inside-.007,inside+.002,
+                a0+.003,a1-.003,z_hi-.058,z_hi-.019)
+            solid_stone_slab(p,shade,inside-.004,inside+.002,
+                a0+.003,a1-.003,z_lo+.012,z_lo+.038)
     # Individual wide cap slabs with subtle separation marks.
     for k in range(n):
         a0=2*PI*(k+gap/2)/n
         a1=2*PI*(k+1-gap/2)/n
-        cylinder_ribbon(p,cap,inside-.20,outside+.16,
+        solid_stone_slab(p,cap,inside-.20,outside+.16,
             a0,a1,height-.03,height+.33)
-        cylinder_ribbon(p,capEdge,inside-.23,outside+.19,
+        solid_stone_slab(p,capEdge,inside-.23,outside+.19,
             a0+.002,a1-.002,height+.27,height+.36)
     meshes=p.finish('WALL clean medium-gray giant stone slabs')
     print('STONE_SLAB_WALL_QA',n,'slabs per course',courses,'courses',
