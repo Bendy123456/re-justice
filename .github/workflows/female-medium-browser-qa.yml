@@ -1,0 +1,69 @@
+name: Verify medium female GLB in game
+on:
+  push:
+    branches: [female-medium-chest-pass]
+    paths:
+      - 'assets/models/female-unarmored.glb'
+      - 'glb-visuals.js'
+      - 'visual-smoke.mjs'
+      - 'model-assets.js'
+      - 'nonexistent-intentional-trigger-marker'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: female-medium-chest-pass
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless Chromium for WebGL visual inspection
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium --with-deps
+      - name: Run game with real GLB loading and controller-free browser QA
+        run: |
+          python3 -m http.server 8765 >/tmp/game-server.log 2>&1 &
+          sleep 3
+          node visual-smoke.mjs
+      - name: Make lightweight screenshots for inspection
+        if: always()
+        run: |
+          sudo apt-get install -y --no-install-recommends python3-pil
+          python3 - <<'PY'
+          import base64
+          from PIL import Image
+          from pathlib import Path
+          p=Path('ci-images')
+          if not p.exists():quit()
+          for src in p.glob('*.png'):
+            im=Image.open(src).convert('RGB')
+            im.thumbnail((750,460))
+            target=src.with_suffix('.jpg')
+            im.save(target,quality=72,optimize=True)
+            src.with_suffix('.base64.txt').write_text(base64.b64encode(target.read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: medium-female-glb-browser-images
+          path: ci-images/
+          retention-days: 30
+      - name: Publish visual inspection captures to integration branch
+        if: always()
+        run: |
+          if ! find ci-images -type f -name '*.base64.txt' | grep -q .; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp -a ci-images /tmp/visual-captures
+          git fetch origin female-medium-chest-pass
+          git reset --hard origin/female-medium-chest-pass
+          cp -a /tmp/visual-captures/. ci-images/
+          git add ci-images
+          git diff --cached --quiet || git commit -m "Review medium female model in selection and combat [skip ci]"
+          git push origin HEAD:female-medium-chest-pass
