@@ -1,0 +1,79 @@
+name: Test 3D Arena in Browser
+on:
+  push:
+    branches: [three-d-training-arena]
+    paths:
+      - 'arena3d.js'
+      - 'arena-browser-qa.mjs'
+      - 'index.html'
+      - '.github/workflows/three-d-browser-qa.yml'
+      - 'assets/arena/*.glb'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: three-d-training-arena
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm Blender art and JS syntax
+        run: |
+          test -s assets/arena/training-ground.glb
+          node --check arena3d.js
+          node --check arena-browser-qa.mjs
+          node --check model-assets.js
+          node smoke-tests.cjs
+          node model-tests.cjs
+      - name: Install headless Chromium with software WebGL
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium --with-deps
+      - name: Run actual 3D browser physics/gameplay tests
+        run: |
+          python3 -m http.server 8765 >/tmp/arena-server.log 2>&1 &
+          sleep 3
+          node arena-browser-qa.mjs
+      - name: Create smaller QA screenshots
+        if: always()
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends python3-pil
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64
+          folder=Path('arena-qa-images')
+          if folder.exists():
+            for file in folder.glob('*.png'):
+              im=Image.open(file).convert('RGB')
+              im.thumbnail((800,500))
+              target=file.with_suffix('.jpg')
+              im.save(target,quality=76,optimize=True)
+              file.with_suffix('.base64.txt').write_text(base64.b64encode(target.read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rejustice-3d-browser-inspection
+          path: arena-qa-images/
+          retention-days: 30
+      - name: Save reviewed browser screenshots
+        if: always()
+        run: |
+          if ! find arena-qa-images -type f -name '*.base64.txt' | grep -q .; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp -a arena-qa-images /tmp/arena-captures
+          git fetch origin three-d-training-arena
+          git reset --hard origin/three-d-training-arena
+          mkdir -p arena-qa-images
+          cp -a /tmp/arena-captures/. arena-qa-images/
+          git add arena-qa-images
+          git diff --cached --quiet || git commit -m "3D training arena browser QA captures [skip ci]"
+          git push origin HEAD:three-d-training-arena

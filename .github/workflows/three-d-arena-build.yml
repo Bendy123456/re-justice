@@ -1,0 +1,63 @@
+name: Build Blender Training Arena
+on:
+  push:
+    branches: [three-d-training-arena]
+    paths:
+      - 'blender/build_training_arena.py'
+      - '.github/workflows/three-d-arena-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: training-arena-blender
+  cancel-in-progress: false
+jobs:
+  blender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: three-d-training-arena
+      - name: Install Blender and preview dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-numpy python3-pil
+      - name: Build original 3D training grounds
+        run: |
+          mkdir -p assets/arena
+          blender --background --factory-startup --python-exit-code 1 --python blender/build_training_arena.py > /tmp/arena-blender.log 2>&1 || (tail -120 /tmp/arena-blender.log && exit 1)
+          tail -35 /tmp/arena-blender.log
+          test -s assets/arena/training-ground.glb
+          test -s assets/arena/training-ground.blend
+          test -s assets/arena/training-ground-preview.png
+      - name: Create quick preview for art review
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64
+          p=Path('assets/arena')
+          im=Image.open(p/'training-ground-preview.png').convert('RGB')
+          im.thumbnail((750,500))
+          im.save(p/'training-ground-review.jpg',quality=75,optimize=True)
+          (p/'training-ground-review.base64.txt').write_text(base64.b64encode((p/'training-ground-review.jpg').read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rejustice-blender-training-ground
+          path: assets/arena
+          retention-days: 30
+      - name: Save inspected source and export on arena branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/arena-results
+          cp -a assets/arena/. /tmp/arena-results/
+          git fetch origin three-d-training-arena
+          git reset --hard origin/three-d-training-arena
+          mkdir -p assets/arena
+          cp -a /tmp/arena-results/. assets/arena/
+          git add assets/arena
+          git diff --cached --quiet || git commit -m "Original enclosed 3D tree arena GLB and Blender source [skip ci]"
+          git push origin HEAD:three-d-training-arena
