@@ -60,9 +60,9 @@ try{
       hasTreeBark:[...mats].some(n=>n.includes('chestnut bark')),
       triangles:Math.round(tris),
       grassMaterials:[...mats].filter(n=>n.includes('GRASS')),
-      slabMaterials:[...mats].filter(n=>n.includes('WALL SLAB')),
-      giantGraySlabs:[...mats].filter(n=>n.startsWith('WALL SLAB | medium gray stone')),
-      oldMixedStone:[...mats].filter(n=>/sandstone|ochre|limestone light|moss stained rock/i.test(n)&&n.startsWith('WALL SLAB')),
+      verticalStone:[...mats].filter(n=>n.startsWith('WALL VERTICAL |')),
+      lightStone:[...mats].filter(n=>n.startsWith('WALL VERTICAL | light limestone')),
+      oldHorizontalBricks:[...mats].filter(n=>n.startsWith('WALL SLAB |')),
       meadowTurf:[...mats].includes('Meadow turf | textured living grass'),
       grassTexture:(()=>{
         let textured=false;
@@ -79,16 +79,16 @@ try{
   });
   console.log('NATURAL_TREE_GEOMETRY_QA',JSON.stringify(treeQA));
   console.log('STONE_SLAB_GRASS_ARENA_QA',JSON.stringify({
-    slabMaterials:treeQA.slabMaterials.length,
+    verticalStoneMaterials:treeQA.verticalStone.length,
+    lightGrayPanelMaterials:treeQA.lightStone.length,
+    leftoverHorizontalBrickMaterials:treeQA.oldHorizontalBricks.length,
     grassMaterials:treeQA.grassMaterials.length,
-    texturedGround:treeQA.grassTexture,
-    giantMediumGrayMaterials:treeQA.giantGraySlabs.length,
-    oldMixedStoneMaterials:treeQA.oldMixedStone.length
+    texturedGround:treeQA.grassTexture
   }));
-  if(treeQA.slabMaterials.length<8||treeQA.grassMaterials.length<4||
-      treeQA.giantGraySlabs.length!==4||treeQA.oldMixedStone.length!==0||
+  if(treeQA.verticalStone.length<8||treeQA.grassMaterials.length<4||
+      treeQA.lightStone.length!==4||treeQA.oldHorizontalBricks.length!==0||
       !treeQA.meadowTurf||!treeQA.grassTexture)
-    throw Error('New Blender grass texture / stone slab wall absent');
+    throw Error('New Blender light-gray full-height wall or grass texture not loaded');
   if(treeQA.leafMaterials.length<7||treeQA.oldBallMaterials.length>0||
      !treeQA.hasTreeBark||treeQA.triangles<100000)
     throw Error('The old primitive tree was served instead of the new sculpt');
