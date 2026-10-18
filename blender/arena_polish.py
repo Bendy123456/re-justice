@@ -115,7 +115,7 @@ def ground_details(radius=34.0):
     clover=paint('GRASS | low field clover',(.24,.43,.19),.99)
     pale=paint('GRASS | bright sunlit blades',(.34,.52,.23),.99)
     p=Painter()
-    tufts=22500
+    tufts=20000
     for k in range(tufts):
         a=rng.uniform(0,2*PI)
         r=math.sqrt(rng.random())*(radius-1.65)
@@ -136,8 +136,10 @@ def ground_details(radius=34.0):
             right=(x+dy*width/2,y-dx*width/2,base_z)
             mid=(x+dx*bend*.44,y+dy*bend*.44,base_z+h*.56)
             tip=(x+dx*bend,y+dy*bend,base_z+h*(.88+.09*rng.random()))
-            p.triangle(tint if b<3 else dark,left,right,mid)
-            p.triangle(pale if k%11==0 and b==0 else tint,left,mid,tip)
+            # Four vertices/one quad instead of two duplicated triangles.
+            # The bent tip still lifts off the flat base of the grass blade.
+            p.quad(pale if k%11==0 and b==0 else tint if b<3 else dark,
+                   left,right,tip,mid)
         if k%21==0:
             size=rng.uniform(.026,.067)
             for j in range(3):
