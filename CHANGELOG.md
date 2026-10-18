@@ -1,5 +1,14 @@
 # Changelog
 
+## Shared female base — medium chest refinement (2026-10-17)
+
+- Increased medium bust contour settings in `blender/build_game_female_base.py` (volume 0.032 → 0.052, width 0.083 → 0.094, height 0.068 → 0.078, position adjusted slightly).
+- Rebuilt `assets/models/female-unarmored.glb`, its editable `.blend`, and the full-body and facial inspection renders in Blender.
+- All eight female roster slots automatically use this same newly generated mesh; model mapping and the rest of the roster are unchanged.
+- Preserved the same bald blue-gray matte material, rig/skin data, no armor or hair, and unchanged 2D gameplay mechanics.
+- Blender build and model/engine smoke tests passed; browser review checks cover selection, Batman matchup, female mirror match, and attack pose.
+- Custom outfits, armor, and character-specific face styling remain for later passes.
+
 ## Shared female Blender base for all eight women (2026-10-17)
 
 - Added an original proportion-adjusted, bald, armor-free female body built in Blender from the approved CC0 humanoid, preserving the imported 65-bone skeleton and original mesh deformation.
