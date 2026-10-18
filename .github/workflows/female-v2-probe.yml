@@ -1,0 +1,37 @@
+name: Probe anatomical female 3D source
+on:
+  push:
+    branches: [female-anatomy-v2]
+    paths:
+      - 'blender/probe_real_female.py'
+      - '.github/workflows/female-v2-probe.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: female-anatomy-v2
+      - name: Install Blender
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-numpy
+      - name: Fetch CC0 female mesh and original license provenance
+        run: |
+          mkdir -p blender/resources
+          curl -fLsS --retry 3 -o blender/resources/cc0_female.glb https://raw.githubusercontent.com/glanderness/BeefTV/main/web/public/canvas/models/quaternius-standard-female.glb
+          curl -fLsS --retry 3 -o blender/resources/quaternius-female-license.md https://raw.githubusercontent.com/glanderness/BeefTV/main/web/public/canvas/models/quaternius-standard-female.LICENSE.md
+          test -s blender/resources/cc0_female.glb
+      - name: Inspect female body and humanoid bone compatibility
+        run: |
+          blender -b --python-exit-code 1 --python blender/probe_real_female.py
+      - name: Publish geometry metadata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add generated/female_v2/probe.json
+          git diff --cached --quiet || git commit -m "Record anatomical CC0 female rig geometry and compatibility [skip ci]"
+          git push origin HEAD:female-anatomy-v2
