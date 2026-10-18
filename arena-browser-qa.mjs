@@ -61,6 +61,8 @@ try{
       triangles:Math.round(tris),
       grassMaterials:[...mats].filter(n=>n.includes('GRASS')),
       slabMaterials:[...mats].filter(n=>n.includes('WALL SLAB')),
+      giantGraySlabs:[...mats].filter(n=>n.startsWith('WALL SLAB | medium gray stone')),
+      oldMixedStone:[...mats].filter(n=>/sandstone|ochre|limestone light|moss stained rock/i.test(n)&&n.startsWith('WALL SLAB')),
       meadowTurf:[...mats].includes('Meadow turf | textured living grass'),
       grassTexture:(()=>{
         let textured=false;
@@ -79,9 +81,12 @@ try{
   console.log('STONE_SLAB_GRASS_ARENA_QA',JSON.stringify({
     slabMaterials:treeQA.slabMaterials.length,
     grassMaterials:treeQA.grassMaterials.length,
-    texturedGround:treeQA.grassTexture
+    texturedGround:treeQA.grassTexture,
+    giantMediumGrayMaterials:treeQA.giantGraySlabs.length,
+    oldMixedStoneMaterials:treeQA.oldMixedStone.length
   }));
   if(treeQA.slabMaterials.length<8||treeQA.grassMaterials.length<4||
+      treeQA.giantGraySlabs.length!==4||treeQA.oldMixedStone.length!==0||
       !treeQA.meadowTurf||!treeQA.grassTexture)
     throw Error('New Blender grass texture / stone slab wall absent');
   if(treeQA.leafMaterials.length<7||treeQA.oldBallMaterials.length>0||
