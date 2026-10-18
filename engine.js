@@ -120,7 +120,7 @@
     titleHotspots(){
       return [
         {id:'fight-tab',x:12,y:82,w:78,h:88,cursor:1},
-        {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:2},
+        {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:3},
         {id:'online',x:132,y:205,w:540,h:320,cursor:0},
         {id:'cpu',x:692,y:205,w:552,h:320,cursor:1},
         {id:'sandbox',x:132,y:549,w:1112,h:135,cursor:2}
@@ -224,7 +224,7 @@
       if(this.scene==='title'){
         for(const spot of this.titleHotspots()){
           if(!this.pointInRect(p,spot))continue;
-          if(spot.id==='settings-tab'){this.menuCursor=2;this.openSettings();return;}
+          if(spot.id==='settings-tab'){this.menuCursor=3;this.openSettings();return;}
           if(spot.id==='fight-tab'){this.menuCursor=1;this.audio.play('confirm',.16);return;}
           if(spot.id==='online'){this.menuCursor=0;this.activateMenuItem();return;}
           if(spot.id==='cpu'){this.menuCursor=1;this.activateMenuItem();return;}
