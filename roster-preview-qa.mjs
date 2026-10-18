@@ -107,6 +107,49 @@ try{
   const segments=sandboxScreen.toString('base64').match(/.{1,4000}/g)||[];
   segments.forEach((part,i)=>console.log('SANDBOX_3D_FRAME:'+i+'/'+segments.length+':'+part));
   console.log('SANDBOX_3D_FRAME_FINISH:'+segments.length);
+  // Hold a direction, stop, and confirm the visible model keeps looking
+  // that way indefinitely. The old bug turned every idle character to +Z.
+  const soloFacing=await page.evaluate(()=>{
+    const arena=window.game.arena3d,actor=arena.fighters[0],view=arena.views[0];
+    const empty=window.FG.InputUtils.emptyFrame;
+    const tick=(controls)=>{
+      actor.prevX=actor.x;actor.prevZ=actor.z;actor.prevY=actor.y;
+      actor.prevVisualYaw=actor.visualYaw;
+      actor.prevLean=actor.lean;actor.prevBank=actor.bank;
+      actor.prevGaitPhase=actor.gaitPhase;actor.animClock++;
+      arena.move(actor,null,controls,new Set(),true);
+      arena.pose(view,1);
+    };
+    const cases=[
+      {key:'forward',x:0,y:-1},
+      {key:'left',x:-1,y:0},
+      {key:'right',x:1,y:0},
+      {key:'backward',x:0,y:1},
+      {key:'diagonal',x:.7,y:-.7}
+    ];
+    return cases.map(({key,x,y})=>{
+      actor.reset(-11,-9);actor.visualYaw=actor.prevVisualYaw=0;
+      const controls=empty();controls.x=x;controls.y=y;
+      for(let j=0;j<28;j++)tick(controls);
+      const movingYaw=actor.visualYaw;
+      const movingState=actor.state;
+      for(let j=0;j<90;j++)tick(empty());
+      const idleYaw=actor.visualYaw;
+      const root=view.root.matrixWorld.elements;
+      const renderedYaw=Math.atan2(root[8],root[10]);
+      const wrap=angle=>Math.atan2(Math.sin(angle),Math.cos(angle));
+      return {key,movingState,idleState:actor.state,
+        movingYaw,idleYaw,renderedYaw,
+        turnError:Math.abs(wrap(idleYaw-movingYaw)),
+        visibleError:Math.abs(wrap(renderedYaw-movingYaw)),
+        originalForwardError:Math.abs(wrap(movingYaw))};
+    });
+  });
+  console.log('SANDBOX_FACING_IDLE_QA',JSON.stringify(soloFacing));
+  if(soloFacing.some(x=>x.movingState!=='walk'||x.idleState!=='idle'||
+     x.turnError>.002||x.visibleError>.002)||
+     soloFacing.filter(x=>x.key!=='forward').some(x=>x.originalForwardError<.25))
+    throw Error('Sandbox player rotated to +Z instead of keeping last movement heading');
   // A character with an unfinished combat moveset still works in Sandbox.
   const female=await page.evaluate(()=>{
     const g=window.game;
