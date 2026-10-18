@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'arena3d.js'
+      - 'arena-animator.js'
       - 'arena-browser-qa.mjs'
       - '.github/workflows/fighter-movement-browser-qa.yml'
   workflow_dispatch:
@@ -27,6 +28,7 @@ jobs:
       - name: Verify JS and combat smoke tests
         run: |
           node --check arena3d.js
+          node --check arena-animator.js
           node --check arena-browser-qa.mjs
           node smoke-tests.cjs
           node model-tests.cjs
