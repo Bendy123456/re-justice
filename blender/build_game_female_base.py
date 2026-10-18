@@ -162,8 +162,8 @@ rig.name = "REJustice_65Bone_FemaleRig"
 # Eyes/brows remain matte. Their original skin/rig positions are intact.
 # Ensure no armor or hair objects were accidentally exported.
 assert len(rig.data.bones) >= 60
-assert not any("cape" in o.name.lower() or "armor" in o.name.lower()
-               for o in bpy.context.scene.objects if o.type == "MESH")
+assert all(o in (body, eyes, brows) for o in bpy.context.scene.objects
+           if o.type == "MESH"), "Only body, eyes and brows belong in the base GLB"
 
 # Export actual skinned mesh with shape keys and existing joint weights.
 bpy.ops.object.select_all(action="DESELECT")
