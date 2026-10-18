@@ -745,7 +745,10 @@ try{
         const m=v.poseMetrics;
         samples.push({k,contactL:m.walkContactL,contactR:m.walkContactR,
           liftL:m.walkLiftL,liftR:m.walkLiftR,kneeL:m.kneeL,kneeR:m.kneeR,
-          bob:m.walkBob,hip:m.hipTwist,torso:m.torsoTwist});
+          bob:m.walkBob,hip:m.hipTwist,torso:m.torsoTwist,
+          chestRoll:m.chestRoll,chestPitch:m.chestPitch,
+          chestLead:m.chestLead,
+          spine:v.bones.get('spine_03').quaternion.toArray()});
       }
       results.push({model:v.key,phases:samples.filter((_,j)=>j%5===0),
         alternating:samples.some(x=>x.contactL&&!x.contactR)&&
@@ -754,13 +757,21 @@ try{
         maxKnee:Math.max(...samples.flatMap(x=>[x.kneeL,x.kneeR])),
         minKnee:Math.min(...samples.flatMap(x=>[x.kneeL,x.kneeR])),
         hipRange:Math.max(...samples.map(x=>x.hip))-
-          Math.min(...samples.map(x=>x.hip))});
+          Math.min(...samples.map(x=>x.hip)),
+        chestRollRange:Math.max(...samples.map(x=>x.chestRoll))-
+          Math.min(...samples.map(x=>x.chestRoll)),
+        chestPitchRange:Math.max(...samples.map(x=>x.chestPitch))-
+          Math.min(...samples.map(x=>x.chestPitch)),
+        spineMotion:Math.hypot(...samples[10].spine.map(
+          (v,j)=>v-samples[30].spine[j]))});
     }
     return results;
   });
   console.log('NATURAL_WALK_BIOMECHANICS',JSON.stringify(walkingReview));
   if(walkingReview.some(x=>!x.alternating||x.maxLift<.12||
-     x.maxKnee-x.minKnee<.20||x.hipRange<.20))
+     x.maxKnee-x.minKnee<.20||x.hipRange<.20||
+     x.chestRollRange<.060||x.chestPitchRange<.035||
+     x.spineMotion<.075))
     throw Error('Walking needs alternating foot support, knee flexion and pelvis sway');
 
   // Longer strides must be actual ankle travel, not just numeric gait
@@ -805,7 +816,7 @@ try{
     return result;
   });
   console.log('LONG_STRIDE_BODY_LEAN_QA',JSON.stringify(strideReview));
-  if(strideReview.some(v=>v.phaseStride<.72||v.footTravel<.55||
+  if(strideReview.some(v=>v.phaseStride<.95||v.footTravel<.70||
     v.pitchMin<.07||v.pitchMax>.22||
     v.bankRange<.07||v.bankRange>.21||
     v.hipShiftRange<.075||v.maxKnee-v.minKnee<.45||
@@ -866,8 +877,9 @@ try{
     return output;
   });
   console.log('PLANTED_FOOT_WORLDSPACE_QA',JSON.stringify(footPlantQA));
-  if(footPlantQA.some(r=>r.segments.length<5||r.totalDistance<5||
-      r.maxDrift>.17||r.maxHeightVariation>.19))
+  if(footPlantQA.some(r=>r.segments.length<4||r.totalDistance<5||
+      r.maxDrift>.17||r.maxHeightVariation>.19||
+      r.cadence<24||r.cadence>30))
     throw Error('Walking planted feet slide or hover excessively in the world');
   // A teleport/reset must invalidate planted anchors from the old world
   // position. This regression caught an outward-kicking leg in the close-up.
