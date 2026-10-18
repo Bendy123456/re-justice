@@ -343,12 +343,16 @@ export function poseFighter(view,alpha){
       if(naturalWalk){
         // Opposite the same-side leg: a loose elbow, relaxed wrist and
         // a visible but restrained shoulder swing around the rib cage.
-        const contra=side==='l'?-Math.cos(strideClock):Math.cos(strideClock);
-        // Natural relaxed hand drops past the hip. Modest shoulder swing
-        // and independent forearm flex without elbows sticking outward.
-        handX=.23;
-        handY=-.85+.045*contra;
-        handZ=.035+.26*contra;
+        // Left/right arms counter-swing to the SAME side leg, not a quarter
+        // cycle ahead of it. Forward travel folds the elbow and raises the
+        // wrist; the trailing arm straightens as it moves behind the hip.
+        // The target is relative to the live shoulder so torso twist and
+        // side-to-side weight shifts remain coupled to the arm movement.
+        const swing=side==='l'?-Math.sin(strideClock):Math.sin(strideClock);
+        const forward=Math.max(0,swing),backward=Math.max(0,-swing);
+        handX=.215+.012*forward;
+        handY=-.87+.20*forward-.012*backward;
+        handZ=.045+.44*swing;
       }
       if(dashing){
         handX=.42;
@@ -359,7 +363,7 @@ export function poseFighter(view,alpha){
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*(naturalWalk?.22:.95),.12,naturalWalk?-.95:-.32],rootQ);
+        [sgn*(naturalWalk?.25:.95),.12,naturalWalk?-.95:-.32],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
@@ -370,9 +374,13 @@ export function poseFighter(view,alpha){
   // Subtle wrist/hand articulation makes the arm more than a rigid stick.
   // Small separate adjustments preserve the two-bone elbow solve.
   for(const [side,sign,phase] of [['l',armL,-pump],['r',armR,pump]]){
-    rotate(view,'hand_'+side,X,drive*phase*.17+
+    // Wrist rotation is a separate joint, slightly delayed behind the
+    // upper-arm swing; fingers remain loose rather than locked in a guard.
+    const wristSwing=naturalWalk?
+      (side==='l'?-sin(strideClock-.27):sin(strideClock-.27)):phase;
+    rotate(view,'hand_'+side,X,drive*wristSwing*(naturalWalk?.13:.17)+
       (attack?.impact||0)*-.06,rootQ);
-    rotate(view,'hand_'+side,Y,sign*(.045+drive*.045),rootQ);
+    rotate(view,'hand_'+side,Y,sign*(.045+drive*.035),rootQ);
   }
 
   // Long alternating stride, real knee lift on the recovering leg and heels
