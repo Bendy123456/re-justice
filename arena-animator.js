@@ -37,24 +37,26 @@ function strikePose(actor){
   const active=Math.max(1,move.active);
   const recovery=Math.max(1,move.recovery);
   const tick=Math.max(0,actor.attackTick);
-  let chamber=0,extend=0,recoil=0;
+  let chamber=0,extend=0,recoil=0,impact=0;
   if(tick<startup){
     const t=ease(tick/startup);
     chamber=t;extend=-.23*t;
   }else if(tick<startup+active){
     const t=ease((tick-startup+1)/active);
     chamber=1-t;
-    extend=lerp(.78,1,t);
+    extend=lerp(.79,1,t);
+    impact=sin(Math.PI*t); // fast contact-frame shoulder recoil
   }else{
     const t=ease((tick-startup-active)/recovery);
-    extend=1-t;recoil=sin(t*Math.PI)*.16;
+    extend=1-t;recoil=sin(t*Math.PI)*.19;
   }
-  return {profile:p,wind:chamber,reach:extend,follow:recoil,
-    twist:p.rotation*(extend*.94-chamber*.62),
-    hip:p.hip*(extend*.8-chamber*.72),
-    lean:p.lean*(extend*.75+chamber*.3),
+  return {profile:p,wind:chamber,reach:extend,follow:recoil,impact,
+    shoulderPunch:impact*(p.hook>.3?.18:.11),
+    twist:p.rotation*(extend*.94-chamber*.66),
+    hip:p.hip*(extend*.86-chamber*.72),
+    lean:p.lean*(extend*.78+chamber*.32)+impact*.05,
     plant:clamp(chamber*.7+extend),
-    crouch:chamber*.18+extend*.045,
+    crouch:chamber*.20+extend*.055,
     step:p.step*extend
   };
 }
@@ -91,7 +93,7 @@ export function poseFighter(view,alpha){
   const yaw=a.prevVisualYaw+
     Math.atan2(sin(a.visualYaw-a.prevVisualYaw),cos(a.visualYaw-a.prevVisualYaw))*alpha;
   const locomoting=a.state==='walk',dashing=a.state==='dash';
-  const moving=locomoting||dashing;
+  // Only the rendered skeleton is animated; hitboxes remain fixed.
   const attack=strikePose(a);
   const airborne=!a.grounded||a.state==='jump';
   const blocked=a.blocking||a.state==='block';
@@ -111,17 +113,21 @@ export function poseFighter(view,alpha){
   const walk=locomoting?Math.max(.17,view.walkWeight||0):view.walkWeight||0;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
-  const movingGait=drive*stride;
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
+  const dashIgnite=dashing?1-ease(dashFrames/3):0;
+  const dashBurst=dashing?ease(dashFrames/3)*(1-ease((dashFrames-9)/3)):0;
   const dashKick=dashing?sin(clamp(dashFrames/11)*Math.PI):0;
-  const land=Math.max(0,Number(a.landingFrames||0))/7;
+  const dashBrake=clamp(Number(a.dashRecovery||0)/7);
+  const land=clamp(Number(a.landingFrames||0)/7);
   const breath=sin((a.animClock+alpha)*.063);
-  const bob=drive*(.026+abs(stride)*.041)-(attack?.crouch||0)*.11-land*.09;
-
-  const lean=lerp(a.prevLean,a.lean,alpha)+dash*.22
-    +(attack?.lean||0)-(hit?.21:0);
-  const bank=lerp(a.prevBank,a.bank,alpha)+drive*step*.035;
-  const pitch=lean+land*.07;
+  // Superhero/anime: crouched ignition, flying acceleration and a skid stop.
+  const bob=drive*(.009+abs(stride)*.049)+dashBurst*.022-
+    dashIgnite*.085-dashBrake*.038-(attack?.crouch||0)*.11-land*.09;
+  const lean=lerp(a.prevLean,a.lean,alpha)+(attack?.lean||0)-(hit?.21:0);
+  const bank=lerp(a.prevBank,a.bank,alpha)+drive*step*.047+
+    (attack?.impact||0)*.02;
+  const pitch=lean+dash*.23+dashBurst*.12-dashIgnite*.06-
+    dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
     lerp(a.prevY,a.y,alpha)+bob,lerp(a.prevZ,a.z,alpha));
   view.shadow.position.set(root.position.x,.018,root.position.z);
@@ -139,9 +145,11 @@ export function poseFighter(view,alpha){
 
   // Pelvis leads the stride, ribs/shoulders counter-rotate and head stabilizes.
   // Spine chain makes a strike originate at the feet, not from a disembodied arm.
-  const hipTwist=drive*stride*.14+(attack?.hip||0);
-  const torsoTwist=-drive*stride*.09+(attack?.twist||0);
-  const torsoBend=drive*abs(step)*.038+(attack?.lean||0)*.19;
+  // Hips initiate the stride and strike; shoulders counter-rotate.
+  const hipTwist=drive*stride*.19+(attack?.hip||0)+dashKick*.055;
+  const torsoTwist=-drive*stride*.16+(attack?.twist||0)-dashKick*.075;
+  const torsoBend=drive*abs(step)*.047+(attack?.lean||0)*.20+
+    dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
   rotate(view,'pelvis',Y,hipTwist,rootQ);
   rotate(view,'spine_01',Y,torsoTwist*.31,rootQ);
@@ -150,10 +158,10 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',X,torsoBend*.25,rootQ);
   rotate(view,'spine_02',X,torsoBend*.45+(hit?-.13:0),rootQ);
   rotate(view,'spine_03',X,torsoBend*.30+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',Z,drive*stride*.032+(attack?.twist||0)*-.07,rootQ);
+  rotate(view,'spine_03',Z,drive*stride*.046+(attack?.twist||0)*-.07,rootQ);
   rotate(view,'neck_01',X,-pitch*.21,rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
-  rotate(view,'head',X,-pitch*.14+breath*.018,rootQ);
+  rotate(view,'head',X,-pitch*.25+breath*.012,rootQ);
   rotate(view,'clavicle_l',Z,-.025+drive*stride*.04,rootQ);
   rotate(view,'clavicle_r',Z,.025-drive*stride*.04,rootQ);
 
@@ -164,10 +172,10 @@ export function poseFighter(view,alpha){
   const pump=drive*stride;
   const idleL=[-.43,-.58,.55],idleR=[.43,-.58,.55];
   const idleForeL=[-.26,.39,.81],idleForeR=[.26,.39,.81];
-  const walkL=[-.58,-.85,.19-pump*.62];
-  const walkR=[.58,-.85,.19+pump*.62];
-  const walkForeL=[-.25,-.69,.30-pump*.16];
-  const walkForeR=[.25,-.69,.30+pump*.16];
+  const walkL=[-.56,-.84,.26-pump*.76];
+  const walkR=[.56,-.84,.26+pump*.76];
+  const walkForeL=[-.26,-.65,.38-pump*.20];
+  const walkForeR=[.26,-.65,.38+pump*.20];
   const walkBlend=ease(clamp(walk));
   let leftUpper=blendVec(idleL,walkL,walkBlend);
   let rightUpper=blendVec(idleR,walkR,walkBlend);
@@ -177,10 +185,13 @@ export function poseFighter(view,alpha){
   if(dashing){
     // Athletic sprint stance: elbows out, hands beside the flanks, no
     // bent-up forearms running through the torso on diagonal dashes.
-    leftUpper=blendVec(leftUpper,[-.61,-.78,.23-pump*.62-dashKick*.08],dash);
-    rightUpper=blendVec(rightUpper,[.61,-.78,.23+pump*.62-dashKick*.08],dash);
-    leftFore=blendVec(leftFore,[-.26,-.53,.55-pump*.18],dash);
-    rightFore=blendVec(rightFore,[.26,-.53,.55+pump*.18],dash);
+    // During acceleration both elbows stay wide and the hands sweep back.
+    leftUpper=blendVec(leftUpper,[-.66,-.74,.15-pump*.34-
+      dashBurst*.38+dashIgnite*.22],dash);
+    rightUpper=blendVec(rightUpper,[.66,-.74,.15+pump*.34-
+      dashBurst*.38+dashIgnite*.22],dash);
+    leftFore=blendVec(leftFore,[-.29,-.71,.20-dashBurst*.29],dash);
+    rightFore=blendVec(rightFore,[.29,-.71,.20-dashBurst*.29],dash);
   }else if(blocked){
     leftUpper=[-.25,-.35,.68];
     rightUpper=[.25,-.35,.68];
@@ -198,17 +209,19 @@ export function poseFighter(view,alpha){
     const attackingL=p.hand==='l';
     const chamber=attack.wind,reach=attack.reach,follow=attack.follow;
     // Guard hand stays close to chin while the attacking elbow is chambered.
-    const windUpper=[attackingL?-.37:.37,-.37-chamber*.25,.37-chamber*.46];
-    const contactUpper=[attackingL?-.16:.16,-.04+.05*p.hook,1.0-p.hook*.28];
-    const contactFore=[attackingL?-.03:.03,-.02,1.0];
+    const windUpper=[attackingL?-.44:.44,-.37-chamber*.32,
+      .39-chamber*.49];
+    const contactUpper=[attackingL?-.20:.20,-.03+.07*p.hook,
+      1.0-p.hook*.28+attack.shoulderPunch];
+    const contactFore=[attackingL?-.10:.10,-.01,1.0];
     if(attackingL){
       leftUpper=blendVec(windUpper,contactUpper,Math.max(0,reach));
       leftFore=blendVec([-.15,.70,.18],contactFore,Math.max(0,reach));
-      rightUpper=[.25,-.36,.57];rightFore=[.15,.80,.45];
+      rightUpper=[.35,-.30,.63];rightFore=[.23,.68,.57];
     }else{
       rightUpper=blendVec(windUpper,contactUpper,Math.max(0,reach));
       rightFore=blendVec([.15,.70,.18],contactFore,Math.max(0,reach));
-      leftUpper=[-.25,-.36,.57];leftFore=[-.15,.80,.45];
+      leftUpper=[-.35,-.30,.63];leftFore=[-.23,.68,.57];
     }
     // Heavy cross/hook swings over the opponent's guard, never beyond wrist.
     if(p.hook&&reach>.1){
@@ -236,14 +249,14 @@ export function poseFighter(view,alpha){
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
-  const strideSize=drive*(.59+dash*.25);
+  const strideSize=drive*(.70+dash*.22);
   const leftLeg=sin(strideClock)*strideSize,rightLeg=-leftLeg;
   const plant=attack?.plant||0;
   const strideDamp=1-plant*.96;
-  const leftKnee=Math.max(0,-leftLeg)*.48;
-  const rightKnee=Math.max(0,-rightLeg)*.48;
+  const leftKnee=Math.max(0,-leftLeg)*.57;
+  const rightKnee=Math.max(0,-rightLeg)*.57;
   const jumpCurl=airborne?.34:0;
-  const brace=plant*.32+land*.28;
+  const brace=plant*.32+land*.28+dashIgnite*.34+dashBrake*.22;
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
   aim(view,'thigh_l','calf_l',[legL*.10,-.98+leftKnee+brace*.32,
     .04+leftLeg*strideDamp+(attack?.step||0)*.4],rootQ);
@@ -253,13 +266,14 @@ export function poseFighter(view,alpha){
     .11+leftKnee*.8+brace*.48],rootQ);
   aim(view,'calf_r','foot_r',[legR*.015,-1+rightKnee*.55+brace*.35+jumpCurl,
     .11+rightKnee*.8+brace*.48],rootQ);
-  rotate(view,'foot_l',X,-leftLeg*strideDamp*.32+land*.14,rootQ);
-  rotate(view,'foot_r',X,-rightLeg*strideDamp*.32+land*.14,rootQ);
+  rotate(view,'foot_l',X,-leftLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
+  rotate(view,'foot_r',X,-rightLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
 
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={
     state:a.state,hipTwist,torsoTwist,lean:pitch,walk:drive,
-    dash,attackReach:attack?.reach||0,attackWind:attack?.wind||0,
+    dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
+    attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
   };
 }
