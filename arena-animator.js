@@ -344,9 +344,10 @@ export function poseFighter(view,alpha){
         // Opposite the same-side leg: a loose elbow, relaxed wrist and
         // a visible but restrained shoulder swing around the rib cage.
         const contra=side==='l'?-Math.cos(strideClock):Math.cos(strideClock);
-        handX=.37;
-        handY=-.71+.055*contra;
-        handZ=.11+.31*contra;
+        handX=.36;
+        // Elbow remains slightly flexed, not a permanently raised guard.
+        handY=-.81+.065*contra;
+        handZ=.08+.30*contra;
       }
       if(dashing){
         handX=.42;
