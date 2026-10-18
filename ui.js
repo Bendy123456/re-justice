@@ -418,70 +418,221 @@
       label(c,text,cx,y+69,13,selected?'#fff':'#a7bfce','center','800');
       c.restore();
     }
-    modeCard(x,y,w,h,title,eyebrow,description,sub,selected,hovered,online){
-      const c=this.ctx;
-      const accent=online?'#69d1f5':'#f0bd70';
-      c.save();rounded(c,x,y,w,h,15);c.clip();
-      const fill=c.createLinearGradient(x,y,x+w,y+h);
-      fill.addColorStop(0,online?'#142e43':'#2f2a29');
-      fill.addColorStop(.54,online?'#142232':'#25262b');
-      fill.addColorStop(1,'#121c2a');c.fillStyle=fill;c.fillRect(x,y,w,h);
-      // Decorative arena blueprint instead of the giant grey placeholder X.
-      const px=x+w-123,py=y+167;
-      c.strokeStyle=online?'rgba(105,209,245,.17)':'rgba(240,189,112,.16)';
-      c.lineWidth=1;
-      for(const r of [55,83,111]){
-        c.beginPath();c.arc(px,py,r,0,Math.PI*2);c.stroke();
+    titleBackdrop(){
+      const c=this.ctx,t=this.game.frame/60;
+      const bg=c.createLinearGradient(0,60,1280,720);
+      bg.addColorStop(0,'#070e19');bg.addColorStop(.53,'#0c1725');
+      bg.addColorStop(1,'#080c14');c.fillStyle=bg;c.fillRect(0,0,CW,CH);
+      // Soft arena lighting behind the cards. Very cheap gradients rather
+      // than heavy CSS filters, with one restrained animated energy sweep.
+      let light=c.createRadialGradient(1020,354,26,1000,370,500);
+      light.addColorStop(0,'rgba(229,172,100,.11)');
+      light.addColorStop(.65,'rgba(149,105,67,.04)');
+      light.addColorStop(1,'rgba(149,105,67,0)');
+      c.fillStyle=light;c.fillRect(535,55,745,665);
+      light=c.createRadialGradient(316,305,20,325,326,440);
+      light.addColorStop(0,'rgba(81,165,206,.09)');
+      light.addColorStop(1,'rgba(81,165,206,0)');
+      c.fillStyle=light;c.fillRect(104,60,700,660);
+      c.save();
+      c.beginPath();c.rect(104,60,1176,660);c.clip();
+      c.strokeStyle='rgba(127,160,185,.052)';c.lineWidth=1;
+      for(let i=-900;i<1950;i+=82){
+        c.beginPath();c.moveTo(i,60);c.lineTo(i+430,720);c.stroke();
       }
-      c.beginPath();c.moveTo(px-145,py);c.lineTo(px+145,py);
-      c.moveTo(px,py-145);c.lineTo(px,py+145);c.stroke();
-      c.save();c.translate(px,py);c.rotate(-.3);
-      c.strokeStyle=online?'rgba(135,221,247,.23)':'rgba(250,203,140,.23)';
-      c.lineWidth=6;c.beginPath();c.moveTo(-26,75);c.lineTo(-16,-35);
-      c.lineTo(0,-74);c.lineTo(16,-35);c.lineTo(26,75);c.stroke();c.restore();
-      c.fillStyle=online?'rgba(105,209,245,.10)':'rgba(240,189,112,.11)';
-      c.fillRect(x,y,5,h);c.restore();
-      c.strokeStyle=selected?'#d6e7ee':hovered?'rgba(160,217,238,.66)':'rgba(147,173,193,.27)';
-      c.lineWidth=selected?2:1;rounded(c,x+.5,y+.5,w-1,h-1,15);c.stroke();
-      c.fillStyle=accent;c.beginPath();c.arc(x+34,y+42,5,0,Math.PI*2);c.fill();
-      label(c,eyebrow,x+49,y+47,13,online?'#95d8ef':'#f2cb91','left','800');
-      const pill=online?'COMING SOON':'PLAY NOW';
-      c.save();rounded(c,x+w-162,y+26,138,32,16);
-      c.fillStyle=online?'rgba(93,184,213,.12)':'rgba(244,185,101,.16)';c.fill();
-      c.strokeStyle=online?'rgba(106,206,238,.25)':'rgba(247,191,111,.31)';c.lineWidth=1;c.stroke();
-      label(c,pill,x+w-93,y+47,12,online?'#a4d5e8':'#ffdc9f','center','800');c.restore();
-      label(c,title,x+32,y+132,39,'#f5f9fc','left','900');
-      label(c,description,x+33,y+178,17,'#d4e3ed','left','600');
-      line(c,x+32,y+h-83,x+w-32,y+h-83,'rgba(192,214,227,.17)',1);
-      label(c,sub,x+32,y+h-38,13,'#9db5c6','left','700');
-      if(selected||hovered){
-        c.strokeStyle=accent;c.lineWidth=3;
-        line(c,x+25,y+h-2,x+152,y+h-2,accent,3);
+      for(let i=0;i<16;i++){
+        const xx=160+i*75;
+        line(c,xx,642,xx-260,720,'rgba(134,164,186,.025)',1);
+      }
+      // Shards converge at the arena's middle; their hue changes subtly
+      // while remaining subdued enough not to interfere with readable text.
+      const wave=Math.sin(t*.62);
+      c.fillStyle='rgba(96,196,236,.026)';
+      c.beginPath();c.moveTo(574,60);c.lineTo(730,60);c.lineTo(638,185);c.closePath();c.fill();
+      c.fillStyle=`rgba(245,184,106,${.028+wave*.007})`;
+      c.beginPath();c.moveTo(1030,60);c.lineTo(1175,60);c.lineTo(815,664);c.lineTo(789,664);
+      c.closePath();c.fill();
+      // Minimal scanner dots along bottom edge; no distracting blinking.
+      c.fillStyle='rgba(132,184,208,.13)';
+      for(let i=0;i<16;i++)c.fillRect(151+i*71,703,13,1);
+      c.restore();
+    }
+    // Original angular silhouettes built with canvas vectors. Keeps the
+    // mode cards cinematic without external image requests or copied assets.
+    cardFighter(c,x,y,scale,color,flip=1){
+      c.save();c.translate(x,y);c.scale(scale*flip,scale);
+      const shape=(pts,fill)=>{
+        c.beginPath();pts.forEach(([px,py],i)=>i?c.lineTo(px,py):c.moveTo(px,py));
+        c.closePath();c.fillStyle=fill;c.fill();
+      };
+      const outer='rgba(4,10,17,.95)';
+      // Silhouette is deliberately partly obscured by the card's fade.
+      shape([[-26,-15],[-30,36],[-52,116],[-18,119],[-4,52],[10,119],[40,116],[31,38],[26,-15]],outer);
+      shape([[-22,-90],[-43,-70],[-55,0],[-27,11],[-19,-28],[18,-28],[29,10],[55,0],[44,-71],[24,-90]],outer);
+      shape([[-18,-130],[-22,-105],[-14,-88],[14,-88],[23,-110],[17,-133],[0,-143]],outer);
+      shape([[-35,-70],[-49,-50],[-49,-8],[-37,-3],[-25,-56]],color);
+      shape([[25,-57],[38,-65],[48,-5],[36,-3],[22,-46]],color);
+      shape([[-22,-87],[0,-77],[19,-88],[13,-51],[0,-39],[-14,-55]],color);
+      c.strokeStyle=color;c.lineWidth=1.5;
+      c.beginPath();c.moveTo(-17,-110);c.lineTo(-6,-107);
+      c.moveTo(6,-107);c.lineTo(17,-110);c.stroke();
+      c.restore();
+    }
+    modeCard(x,y,w,h,title,eyebrow,description,sub,selected,hovered,online){
+      const c=this.ctx,frame=this.game.frame;
+      const hot=selected||hovered;
+      const gold='#efb86a',ice='#71ccf0',accent=online?ice:gold;
+      const pulse=.5+.5*Math.sin(frame*.07);
+      c.save();
+      rounded(c,x,y,w,h,16);c.clip();
+      const fill=c.createLinearGradient(x,y,x+w,y+h);
+      if(online){
+        fill.addColorStop(0,'#12273a');fill.addColorStop(.6,'#101b2a');
+        fill.addColorStop(1,'#0a1320');
+      }else{
+        fill.addColorStop(0,hot?'#302d2a':'#262629');
+        fill.addColorStop(.55,'#171f29');fill.addColorStop(1,'#101922');
+      }
+      c.fillStyle=fill;c.fillRect(x,y,w,h);
+      // Angular polished-metal design under the text plane.
+      c.fillStyle=online?'rgba(63,148,190,.07)':'rgba(239,184,106,.055)';
+      c.beginPath();c.moveTo(x+w*.54,y);c.lineTo(x+w,y);
+      c.lineTo(x+w,y+h);c.lineTo(x+w*.79,y+h);c.closePath();c.fill();
+      for(let k=0;k<6;k++){
+        const xx=x+w-210+k*39;
+        line(c,xx,y,xx-210,y+h,'rgba(177,210,225,.041)',1);
+      }
+      const px=x+w-134,py=y+177;
+      const arenaGlow=c.createRadialGradient(px,py,12,px,py,191);
+      arenaGlow.addColorStop(0,online?'rgba(63,171,213,.10)':'rgba(247,188,107,.15)');
+      arenaGlow.addColorStop(1,'rgba(20,45,62,0)');
+      c.fillStyle=arenaGlow;c.fillRect(x+w-350,y,350,h);
+      // One geometric centerpiece per mode: muted network nodes or
+      // two fighters facing off, with motion energy behind the SOLO card.
+      if(online){
+        c.strokeStyle='rgba(97,177,214,.21)';c.lineWidth=1.4;
+        const pts=[[px-56,py-51],[px+40,py-90],[px+86,py+17],
+          [px-32,py+82],[px-96,py+14]];
+        for(let i=0;i<pts.length;i++){
+          const a=pts[i],b=pts[(i+1)%pts.length];
+          line(c,a[0],a[1],b[0],b[1],'rgba(97,177,214,.18)',1);
+          c.beginPath();c.arc(a[0],a[1],4,0,Math.PI*2);
+          c.fillStyle='rgba(117,194,230,.24)';c.fill();
+        }
+        c.beginPath();c.arc(px,py,105,0,Math.PI*2);c.stroke();
+        c.save();c.translate(px,py);c.rotate(-.55);
+        c.fillStyle='rgba(5,12,20,.9)';
+        c.fillRect(-20,-36,40,69);
+        c.strokeStyle='rgba(125,200,231,.40)';c.lineWidth=3;
+        rounded(c,-19,-35,38,67,5);c.stroke();
+        c.strokeStyle='rgba(125,200,231,.36)';
+        line(c,-8,-35,-8,-49,'rgba(125,200,231,.36)',2);
+        line(c,8,-35,8,-49,'rgba(125,200,231,.36)',2);
+        c.restore();
+      }else{
+        const sway=Math.sin(frame*.026)*3.8;
+        for(let i=0;i<6;i++){
+          const dy=-90+i*36;
+          line(c,px-97,py+dy,px+101,py+dy-39,
+            `rgba(245,179,93,${.055+(i%2)*.04})`,i%2?2:1);
+        }
+        c.strokeStyle='rgba(244,183,103,.19)';c.lineWidth=1;
+        for(const radius of [74,115]){
+          c.beginPath();c.arc(px,py,radius,0,Math.PI*2);c.stroke();
+        }
+        this.cardFighter(c,px-39+sway,py+21,.94,'rgba(109,206,244,.42)',1);
+        this.cardFighter(c,px+56-sway,py+22,.93,'rgba(239,184,106,.58)',-1);
+        c.fillStyle='rgba(248,192,111,.5)';c.save();
+        c.translate(px+5,py+4);c.rotate(-.22);
+        c.fillRect(-1,-69,2,125);c.restore();
+      }
+      // Fade the artwork behind the reading column.
+      const readingFade=c.createLinearGradient(x+230,y,x+w-75,y);
+      readingFade.addColorStop(0,online?'rgba(16,30,45,.81)':'rgba(30,31,32,.77)');
+      readingFade.addColorStop(.6,'rgba(15,22,31,.44)');
+      readingFade.addColorStop(1,'rgba(12,19,28,0)');
+      c.fillStyle=readingFade;c.fillRect(x+225,y,w-225,h);
+      // Thin top bevel and an accent rail.
+      line(c,x+16,y+2,x+w-16,y+2,'rgba(255,255,255,.08)',1);
+      c.fillStyle=accent;c.fillRect(x,y,online?3:4,h);
+      if(!online){
+        c.fillStyle=`rgba(246,191,112,${hot?.78+.22*pulse:.48})`;
+        c.fillRect(x,y+16,4,h-32);
+      }
+      c.restore();
+      // Selection glow/outline lives OUTSIDE the clipped card.
+      c.save();
+      if(hot&&!online){
+        c.shadowColor='rgba(239,184,106,.48)';c.shadowBlur=11+pulse*8;
+      }
+      rounded(c,x+.5,y+.5,w-1,h-1,16);
+      c.strokeStyle=hot?(online?'rgba(112,206,240,.65)':'#f5cd92'):
+        (online?'rgba(132,177,201,.25)':'rgba(175,184,193,.30)');
+      c.lineWidth=hot?2.2:1;c.stroke();c.restore();
+      label(c,eyebrow,x+32,y+40,12,online?'#8fbad0':'#f3c582','left','900');
+      // Tiny state tag in upper-right corner.
+      const tag=online?'OFFLINE':'AVAILABLE';
+      c.save();rounded(c,x+w-144,y+20,119,29,7);
+      c.fillStyle=online?'rgba(104,167,199,.09)':'rgba(238,183,106,.15)';c.fill();
+      c.strokeStyle=online?'rgba(111,175,206,.22)':'rgba(244,190,113,.35)';
+      c.lineWidth=1;c.stroke();
+      label(c,tag,x+w-85,y+39,11,online?'#a0c3d4':'#ffd29a','center','800');
+      c.restore();
+      label(c,title,x+32,y+132,online?37:40,online?'#d6e7f2':'#fcf9f2','left','900');
+      label(c,description,x+33,y+176,16,online?'#aac2d1':'#d5dee5','left','600');
+      line(c,x+30,y+h-91,x+w-30,y+h-91,'rgba(181,205,219,.15)',1);
+      label(c,sub,x+31,y+h-62,12,online?'#83a6ba':'#b8cbd8','left','700');
+      if(online){
+        label(c,'NETWORK PLAY IS IN DEVELOPMENT',x+31,y+h-30,12,'#8faab9','left','700');
+      }else{
+        c.save();rounded(c,x+27,y+h-47,190,33,7);
+        c.fillStyle=hot?'#f2bf7c':'rgba(242,187,112,.19)';c.fill();
+        c.strokeStyle='rgba(242,187,112,.48)';c.lineWidth=1;c.stroke();
+        label(c,'SELECT FIGHTERS   ›',x+122,y+h-25,13,
+          hot?'#18202a':'#f7cc90','center','900');c.restore();
+        if(hot){
+          c.fillStyle=gold;c.fillRect(x+245,y+h-4,130,3);
+        }
       }
     }
     title(){
       const c=this.ctx,g=this.game;
-      this.dashboardBackground();this.topStatusBar();
-      c.fillStyle='rgba(5,11,19,.69)';c.fillRect(0,60,104,660);
-      line(c,103,60,103,720,'rgba(124,158,178,.16)',1);
+      this.titleBackdrop();this.topStatusBar();
+      c.fillStyle='rgba(4,11,20,.74)';c.fillRect(0,60,104,660);
+      line(c,103,60,103,720,'rgba(124,169,198,.23)',1);
       this.sideTab(12,82,78,88,'FIGHT',g.menuCursor!==2);
       this.sideTab(12,181,78,88,'SETTINGS',g.menuCursor===2);
-      label(c,'CHOOSE YOUR MODE',134,125,32,'#f4f8fd','left','900');
-      label(c,'Enter the arena. Select how you want to fight.',134,156,16,'#a2bbcc','left','500');
-      const selected=g.menuItems[g.menuCursor];
-      this.modeCard(132,205,540,320,'1V1 ONLINE','01  /  NETWORK','Face another player in a future online update.',
-        'MULTIPLAYER NETWORKING IN DEVELOPMENT',selected==='online',g.uiHover==='online',true);
-      this.modeCard(692,205,552,320,'1V1 VS BOT','02  /  SOLO','Practice your skills against the CPU.',
-        'CHARACTER SELECT  /  LOCAL SOLO MATCH',selected==='cpu',g.uiHover==='cpu',false);
-      c.save();rounded(c,132,549,1112,91,12);c.fillStyle='rgba(15,27,40,.93)';c.fill();
-      c.strokeStyle='rgba(143,177,200,.22)';c.lineWidth=1;c.stroke();c.restore();
-      c.fillStyle='#75cfec';c.beginPath();c.arc(165,594,5,0,Math.PI*2);c.fill();
-      label(c,'READY WHEN YOU ARE',181,601,17,'#eff7fc','left','800');
-      label(c,'Mouse, keyboard and Xbox / PlayStation controllers supported',181,622,13,'#9bb5c6','left','500');
-      c.save();rounded(c,979,571,235,41,9);c.fillStyle='rgba(124,177,201,.1)';c.fill();
-      c.strokeStyle='rgba(126,185,212,.23)';c.stroke();
-      label(c,'CLICK A MODE TO START',1096,596,13,'#d4eaf4','center','800');c.restore();
-      label(c,'ARROWS / D-PAD   NAVIGATE       ENTER / A   CONFIRM',690,682,13,'#8aa6ba','center','700');
+      label(c,'GAME MODES   /   SELECT YOUR BATTLE',134,97,12,'#85cbe7','left','900');
+      label(c,'ENTER THE ARENA',134,140,35,'#f6f9fc','left','900');
+      label(c,'Choose how you want to fight.',135,172,16,'#a7c1d1','left','500');
+      const chosen=g.menuItems[g.menuCursor];
+      this.modeCard(132,205,540,320,'1V1 ONLINE','01   /   NETWORK',
+        'Challenge another player in a future update.',
+        'MULTIPLAYER   /   COMING LATER',chosen==='online',g.uiHover==='online',true);
+      this.modeCard(692,205,552,320,'1V1 VS BOT','02   /   SOLO MODE',
+        'Train, practice and master your fighter.',
+        'SOLO TRAINING   /   LOCAL MATCH',chosen==='cpu',g.uiHover==='cpu',false);
+      // Actionable instructions with no fake buttons.
+      c.save();rounded(c,132,549,1112,88,12);
+      const footer=c.createLinearGradient(132,549,1244,637);
+      footer.addColorStop(0,'rgba(18,37,54,.94)');
+      footer.addColorStop(1,'rgba(10,23,37,.95)');
+      c.fillStyle=footer;c.fill();
+      c.strokeStyle='rgba(122,164,194,.22)';c.lineWidth=1;c.stroke();c.restore();
+      c.fillStyle='#72d2ef';c.beginPath();c.arc(163,591,5,0,Math.PI*2);c.fill();
+      label(c,'READY WHEN YOU ARE',180,595,16,'#f2f8ff','left','900');
+      label(c,'Keyboard, mouse and Xbox / PlayStation controllers',180,619,12,'#94b2c8','left','600');
+      const action=chosen==='online'?'ONLINE  /  IN DEVELOPMENT':
+        chosen==='settings'?'SETTINGS  /  CONTROLS':'ENTER / A   TO CHOOSE FIGHTERS';
+      c.save();rounded(c,913,570,300,43,8);
+      c.fillStyle=chosen==='cpu'?'rgba(236,180,107,.12)':'rgba(106,179,215,.10)';c.fill();
+      c.strokeStyle=chosen==='cpu'?'rgba(241,191,123,.34)':'rgba(124,188,217,.25)';
+      c.lineWidth=1;c.stroke();
+      label(c,action,1063,597,12,chosen==='cpu'?'#ffd59b':'#accfe1','center','900');
+      c.restore();
+      line(c,134,660,1243,660,'rgba(119,161,193,.14)',1);
+      label(c,'← / →  OR  D-PAD   NAVIGATE         ENTER / A   CONFIRM',
+        689,687,13,'#9bb7ca','center','700');
     }
     settings(){
       const c=this.ctx,g=this.game,input=g.input,actions=FG.InputUtils.ACTIONS;
