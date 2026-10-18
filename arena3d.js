@@ -550,13 +550,13 @@ class Arena3D {
       if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;a.landingFrames=7;}
     }
     constrain(a);
-    // Distance-driven cadence matches the anatomical 60% planted stance.
-    // Each stance ankle travels .76m relative to the pelvis; root travel
-    // over the same stance is 2π*.60/stepRate. Matching these distances
-    // prevents the old conveyor-belt slide without changing move speed.
+    // Real travel controls the gait. Longer 0.99m planted-foot sweep means
+    // one cycle now covers substantially more ground than the old 0.76m.
+    // Lower phase-per-meter = fewer, longer leg steps at the SAME run speed.
+    // Keep the separate fast dash rhythm, physics, collisions and controls.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
-      const stepRate=a.state==='walk'?(2*Math.PI*.60/.76):3.0;
+      const stepRate=a.state==='walk'?(2*Math.PI*.60/.99):3.0;
       a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
     // Preserve the last travel-facing direction in solo Sandbox when input
