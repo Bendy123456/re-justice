@@ -221,6 +221,14 @@ export function poseFighter(view,alpha){
       else rightUpper[2]-=follow;
     }
   }
+  // The imported rigs do not all agree on whether "_l" is -X or +X.
+  // Apply the actual shoulder-outward sign AFTER authoring each pose so the
+  // elbow always bends AWAY from the chest, not back through the skin.
+  const armL=view.armSides?.l??-1,armR=view.armSides?.r??1;
+  leftUpper[0]=armL*Math.abs(leftUpper[0]);
+  rightUpper[0]=armR*Math.abs(rightUpper[0]);
+  leftFore[0]=armL*Math.abs(leftFore[0]);
+  rightFore[0]=armR*Math.abs(rightFore[0]);
   aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
   aim(view,'upperarm_r','lowerarm_r',rightUpper,rootQ);
   aim(view,'lowerarm_l','hand_l',leftFore,rootQ);
@@ -236,13 +244,14 @@ export function poseFighter(view,alpha){
   const rightKnee=Math.max(0,-rightLeg)*.48;
   const jumpCurl=airborne?.34:0;
   const brace=plant*.32+land*.28;
-  aim(view,'thigh_l','calf_l',[-.10,-.98+leftKnee+brace*.32,
+  const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
+  aim(view,'thigh_l','calf_l',[legL*.10,-.98+leftKnee+brace*.32,
     .04+leftLeg*strideDamp+(attack?.step||0)*.4],rootQ);
-  aim(view,'thigh_r','calf_r',[.10,-.98+rightKnee+brace*.32,
+  aim(view,'thigh_r','calf_r',[legR*.10,-.98+rightKnee+brace*.32,
     .04+rightLeg*strideDamp-(attack?.step||0)*.4],rootQ);
-  aim(view,'calf_l','foot_l',[-.015,-1+leftKnee*.55+brace*.35+jumpCurl,
+  aim(view,'calf_l','foot_l',[legL*.015,-1+leftKnee*.55+brace*.35+jumpCurl,
     .11+leftKnee*.8+brace*.48],rootQ);
-  aim(view,'calf_r','foot_r',[.015,-1+rightKnee*.55+brace*.35+jumpCurl,
+  aim(view,'calf_r','foot_r',[legR*.015,-1+rightKnee*.55+brace*.35+jumpCurl,
     .11+rightKnee*.8+brace*.48],rootQ);
   rotate(view,'foot_l',X,-leftLeg*strideDamp*.32+land*.14,rootQ);
   rotate(view,'foot_r',X,-rightLeg*strideDamp*.32+land*.14,rootQ);
