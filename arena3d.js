@@ -15,6 +15,9 @@ const JUMP=11.0,GRAVITY=25,ROUND_FRAMES=99*60,INTRO_FRAMES=78,KO_FRAMES=110;
 const CAM_DIST=4.75,CAM_HEIGHT=2.85,CAM_SIDE=1.15,CAM_LERP=.13;
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
 const lerp=(a,b,t)=>a+(b-a)*t;
+// Keep visual rotations on the shortest arc (particularly across +/-PI).
+const angleDelta=(to,from)=>Math.atan2(Math.sin(to-from),Math.cos(to-from));
+const turnTowards=(from,to,maxStep)=>from+clamp(angleDelta(to,from),-maxStep,maxStep);
 const len=(x,z)=>Math.hypot(x,z);
 function unit(x,z,backup={x:1,z:0}){const n=len(x,z);return n<1e-8?{...backup}:{x:x/n,z:z/n};}
 function constrain(f){
@@ -45,6 +48,10 @@ class Combatant {
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
     this.combo=0;this.comboTicks=0;this.dash=0;this.dashCooldown=0;
     this.dashDirection={x:1,z:0};this.knock={x:0,z:0};this.backpedal=false;
+    // Simulation always targets the rival; these are VISUAL locomotion state.
+    this.travel={x:0,z:0};
+    this.visualYaw=this.prevVisualYaw=Math.PI/2*(slot===1?1:-1);
+    this.lean=this.prevLean=0;this.bank=this.prevBank=0;
   }
   reset(x,z){
     this.x=this.prevX=x;this.z=this.prevZ=z;this.y=this.prevY=this.vy=0;
@@ -52,6 +59,10 @@ class Combatant {
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.combo=0;this.comboTicks=0;
     this.dash=0;this.dashCooldown=0;this.backpedal=false;
+    this.facing={x:this.slot===1?1:-1,z:0};
+    this.travel={x:0,z:0};
+    this.visualYaw=this.prevVisualYaw=Math.PI/2*(this.slot===1?1:-1);
+    this.lean=this.prevLean=0;this.bank=this.prevBank=0;
   }
   attackWith(button){
     if(this.stun||this.attack||this.health<=0)return false;
@@ -250,6 +261,7 @@ class Arena3D {
     const c2=this.mode==='cpu'?this.bot.decide(b,a,this.tick):input?.frame(2)||FG.InputUtils.emptyFrame();
     for(const f of [a,b]){
       f.prevX=f.x;f.prevZ=f.z;f.prevY=f.y;f.animClock++;
+      f.prevVisualYaw=f.visualYaw;f.prevLean=f.lean;f.prevBank=f.bank;
     }
     this.move(a,b,c1,keys,true);
     this.move(b,a,c2,keys,this.mode!=='cpu');
@@ -262,9 +274,10 @@ class Arena3D {
   }
   move(a,b,control,keys,human){
     const forward=unit(b.x-a.x,b.z-a.z),right={x:-forward.z,z:forward.x};
-    // Lock-on facing is always the direction to the rival, never the input
-    // direction. Backwards movement should never flip the character.
+    // Keep combat targeting/strike cones on the opponent, but let the mesh
+    // turn into actual travel, like a third-person arena fighter.
     a.facing=forward;
+    a.travel={x:0,z:0};
     a.backpedal=(control.y||0)>.2;
     if(a.dashCooldown>0)a.dashCooldown--;
     if(a.flash>0)a.flash--;
@@ -308,12 +321,14 @@ class Arena3D {
       if(a.dash>0){
         a.x+=a.dashDirection.x*DASH*STEP;
         a.z+=a.dashDirection.z*DASH*STEP;
+        a.travel={...a.dashDirection};
         a.dash--;a.state='dash';
       }else if(control.x||control.y){
         const dx=control.x||0,dz=-(control.y||0);
         const direction=unit(right.x*dx+forward.x*dz,right.z*dx+forward.z*dz);
         const speed=dz<0?BACK:Math.abs(dx)>Math.abs(dz)?STRAFE:RUN;
         a.x+=direction.x*speed*STEP;a.z+=direction.z*speed*STEP;
+        a.travel=direction;
         a.state='walk';
       }else a.state=a.grounded?'idle':'jump';
     }else if(a.blocking){
@@ -328,6 +343,16 @@ class Arena3D {
       if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;}
     }
     constrain(a);
+    // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
+    // and ensures backward/sideways locomotion faces the actual path.
+    const running=a.state==='walk'||a.state==='dash';
+    const desired=running?a.travel:forward;
+    const desiredYaw=Math.atan2(desired.x,desired.z);
+    a.visualYaw=turnTowards(a.visualYaw,desiredYaw,a.attack?.68:running?.25:.20);
+    // Pitch into acceleration; bank gently while the feet catch up to turns.
+    const side=a.travel.x*Math.cos(a.visualYaw)-a.travel.z*Math.sin(a.visualYaw);
+    a.lean=lerp(a.lean,running?(a.state==='dash'?.17:.105):0,.22);
+    a.bank=lerp(a.bank,running?-side*.13:0,.23);
   }
   contact(a,b){
     const move=a.attack;
@@ -355,46 +380,62 @@ class Arena3D {
     this.effects.push({x:(a.x+b.x)/2,z:(a.z+b.z)/2,y:1.2+(a.y+b.y)/2,life:15});
     this.game.audio.play(blocked?'block':'hit',.38);
   }
-  // Aim bones with world-space shoulder/elbow vectors (same human rig for
-  // both sexes); the simulation never queries the meshes for any decision.
+  // Blender's forward is glTF local +Z. Pose limbs into that hemisphere;
+  // the previous -Z arm directions placed both hands behind the character.
   pose(view,alpha){
     const a=view.actor,root=view.root;
-    // Imported Quaternius humanoids face local +Z in Three.js (Blender -Y).
-    // The old yaw treated them as -Z, rotating both characters 180 degrees:
-    // the player appeared to walk face-first toward the camera.
-    const yaw=Math.atan2(a.facing.x,a.facing.z);
+    const yaw=a.prevVisualYaw+angleDelta(a.visualYaw,a.prevVisualYaw)*alpha;
+    const pitch=lerp(a.prevLean,a.lean,alpha);
+    const roll=lerp(a.prevBank,a.bank,alpha);
     const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
-    root.position.set(px,lerp(a.prevY,a.y,alpha),pz);
+    const running=a.state==='walk'||a.state==='dash';
+    const rhythm=a.animClock*(a.state==='dash'?.4:.27);
+    const gait=running?Math.sin(rhythm):0;
+    const bob=running&&a.grounded?Math.abs(gait)*.037:0;
+    root.position.set(px,lerp(a.prevY,a.y,alpha)+bob,pz);
     view.shadow.position.set(px,.018,pz);
     view.shadow.material.opacity=.74/(1+a.y*.18);
-    root.rotation.set(0,yaw,0);
+    root.rotation.order='YXZ';
+    root.rotation.set(pitch,yaw,roll);
     for(const [name,bone] of view.bones)bone.quaternion.copy(view.rests.get(name));
     root.updateWorldMatrix(true,true);
-    function aim(name,child,local){
+
+    // Rotate existing joint-to-joint vectors; imported bone local axes vary.
+    // World targets are rotated by the heading, preserving correct +Z forward.
+    const facingQ=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),yaw);
+    function aim(name,child,target){
       const bone=view.bones.get(name),end=view.bones.get(child);
       if(!bone||!end)return;
       const start=bone.getWorldPosition(new THREE.Vector3());
-      const current=end.getWorldPosition(new THREE.Vector3()).sub(start).normalize();
-      const target=new THREE.Vector3(...local).normalize();
-      target.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);
-      const change=new THREE.Quaternion().setFromUnitVectors(current,target);
+      const current=end.getWorldPosition(new THREE.Vector3()).sub(start);
+      if(current.lengthSq()<1e-8)return;
+      current.normalize();
+      const desired=new THREE.Vector3(...target).normalize().applyQuaternion(facingQ);
+      const change=new THREE.Quaternion().setFromUnitVectors(current,desired);
       const parent=bone.parent.getWorldQuaternion(new THREE.Quaternion());
-      bone.quaternion.premultiply(parent.clone().invert().multiply(change).multiply(parent));
+      bone.quaternion.premultiply(parent.clone().invert().multiply(change).multiply(parent)).normalize();
       bone.updateWorldMatrix(false,true);
     }
+
     let strike=0;
     if(a.attack){
       if(a.attackTick<a.attack.startup)strike=-.18;
       else if(a.attackTick<a.attack.startup+a.attack.active)strike=1;
       else strike=clamp(1-(a.attackTick-a.attack.startup-a.attack.active)/a.attack.recovery,0,1);
     }
-    const swing=a.state==='walk'?Math.sin(a.animClock*.24)*.20*(a.backpedal?-1:1):0;
-    aim('upperarm_l','lowerarm_l',[-.29,-.72,-.34-strike*.68]);
-    aim('upperarm_r','lowerarm_r',[.29,-.72,-.34]);
-    aim('lowerarm_l','hand_l',[-.14,.61,-.72-strike*.23]);
-    aim('lowerarm_r','hand_r',[.14,.61,-.72]);
-    aim('thigh_l','calf_l',[-.08+swing,-.97,-.11]);
-    aim('thigh_r','calf_r',[.08-swing,-.97,-.11]);
+    const guard=a.state==='block';
+    const stride=gait*(a.state==='dash'?.54:.42);
+    // Both forearms rise in FRONT of the chest, not behind the spine.
+    // Left hand extends through strike startup/active/recovery.
+    aim('upperarm_l','lowerarm_l',[-.29,-.72+(guard?.12:0)+strike*.48,.40-stride*.25+strike*.56]);
+    aim('upperarm_r','lowerarm_r',[.29,-.72+(guard?.12:0),.40+stride*.25]);
+    aim('lowerarm_l','hand_l',[-.13,.58+strike*.10,.78+strike*.35]);
+    aim('lowerarm_r','hand_r',[.13,.58,.78]);
+    // Alternate legs along +Z/-Z (depth), rather than swaying side to side.
+    aim('thigh_l','calf_l',[-.085,-.94,.06+stride]);
+    aim('thigh_r','calf_r',[.085,-.94,.06-stride]);
+    aim('calf_l','foot_l',[-.02,-.96,.12+Math.max(0,-stride)*.42]);
+    aim('calf_r','foot_r',[.02,-.96,.12+Math.max(0,stride)*.42]);
   }
   render(alpha){
     if(!this.active)return;
