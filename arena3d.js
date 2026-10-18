@@ -163,7 +163,8 @@ class Arena3D {
       this.scene.add(this.arena);
       this.models={male:all[1].scene,female:all[2].scene,batman:all[3].scene};
       this.ready=true;
-      this.game.input?.toast?.('3D Training Arena ready');
+      // Avoid covering the top of the mode cards on startup.
+      if(this.game.scene!=='title')this.game.input?.toast?.('3D Training Arena ready');
       window.dispatchEvent(new Event('rejustice:arena-ready'));
     }catch(e){this.failure=String(e);console.warn('3D assets failed; original game remains playable',e);}
   }
