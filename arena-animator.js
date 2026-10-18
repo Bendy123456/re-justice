@@ -214,25 +214,23 @@ export function poseFighter(view,alpha){
   const dashBrake=clamp(Number(a.dashRecovery||0)/7);
   const land=clamp(Number(a.landingFrames||0)/7);
   const breath=sin((a.animClock+alpha)*.063);
-  // Superhero/anime: crouched ignition, flying acceleration and a skid stop.
-  // Two subtle weight rises per stride; no bouncy vertical sliding.
-  const walkBob=walkAmount*(.016-.008*Math.cos(2*strideClock));
+  // Gravity-like weight absorption on contact, directional lean and
+  // counter-balance rather than spinning a motionless torso on top of legs.
+  const walkBob=walkAmount*(.010+.011*(1-cos(2*strideClock))*.5);
   const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
-  const lean=lerp(a.prevLean,a.lean,alpha)+(attack?.lean||0)-(hit?.21:0);
-  // Walk: the entire character leans into forward travel, and the pelvis
-  // shifts over the weight-bearing foot. The upper spine counterbalances so
-  // the head doesn't lurch around with every stride.
-  // Limit the engine's existing walk lean so we don't double the tilt.
-  const walkLean=walkAmount*(.077+.009*abs(stride));
-  const turnDelta=Math.atan2(sin(a.visualYaw-a.prevVisualYaw),
-    cos(a.visualYaw-a.prevVisualYaw));
-  const walkTurnBank=walkingMotion?clamp(-turnDelta*.26,-.07,.07)*walkAmount:0;
-  const bank=lerp(a.prevBank,a.bank,alpha)+
-    (walkingMotion?-supportShift*.50:drive*step*.047)+
-    walkTurnBank+(attack?.impact||0)*.02;
-  const pitch=(walkingMotion?lean*.48+walkLean:lean)+
+  const rawLean=lerp(a.prevLean,a.lean,alpha);
+  const lean=(walkingMotion?rawLean*.22:rawLean)+
+    (attack?.lean||0)-(hit?.21:0);
+  const walkLean=walkAmount*(.058*localForward-.010*abs(localSide));
+  const walkTurnBank=walkingMotion?
+    clamp(-motion.turn*.31,-.075,.075)*walkAmount:0;
+  const bank=lerp(a.prevBank,a.bank,alpha)*(!walkingMotion?1:.33)+
+    (walkingMotion?-supportShift*.53:drive*step*.047)+
+    walkTurnBank-walkAmount*localSide*.058+
+    (attack?.impact||0)*.02;
+  const pitch=lean+walkLean+
     dash*.23+dashBurst*.12-dashIgnite*.06-
     dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
@@ -250,30 +248,33 @@ export function poseFighter(view,alpha){
   }
   root.updateWorldMatrix(true,true);
 
-  // Place weight on the CURRENTLY supporting foot rather than moving the
-  // pelvis by an unrelated sine wave. The spine counters this small hip sway.
+  // Pelvis steps across the loaded leg while the chest stays dynamically
+  // balanced above it. Contact compression keeps the upper half alive.
   if(walkingMotion){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
-    if(hips)hips.position.x+=supportShift;
+    if(hips){
+      hips.position.x+=supportShift;
+      hips.position.y-=walkAmount*.009*(1-abs(step));
+    }
     root.updateWorldMatrix(true,true);
   }
 
   // Pelvis leads the stride, ribs/shoulders counter-rotate and head stabilizes.
   // Spine chain makes a strike originate at the feet, not from a disembodied arm.
   // Hips initiate the stride and strike; shoulders counter-rotate.
-  const hipTwist=(walkingMotion?walkAmount*.16:drive*.19)*stride+
+  const stepDrive=localForward+localSide*.26;
+  const hipTwist=(walkingMotion?walkAmount*.135*stepDrive:drive*.19)*stride+
     (attack?.hip||0)+dashKick*.055;
-  // The chest follows the pelvis with a slight delay, then counter-rotates:
-  // ribcage and shoulders should visibly move rather than stay rigid while
-  // arms/legs take longer steps. Preserve combat poses by gating to walk.
-  const torsoTwist=-(walkingMotion?walkAmount*.230:drive*.16)*stride+
+  const torsoTwist=-(walkingMotion?walkAmount*.195*stepDrive:drive*.16)*stride+
     (attack?.twist||0)-dashKick*.075;
-  const chestLead=walkingMotion?walkAmount*sin(strideClock-.42):0;
+  // Chest pitch, counter-rotation and shoulder roll use distinct curves.
+  const chestLead=walkingMotion?walkAmount*sin(strideClock-.48):0;
   const chestRoll=walkingMotion?
-    (-supportShift*.31+walkAmount*.075*sin(strideClock-.42)):0;
+    (-supportShift*.42+walkAmount*.048*sin(strideClock-.48)-
+      localSide*.023*walkAmount):0;
   const chestPitch=walkingMotion?
-    walkAmount*(.031+.022*cos(2*strideClock+.48)):0;
-  const torsoBend=(walkingMotion?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
+    walkAmount*(.019+.026*cos(2*strideClock+.35)):0;
+  const torsoBend=(walkingMotion?walkAmount*(.045+.011*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
   rotate(view,'pelvis',Y,hipTwist,rootQ);
@@ -523,6 +524,7 @@ export function poseFighter(view,alpha){
   }
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
+    localForward,localSide,gaitWeight:walkAmount,groundSpeed:motion.speed,
     state:a.state,hipTwist,torsoTwist,chestRoll,chestPitch,chestLead,
     lean:pitch,walk:drive,
     walkContactL:leftStep.contact,walkContactR:rightStep.contact,
