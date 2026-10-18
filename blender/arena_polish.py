@@ -115,7 +115,7 @@ def ground_details(radius=34.0):
     clover=paint('GRASS | low field clover',(.24,.43,.19),.99)
     pale=paint('GRASS | bright sunlit blades',(.34,.52,.23),.99)
     p=Painter()
-    tufts=20000
+    tufts=14000
     for k in range(tufts):
         a=rng.uniform(0,2*PI)
         r=math.sqrt(rng.random())*(radius-1.65)
