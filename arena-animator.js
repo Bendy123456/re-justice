@@ -184,6 +184,11 @@ export function poseFighter(view,alpha){
   const walkingMotion=walkAmount>.0005;
   const walkFade=ease(walkAmount);
   const leftStep=walkStep(strideClock),rightStep=walkStep(strideClock+Math.PI);
+  const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
+  const supportShift=walkAmount*.075*
+    (leftStep.support*legL+rightStep.support*legR);
+  // Retired anchors should not survive idle, dash, attack or a jump.
+  if(!naturalWalk&&view.footPlants)view.footPlants={l:null,r:null};
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
   const dashIgnite=dashing?1-ease(dashFrames/3):0;
   const dashBurst=dashing?ease(dashFrames/3)*(1-ease((dashFrames-9)/3)):0;
@@ -229,9 +234,6 @@ export function poseFighter(view,alpha){
 
   // Place weight on the CURRENTLY supporting foot rather than moving the
   // pelvis by an unrelated sine wave. The spine counters this small hip sway.
-  const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
-  const supportShift=walkAmount*.075*
-    (leftStep.support*legL+rightStep.support*legR);
   if(walkingMotion){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
     if(hips)hips.position.x+=supportShift;
