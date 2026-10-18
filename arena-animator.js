@@ -19,6 +19,19 @@ const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 // Three authored fighting styles, with distinct footwork, handedness and
 // windup/impact curves. Fractions are of the existing move frame data, NOT
 // replacements for gameplay startup, active, or recovery.
+// One complete authored idle profile, inspired by a crouched ninja-ready pose.
+// Measurements in normalized limb lengths except for torso/pelvis shifts.
+// Tweak these values together; combat timing and locomotion remain untouched.
+const COMBAT_IDLE=Object.freeze({
+  fadeIn:.21, fadeOut:.34,
+  pelvisDrop:.077, leadWeightShift:.048,
+  forwardSlouch:.205, spineTwist:-.085, spineSideBend:.046,
+  headCounterTilt:-.045,
+  leadFoot:[.19,-.86,.29],     // bent and weight bearing
+  trailFoot:[.35,-.87,-.16],   // kicked outward, slightly behind
+  leadHand:[.24,.055,.49],     // high fist ahead of cheek
+  trailHand:[.30,-.105,.43]    // second fist in front of chest
+});
 const STRIKES=Object.freeze({
   light: {hand:'l',chamber:.26,rotation:-.31,hip:-.17,lean:.12,step:.11,hook:0},
   medium:{hand:'r',chamber:.35,rotation:.46,hip:.31,lean:.20,step:.18,hook:.12},
@@ -200,14 +213,21 @@ export function poseFighter(view,alpha){
     lerp(a.prevGaitPhase??a.gaitPhase,a.gaitPhase,alpha):
     (a.animClock+alpha)*(dashing?.32:.225);
   const stride=sin(strideClock),step=cos(strideClock);
+  const relaxedIdle=a.state==='idle'&&a.grounded&&!attack&&!blocked&&!hit;
+  // Interpolate the whole fighting stance together, once per physics tick.
+  // Never use render-frame delta or snap hands/knees at movement transitions.
   if(view.lastStateTick!==a.animClock){
     view.dashWeight=lerp(view.dashWeight||0,dashing?1:0,.42);
+    const before=view.combatIdleWeight??(relaxedIdle?1:0);
+    const response=relaxedIdle?COMBAT_IDLE.fadeIn:COMBAT_IDLE.fadeOut;
+    view.combatIdleWeight=lerp(before,relaxedIdle?1:0,response);
+    if(!relaxedIdle&&view.combatIdleWeight<.001)view.combatIdleWeight=0;
     view.lastStateTick=a.animClock;
   }
+  const idlePose=view.combatIdleWeight??0;
   const walk=motion.weight;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
-  const relaxedIdle=a.state==='idle'&&a.grounded&&!attack&&!blocked&&!hit;
   const walkAmount=(!dashing&&!airborne&&!attack&&!blocked&&!hit)?
     clamp(walk):0;
   const walkingMotion=walkAmount>.0005;
@@ -262,15 +282,24 @@ export function poseFighter(view,alpha){
   }
   root.updateWorldMatrix(true,true);
 
-  // Pelvis steps across the loaded leg while the chest stays dynamically
-  // balanced above it. Contact compression keeps the upper half alive.
-  if(walkingMotion){
+  // The pelvis settles onto the front foot and drops into the crouch,
+  // while normal walk bob still works through its independent weight.
+  {
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
     if(hips){
-      hips.position.x+=supportShift;
-      hips.position.y-=walkAmount*.009*(1-abs(step));
+      if(walkingMotion){
+        hips.position.x+=supportShift;
+        hips.position.y-=walkAmount*.009*(1-abs(step));
+      }
+      if(idlePose>.0001){
+        const idleShift=.006*sin((a.animClock+alpha)*.026);
+        hips.position.x+=idlePose*((view.legSides?.l??-1)*
+          COMBAT_IDLE.leadWeightShift+idleShift);
+        hips.position.y-=idlePose*(COMBAT_IDLE.pelvisDrop+
+          .0035*breath);
+      }
+      root.updateWorldMatrix(true,true);
     }
-    root.updateWorldMatrix(true,true);
   }
 
   // Pelvis leads the stride, ribs/shoulders counter-rotate and head stabilizes.
@@ -290,23 +319,32 @@ export function poseFighter(view,alpha){
     walkAmount*(.019+.026*cos(2*strideClock+.35)):0;
   const torsoBend=(walkingMotion?walkAmount*(.045+.011*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
-  rotate(view,'hips',Y,hipTwist,rootQ);
-  rotate(view,'pelvis',Y,hipTwist,rootQ);
-  rotate(view,'spine_01',Y,torsoTwist*.31,rootQ);
-  rotate(view,'spine_02',Y,torsoTwist*.36,rootQ);
-  rotate(view,'spine_03',Y,torsoTwist*.33,rootQ);
-  const idleBreath=relaxedIdle?(1-walkFade)*breath*.014:0;
-  rotate(view,'spine_01',X,torsoBend*.25+chestPitch*.15+idleBreath*.24,rootQ);
-  rotate(view,'spine_02',X,torsoBend*.45+chestPitch*.45+idleBreath*.40+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',X,torsoBend*.30+chestPitch*.40+idleBreath*.36+(hit?-.13:0),rootQ);
-  rotate(view,'spine_01',Z,chestRoll*.20,rootQ);
-  rotate(view,'spine_02',Z,chestRoll*.49,rootQ);
+  const ninjaHunch=idlePose*COMBAT_IDLE.forwardSlouch;
+  const ninjaTwist=idlePose*COMBAT_IDLE.spineTwist;
+  const ninjaSide=idlePose*COMBAT_IDLE.spineSideBend;
+  const idleBreath=idlePose*(1-walkFade)*breath*.014;
+  rotate(view,'hips',Y,hipTwist+ninjaTwist*.15,rootQ);
+  rotate(view,'pelvis',Y,hipTwist+ninjaTwist*.15,rootQ);
+  rotate(view,'spine_01',Y,torsoTwist*.31+ninjaTwist*.22,rootQ);
+  rotate(view,'spine_02',Y,torsoTwist*.36+ninjaTwist*.43,rootQ);
+  rotate(view,'spine_03',Y,torsoTwist*.33+ninjaTwist*.35,rootQ);
+  rotate(view,'spine_01',X,torsoBend*.25+chestPitch*.15+
+    idleBreath*.24+ninjaHunch*.30,rootQ);
+  rotate(view,'spine_02',X,torsoBend*.45+chestPitch*.45+
+    idleBreath*.40+ninjaHunch*.43+(hit?-.13:0),rootQ);
+  rotate(view,'spine_03',X,torsoBend*.30+chestPitch*.40+
+    idleBreath*.36+ninjaHunch*.27+(hit?-.13:0),rootQ);
+  rotate(view,'spine_01',Z,chestRoll*.20+ninjaSide*.18,rootQ);
+  rotate(view,'spine_02',Z,chestRoll*.49+ninjaSide*.44,rootQ);
   rotate(view,'spine_03',Z,chestRoll*.31+
     (walkingMotion?chestLead*.033:drive*.046*stride)+
-    (attack?.twist||0)*-.07,rootQ);
-  rotate(view,'neck_01',X,-pitch*(walkingMotion?.37:.21),rootQ);
-  rotate(view,'head',Y,-torsoTwist*.16,rootQ);
-  rotate(view,'head',X,-pitch*(walkingMotion?.32:.25)+breath*.012,rootQ);
+    (attack?.twist||0)*-.07+ninjaSide*.38,rootQ);
+  // Neck counter-rotation keeps the fighter looking ahead while hunched.
+  rotate(view,'neck_01',X,-pitch*(walkingMotion?.37:.21)+
+    idlePose*COMBAT_IDLE.headCounterTilt*.48,rootQ);
+  rotate(view,'head',Y,-torsoTwist*.16-ninjaTwist*.12,rootQ);
+  rotate(view,'head',X,-pitch*(walkingMotion?.32:.25)+breath*.012+
+    idlePose*COMBAT_IDLE.headCounterTilt*.52,rootQ);
   rotate(view,'clavicle_l',Z,-.025+
     (walkingMotion?walkAmount*.045:drive*.04)*stride,rootQ);
   rotate(view,'clavicle_r',Z,.025-
@@ -314,11 +352,11 @@ export function poseFighter(view,alpha){
   rotate(view,'clavicle_l',Y,walkingMotion?chestLead*.032:0,rootQ);
   rotate(view,'clavicle_r',Y,walkingMotion?-chestLead*.032:0,rootQ);
 
-  // Neutral idle: arms hang at the sides, never return to boxing guard
-  // when movement stops. Guard remains exclusive to blocking/attacks.
+  // Asymmetric loose guard at rest. Attack and block still get their own
+  // authored arm positions; the guard is an idle-only procedural layer.
   const pump=drive*stride;
-  const idleL=[-.12,-.985,.01],idleR=[.12,-.985,.01];
-  const idleForeL=[-.07,-.98,.018],idleForeR=[.07,-.98,.018];
+  const idleL=[-.34,-.36,.69],idleR=[.28,-.40,.61];
+  const idleForeL=[-.14,.58,.61],idleForeR=[.13,.53,.56];
   const walkL=[-.56,-.84,.26-pump*.76];
   const walkR=[.56,-.84,.26+pump*.76];
   const walkForeL=[-.26,-.65,.38-pump*.20];
@@ -415,10 +453,19 @@ export function poseFighter(view,alpha){
         handX=.42;handY=-.57+travel*.09;
         handZ=.15+travel*.20-dashBurst*.53;
       }
+      // Unlike editing idleL/idleR alone, this updates the actual IK hands:
+      // the natural walk solver previously overwrote those idle arrays.
+      // Both fists rise near the face and the elbows fold away from the ribs.
+      const guard=side==='l'?COMBAT_IDLE.leadHand:COMBAT_IDLE.trailHand;
+      handX=lerp(handX,guard[0],idlePose);
+      handY=lerp(handY,guard[1]+.008*breath, idlePose);
+      handZ=lerp(handZ,guard[2]+.012*breath,idlePose);
+      const elbowOut=dashing?.95:lerp(.055,.30,walkFade);
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*(dashing?.95:lerp(.055,.30,walkFade)),.05,
-          dashing?-.32:-.99],rootQ);
+        [sgn*lerp(elbowOut,.78,idlePose),
+          lerp(.05,-.36,idlePose),
+          lerp(dashing?-.32:-.99,.23,idlePose)],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
@@ -459,8 +506,8 @@ export function poseFighter(view,alpha){
       knee.getWorldPosition(vec()).distanceTo(ankle.getWorldPosition(vec()));
     const stepMotion=swing*strideDamp;
     const lift=Math.max(0,stepMotion);
-    // A relaxed standing pose brings both legs beneath the pelvis rather
-    // than leaving the feet in an exaggerated fighting stance.
+    // Both feet follow a single IK solve, so the asymmetrical crouch is
+    // anatomical rather than rotating disconnected thigh and shin bones.
     let target=relaxedIdle?
       [sign*length*.018,-length*.988,length*.012]:
       [sign*length*.12,
@@ -500,6 +547,17 @@ export function poseFighter(view,alpha){
         target=blendVec(target,locked,blend);
       }
     }else if(view.footPlants)view.footPlants[side]=null;
+    // Transition into the new reference-inspired stance after foot-contact
+    // locomotion, keeping movement and combat IK separate and preserving
+    // the planted world position whenever the character is walking.
+    if(idlePose>.0001){
+      const foot=side==='l'?COMBAT_IDLE.leadFoot:COMBAT_IDLE.trailFoot;
+      const breathShift=.005*sin((a.animClock+alpha)*.026);
+      const ninjaFoot=[sign*length*foot[0],
+        length*(foot[1]+(side==='l'?.002:-.002)*breath),
+        length*(foot[2]+breathShift)];
+      target=blendVec(target,ninjaFoot,idlePose);
+    }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
     solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
       target,[sign*.12,.15,1],rootQ);
@@ -508,6 +566,8 @@ export function poseFighter(view,alpha){
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
   rotate(view,'foot_r',X,(walkingMotion?rightStep.roll*walkAmount:
     -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
+  rotate(view,'foot_l',Y,-(view.legSides?.l??-1)*idlePose*.035,rootQ);
+  rotate(view,'foot_r',Y,(view.legSides?.r??1)*idlePose*.17,rootQ);
 
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
@@ -537,7 +597,7 @@ export function poseFighter(view,alpha){
     walkForwardLean:walkLean,walkTurnBank,
     walkHipShift:walkingMotion?supportShift:0,
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
-    idleWeight:1-walkFade,relaxedIdle,
+    idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:idlePose,
     rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
