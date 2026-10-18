@@ -550,11 +550,14 @@ class Arena3D {
       if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;a.landingFrames=7;}
     }
     constrain(a);
-    // Feet cycle with the distance ACTUALLY traveled (not the clock), so
-    // holding run against the arena wall does not make the character skate.
+    // Distance-driven cadence matches the anatomical 60% planted stance.
+    // Each stance ankle travels .76m relative to the pelvis; root travel
+    // over the same stance is 2π*.60/stepRate. Matching these distances
+    // prevents the old conveyor-belt slide without changing move speed.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
-      a.gaitPhase+=Math.min(.5,distance)*3.0;
+      const stepRate=a.state==='walk'?(2*Math.PI*.60/.76):3.0;
+      a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
     // Preserve the last travel-facing direction in solo Sandbox when input
     // is released. Previously idle always targeted the fixed +Z "forward"
