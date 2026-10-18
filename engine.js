@@ -118,12 +118,14 @@
       return point&&rect&&point.x>=rect.x&&point.x<=rect.x+rect.w&&point.y>=rect.y&&point.y<=rect.y+rect.h;
     }
     titleHotspots(){
+      // Match the real right-column drawn menu, no tiny hidden CTA hitbox.
+      // A click anywhere inside a mode card invokes the existing mode flow.
       return [
-        {id:'fight-tab',x:12,y:82,w:78,h:88,cursor:1},
-        {id:'settings-tab',x:12,y:181,w:78,h:88,cursor:3},
-        {id:'online',x:132,y:205,w:540,h:320,cursor:0},
-        {id:'cpu',x:692,y:205,w:552,h:320,cursor:1},
-        {id:'sandbox',x:132,y:549,w:1112,h:135,cursor:2}
+        {id:'fight-tab',x:9,y:74,w:77,h:84,cursor:1},
+        {id:'settings-tab',x:9,y:170,w:77,h:84,cursor:3},
+        {id:'online',x:676,y:74,w:579,h:205,cursor:0},
+        {id:'cpu',x:676,y:292,w:579,h:194,cursor:1},
+        {id:'sandbox',x:676,y:501,w:579,h:176,cursor:2}
       ];
     }
     settingsHotspots(){
