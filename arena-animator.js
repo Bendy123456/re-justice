@@ -99,6 +99,9 @@ function locomotionState(view,a){
   const side=dist>1e-5?(dx*Math.cos(yaw)-dz*Math.sin(yaw))/dist:m.side;
   const speed=walking?Math.min(12,dist*60):0;
   m.speed=lerp(m.speed,speed,walking?.30:.22);
+  // Match the FIRST step's direction immediately; otherwise a fresh
+  // backpedal briefly plays forward before the smoothing catches up.
+  if(walking&&m.weight<.08){m.forward=f;m.side=side;}
   m.weight=lerp(m.weight,walking?clamp(speed/2.8):0,walking?.28:.19);
   m.forward=lerp(m.forward,walking?f:m.forward,walking?.28:.12);
   m.side=lerp(m.side,walking?side:m.side,walking?.28:.12);
