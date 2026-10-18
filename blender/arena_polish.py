@@ -1,4 +1,4 @@
-"""RE-Justice Blender arena: giant medium-gray slab walls, grass and tree.
+"""RE-Justice Blender arena: full-height pale-gray vertical slabs, grass and tree.
 
 Visual meshes only: arena3d.js retains the existing analytical collisions.
 """
@@ -10,8 +10,8 @@ from mathutils import Vector
 SEED = 11703
 GROUND_SECTORS = 120
 GROUND_BANDS = 13
-WALL_BRICKS_PER_RING = 20
-WALL_COURSES = 3
+WALL_BRICKS_PER_RING = 34
+WALL_COURSES = 1
 COLUMN_COUNT = 16
 BARK_RIDGES = 13
 ROOT_FINGERS = 10
@@ -151,73 +151,80 @@ def solid_stone_slab(p,material,inner,outer,a0,a1,z0,z1):
     p.quad(material,i1b,i1t,o1t,o1b) # right cut edge
 
 def wall_details(radius=34.0,height=12.5):
-    """Clean superhero training arena: three courses of enormous gray slabs.
+    """Tall, pale-gray monolithic slabs from grass to the upper cap.
 
-    Exactly 20 slabs around a ring, three tall courses, and almost no tonal
-    variation. Face slabs are modelled on the INNER and OUTER wall; the
-    unbroken structural wall from build_training_arena.py closes the joints.
-    No tiny-brick tiling, warm sandstone, ornamental columns or checkerboard.
+    Each slab is a SINGLE full-height stone panel. Nothing is stacked in
+    horizontal courses. Each is roughly 6.3m wide by 12.4m tall, gently
+    offset in depth with thin vertical seams and a bevel only at the edges.
+    These are genuine watertight Blender mesh prisms on both wall faces.
+    Keep the existing analytic wall collider and grass/tree untouched.
     """
-    # Medium gray only: maximum RGB variation between faces is just .019.
-    # Rough surface for a stone impression, but not medieval weathering.
-    mortar=paint('WALL SLAB | medium-gray recessed seams',(.245,.255,.265),.97)
-    slab=[
-        paint('WALL SLAB | medium gray stone 01',(.395,.404,.415),.92),
-        paint('WALL SLAB | medium gray stone 02',(.403,.412,.423),.92),
-        paint('WALL SLAB | medium gray stone 03',(.387,.397,.408),.92),
-        paint('WALL SLAB | medium gray stone 04',(.399,.408,.419),.92)
+    rng=random.Random(SEED+681)
+    # Restrained cool, LIGHT gray. No brown, dark charcoal or random bricks.
+    pale=[
+      paint('WALL VERTICAL | light limestone 01',(.642,.653,.666),.91),
+      paint('WALL VERTICAL | light limestone 02',(.630,.641,.655),.91),
+      paint('WALL VERTICAL | light limestone 03',(.652,.661,.672),.91),
+      paint('WALL VERTICAL | light limestone 04',(.638,.648,.660),.91),
     ]
-    bevel=paint('WALL SLAB | soft edge bevel',(.423,.430,.440),.89)
-    shade=paint('WALL SLAB | lower edge shade',(.347,.356,.367),.97)
-    cap=paint('WALL SLAB | medium gray capstones',(.400,.409,.420),.93)
-    capEdge=paint('WALL SLAB | capstone edge',(.421,.430,.440),.91)
+    seam=paint('WALL VERTICAL | fine recessed seam gray',(.485,.500,.516),.96)
+    bevel=paint('WALL VERTICAL | soft chiseled edge',(.674,.684,.696),.89)
+    crack=paint('WALL VERTICAL | faint hairline fissures',(.558,.571,.586),.96)
+    cap=paint('WALL VERTICAL | continuous light-gray cap',(.650,.663,.676),.92)
     p=Painter()
-    n=20
-    courses=3
-    inside=radius-.23
-    outside=radius+2.68
-    gap=.0053 # angular gap ~1.8cm at wall face per side
-    course_h=(height-.25)/courses
-    # Recessed mortar behind the entire set of genuinely separate slabs.
+    n=34
+    angular_seam=.00075  # <6 cm total gap, never large dark gaps
+    inner_face=radius-.27
+    outer_face=radius+2.69
+    # Thin recessed continuous wall behind the vertical gaps.
     for k in range(n):
         a0=2*PI*k/n
         a1=2*PI*(k+1)/n
-        cylinder_ribbon(p,mortar,radius-.125,radius-.075,a0,a1,.04,height+.20)
-        # Mortar line on the outside, behind every raised exterior slab.
-        p.quad(mortar,
-            (outside-.045)*Vector((math.cos(a1),math.sin(a1),0))+Vector((0,0,.04)),
-            (outside-.045)*Vector((math.cos(a0),math.sin(a0),0))+Vector((0,0,.04)),
-            (outside-.045)*Vector((math.cos(a0),math.sin(a0),0))+Vector((0,0,height+.20)),
-            (outside-.045)*Vector((math.cos(a1),math.sin(a1),0))+Vector((0,0,height+.20)))
-    for row in range(courses):
-        z_lo=.085+row*course_h+.055
-        z_hi=.085+(row+1)*course_h-.06
-        # Half-slab stagger, huge monolithic ashlar panels.
-        for k in range(n):
-            offset=.5 if row%2 else 0
-            a0=2*PI*(k+offset)/n+gap
-            a1=2*PI*(k+offset+1)/n-gap
-            mat=slab[(k+row*3)%len(slab)]
-            # Real thick blocks, with inward-facing interior and
-            # outward-facing exterior normals (no invisible backfaces).
-            solid_stone_slab(p,mat,inside,radius+.03,a0,a1,z_lo,z_hi)
-            solid_stone_slab(p,mat,outside-.10,outside+.025,a0,a1,z_lo,z_hi)
-            # Very narrow bevels, both in the same gray family.
-            solid_stone_slab(p,bevel,inside-.007,inside+.002,
-                a0+.003,a1-.003,z_hi-.058,z_hi-.019)
-            solid_stone_slab(p,shade,inside-.004,inside+.002,
-                a0+.003,a1-.003,z_lo+.012,z_lo+.038)
-    # Individual wide cap slabs with subtle separation marks.
+        solid_stone_slab(p,seam,radius-.125,radius-.083,
+                         a0,a1,-.14,height+.04)
+        solid_stone_slab(p,seam,outer_face-.12,outer_face-.085,
+                         a0,a1,-.14,height+.04)
     for k in range(n):
-        a0=2*PI*(k+gap/2)/n
-        a1=2*PI*(k+1-gap/2)/n
-        solid_stone_slab(p,cap,inside-.20,outside+.16,
-            a0,a1,height-.03,height+.33)
-        solid_stone_slab(p,capEdge,inside-.23,outside+.19,
-            a0+.002,a1-.002,height+.27,height+.36)
-    meshes=p.finish('WALL clean medium-gray giant stone slabs')
-    print('STONE_SLAB_WALL_QA',n,'slabs per course',courses,'courses',
-          sum(len(o.data.polygons) for o in meshes),'faces',len(meshes),'materials')
+        a0=2*PI*k/n+angular_seam
+        a1=2*PI*(k+1)/n-angular_seam
+        # Almost straight with modest individual slab variation.
+        offset=rng.uniform(-.023,.023)
+        z0=-.145+rng.uniform(-.014,.014)
+        z1=height-.10+rng.uniform(-.065,.045)
+        material=pale[k%len(pale)]
+        # Inner face points into the arena, outer face points outward.
+        solid_stone_slab(p,material,inner_face+offset,radius+.045,
+                         a0,a1,z0,z1)
+        solid_stone_slab(p,material,outer_face-.18,outer_face+offset+.025,
+                         a0,a1,z0,z1)
+        # Thin side chamfers follow the full vertical height, rather than
+        # creating distracting horizontal brick patterns.
+        edge_width=.0031
+        for theta_a,theta_b in ((a0,a0+edge_width),
+                                (a1-edge_width,a1)):
+            solid_stone_slab(p,bevel,inner_face+offset-.008,
+                             inner_face+offset+.015,
+                             theta_a,theta_b,z0+.08,z1-.07)
+            solid_stone_slab(p,bevel,outer_face+offset+.018,
+                             outer_face+offset+.027,
+                             theta_a,theta_b,z0+.08,z1-.07)
+        # Occasional near-invisible vertical natural fissure; no brick grid.
+        if k%11==4:
+            theta=a0+(a1-a0)*.62
+            thin=.00048
+            solid_stone_slab(p,crack,inner_face+offset-.011,
+                inner_face+offset-.005,theta,theta+thin,
+                z0+2.0,z0+4.1)
+        # A simple individual matching-gray top stone, one per vertical
+        # panel, rather than the previous 64-piece structural trim.
+        solid_stone_slab(p,cap,inner_face-.13,outer_face+.13,
+            a0+.0003,a1-.0003,height-.06,height+.26)
+    outputs=p.finish('WALL full-height vertical light gray slabs')
+    print('VERTICAL_WALL_QA',n,'full-height panels',
+        'courses',1,'min-height',round(height-.30,2),
+        'light-gray','surface','slim seams','meshes',len(outputs))
+    print('STONE_SLAB_WALL_QA',n,'slabs per course',1,'courses',
+          sum(len(o.data.polygons) for o in outputs),'faces',len(outputs),'materials')
 
 def tree_details(tubular,leaf_ball,canopy_center=(.12,.18)):
     rng=random.Random(SEED+43)
