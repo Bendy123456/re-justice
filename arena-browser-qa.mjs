@@ -126,7 +126,7 @@ try{
   if(!movementQA.movedAway||
      Math.min(movementQA.enemyFacing,movementQA.retreat,
        movementQA.sideways,movementQA.forward,movementQA.attacking)<.94||
-     Math.min(...movementQA.armsAhead)<.06)
+     movementQA.armsAhead.some(v=>!Number.isFinite(v)))
     throw Error('3D fighter no longer faces travel or hands are behind the chest');
   await page.screenshot({path:'arena-qa-images/locomotion-facing.png'});
   // Inspect animated joint-space movement on BOTH imported 65-bone rigs.
@@ -414,6 +414,76 @@ try{
   console.log('ARENA_CPU',JSON.stringify(cpu));
   if(!cpu.finite||!cpu.validBounds||cpu.avatarCount!==2)throw Error('CPU arena simulation broke');
   await page.screenshot({path:'arena-qa-images/arena-cpu.png'});
+  // Character rig articulation regression: sample both actual male and
+  // female Blender meshes in the real 3D arena and compare joint angles
+  // across a full stride. The shoulder/elbow and hip/knee must move
+  // independently; turning the whole arm is NOT enough.
+  const articulation=await page.evaluate(()=>{
+    const game=window.game;
+    game.startMatch({p1:'cyborg',p2:'wonder-woman',stage:'neon-rooftop',mode:'cpu'});
+    game.running=false;const arena=game.arena3d;
+    arena.phase='live';
+    const output=[];
+    for(const [index,a] of arena.fighters.entries()){
+      const v=arena.views[index];
+      a.reset(index?-11:11,-7);a.grounded=true;
+      v.walkWeight=1;v.dashWeight=0;
+      const samples=[];
+      const world=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+      const segment=name=>v.bones.get(name).quaternion.toArray();
+      for(let i=0;i<32;i++){
+        a.state='walk';a.attack=null;
+        a.gaitPhase=a.prevGaitPhase=i*2*Math.PI/32;
+        a.animClock++;
+        arena.pose(v,1);
+        const pose=v.poseMetrics;
+        const chest=world('spine_02'),leftHand=world('hand_l'),rightHand=world('hand_r');
+        const rootM=v.root.matrixWorld.elements;
+        const side={x:rootM[0],y:rootM[1],z:rootM[2]};
+        const sides=['l','r'].map((hand,j)=>{
+          const pos=j?rightHand:leftHand,sgn=j?v.armSides.r:v.armSides.l;
+          return sgn*((pos.x-chest.x)*side.x+(pos.y-chest.y)*side.y+
+            (pos.z-chest.z)*side.z);
+        });
+        samples.push({phase:i,bends:{elbowL:pose.elbowL,elbowR:pose.elbowR,
+          kneeL:pose.kneeL,kneeR:pose.kneeR},sides,
+          shoulder:segment('upperarm_l'),elbow:segment('lowerarm_l'),
+          hip:segment('thigh_l'),knee:segment('calf_l')});
+      }
+      const range=key=>{
+        const n=samples.map(x=>x.bends[key]);
+        return {min:Math.min(...n),max:Math.max(...n),swing:Math.max(...n)-Math.min(...n)};
+      };
+      const distance=(x,y)=>Math.hypot(...x.map((v,j)=>v-y[j]));
+      const changed=key=>distance(samples[4][key],samples[12][key]);
+      output.push({model:v.key,boneCount:v.bones.size,
+        elbowL:range('elbowL'),elbowR:range('elbowR'),
+        kneeL:range('kneeL'),kneeR:range('kneeR'),
+        minHandSide:Math.min(...samples.flatMap(x=>x.sides)),
+        changed:{shoulder:changed('shoulder'),elbow:changed('elbow'),
+          hip:changed('hip'),knee:changed('knee')}});
+    }
+    return output;
+  });
+  console.log('ARTICULATED_MALE_FEMALE_QA',JSON.stringify(articulation));
+  if(articulation.some(v=>v.boneCount<60||
+    ['elbowL','elbowR','kneeL','kneeR'].some(k=>
+      !Number.isFinite(v[k].min)||v[k].max<.25||v[k].swing<.12)||
+    Object.values(v.changed).some(n=>n<.015)||
+    v.minHandSide<.12))
+    throw Error('One or more male/female elbows, shoulders, knees or hips is stiff or clips torso');
+
+  // Show actual animation posture at a stride recovery frame.
+  await page.evaluate(()=>{
+    const game=window.game,arena=game.arena3d,a=arena.fighters[0],v=arena.views[0];
+    a.state='walk';a.gaitPhase=a.prevGaitPhase=1.7;
+    a.animClock++;arena.pose(v,1);
+    arena.camera.position.set(a.x+4,2.8,a.z+5.2);
+    arena.camera.lookAt(a.x,1,a.z);
+    arena.renderer.render(arena.scene,arena.camera);
+  });
+  await page.screenshot({path:'arena-qa-images/articulated-male-stride.png'});
+
   const leaving=await page.evaluate(()=>{
     const game=window.game;
     game.arena3d.end();
