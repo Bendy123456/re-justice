@@ -55,6 +55,11 @@ try{
   console.log('CINEMATIC_MENU_MOUSE',afterMouse);
   if(afterMouse!=='versus')throw Error('Mode card no longer opens the playable fight roster');
   await page.evaluate(()=>{const g=window.game;g.scene='title';g.menuCursor=1;});
+  await page.mouse.click(1061,591);
+  const footerClick=await page.evaluate(()=>window.game.scene);
+  console.log('CINEMATIC_MENU_FOOTER',footerClick);
+  if(footerClick!=='versus')throw Error('Footer confirm button is not actionable');
+  await page.evaluate(()=>{const g=window.game;g.scene='title';g.menuCursor=1;});
   await page.mouse.click(50,221);
   const settingsMenu=await page.evaluate(()=>window.game.scene);
   if(settingsMenu!=='settings')throw Error('Menu redesign broke Settings button');
