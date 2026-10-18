@@ -12,7 +12,7 @@ const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
 const RUN=7.1,BACK=4.8,STRAFE=5.7,DASH=16.4,DASH_FRAMES=11,DASH_COOLDOWN=44;
 const JUMP=11.0,GRAVITY=25,ROUND_FRAMES=99*60,INTRO_FRAMES=78,KO_FRAMES=110;
-const CAM_DIST=6.2,CAM_HEIGHT=3.65,CAM_SIDE=1.45,CAM_LERP=.12;
+const CAM_DIST=4.75,CAM_HEIGHT=2.85,CAM_SIDE=1.15,CAM_LERP=.13;
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const len=(x,z)=>Math.hypot(x,z);
@@ -120,6 +120,15 @@ class Arena3D {
       sunlight.position.set(-28,48,-24);this.scene.add(sunlight);
       const edge=new THREE.DirectionalLight(0xa7cfff,.75);
       edge.position.set(23,15,16);this.scene.add(edge);
+      const blob=document.createElement('canvas');
+      blob.width=128;blob.height=128;
+      const bc=blob.getContext('2d');
+      const shadowGradient=bc.createRadialGradient(64,64,1,64,64,64);
+      shadowGradient.addColorStop(0,'rgba(0,0,0,.46)');
+      shadowGradient.addColorStop(.45,'rgba(0,0,0,.20)');
+      shadowGradient.addColorStop(1,'rgba(0,0,0,0)');
+      bc.fillStyle=shadowGradient;bc.fillRect(0,0,128,128);
+      this.shadowMap=new THREE.CanvasTexture(blob);
       this.loader=new GLTFLoader();
       this.loadAssets();
     }catch(e){this.failure=String(e);console.warn('Arena WebGL unavailable',e);}
@@ -152,11 +161,21 @@ class Arena3D {
       if(node.isBone){bones.set(node.name.toLowerCase(),node);rests.set(node.name.toLowerCase(),node.quaternion.clone());}
       if(node.isMesh){node.frustumCulled=false;}
     });
-    return {actor,root,bones,rests,key};
+    // Soft contact shadow stays on the arena floor during jump, instead of
+    // being inherited by the character's airborne skeleton.
+    const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.65),
+      new THREE.MeshBasicMaterial({map:this.shadowMap,transparent:true,
+        opacity:.78,depthWrite:false,side:THREE.DoubleSide}));
+    shadow.rotation.x=-Math.PI/2;
+    shadow.position.set(actor.x,.015,actor.z);
+    this.scene.add(shadow);
+    return {actor,root,bones,rests,key,shadow};
   }
   clearAvatars(){
     for(const o of this.views){
       this.scene.remove(o.root);
+      this.scene.remove(o.shadow);
+      o.shadow.geometry.dispose();o.shadow.material.dispose();
       o.root.traverse(child=>{if(child.isSkinnedMesh)child.skeleton?.dispose?.();});
     }
     this.views.length=0;
@@ -338,7 +357,10 @@ class Arena3D {
   pose(view,alpha){
     const a=view.actor,root=view.root;
     const yaw=Math.atan2(-a.facing.x,-a.facing.z);
-    root.position.set(lerp(a.prevX,a.x,alpha),lerp(a.prevY,a.y,alpha),lerp(a.prevZ,a.z,alpha));
+    const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
+    root.position.set(px,lerp(a.prevY,a.y,alpha),pz);
+    view.shadow.position.set(px,.018,pz);
+    view.shadow.material.opacity=.74/(1+a.y*.18);
     root.rotation.set(0,yaw,0);
     for(const [name,bone] of view.bones)bone.quaternion.copy(view.rests.get(name));
     root.updateWorldMatrix(true,true);
@@ -379,7 +401,20 @@ class Arena3D {
       const right={x:-forward.z,z:forward.x};
       const desired=new THREE.Vector3(px-forward.x*CAM_DIST+right.x*CAM_SIDE,
         CAM_HEIGHT+py*.5,pz-forward.z*CAM_DIST+right.z*CAM_SIDE);
-      const focus=new THREE.Vector3(px+forward.x*1.35,1.5+py*.4,pz+forward.z*1.35);
+      // The follow camera cannot travel through the central tree or outer
+      // wall; these analytic constraints are render-only, never mesh physics.
+      let camDist=Math.hypot(desired.x,desired.z);
+      if(camDist<TREE_RADIUS+1.1){
+        const outward=unit(desired.x,desired.z,{x:-forward.x,z:-forward.z});
+        desired.x=outward.x*(TREE_RADIUS+1.1);
+        desired.z=outward.z*(TREE_RADIUS+1.1);
+      }
+      camDist=Math.hypot(desired.x,desired.z);
+      const cameraLimit=ARENA_RADIUS-WALL_GAP-.5;
+      if(camDist>cameraLimit){
+        desired.x*=cameraLimit/camDist;desired.z*=cameraLimit/camDist;
+      }
+      const focus=new THREE.Vector3(px+forward.x*1.25,1.5+py*.4,pz+forward.z*1.25);
       if(!this.initialCamera){this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;}
       else{this.camera.position.lerp(desired,CAM_LERP);this.cameraFocus.lerp(focus,CAM_LERP);}
       this.camera.lookAt(this.cameraFocus);
@@ -428,6 +463,26 @@ class Arena3D {
       text(announcement,640,344,65,'#ffe5aa','center');
     }
     if(a.combo>1&&a.comboTicks>0)text(a.combo+' HIT COMBO',40,175,25,'#ffdb8e');
+    // World-projected lock-on marker helps locate an opponent obscured by the
+    // central tree. No mesh raycast or aiming feedback enters game logic.
+    const tgt=new THREE.Vector3(b.x,b.y+2.5,b.z).project(this.camera);
+    if(tgt.z>0&&tgt.z<1){
+      const tx=(tgt.x+1)*640,ty=(1-tgt.y)*360;
+      if(tx>18&&tx<1262&&ty>117&&ty<624){
+        c.strokeStyle='rgba(255,226,134,.94)';c.lineWidth=2;
+        c.beginPath();c.arc(tx,ty,20,0,Math.PI*2);c.stroke();
+        c.beginPath();c.moveTo(tx,ty-33);c.lineTo(tx-9,ty-44);
+        c.lineTo(tx+9,ty-44);c.closePath();
+        c.fillStyle='#ffe19a';c.fill();
+      }
+    }
+    for(const e of this.effects){
+      const s=new THREE.Vector3(e.x,e.y,e.z).project(this.camera);
+      if(s.z<0||s.z>1)continue;
+      const x=(s.x+1)*640,y=(1-s.y)*360,r=6+15*e.life/15;
+      c.strokeStyle='rgba(255,239,151,'+(e.life/15)+')';
+      c.lineWidth=3;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.stroke();
+    }
     c.fillStyle='rgba(5,16,24,.77)';c.fillRect(20,665,1240,47);
     text('WASD / LEFT STICK: MOVE   SPACE / A: JUMP   SHIFT / RB: DASH    J K L / X Y B: ATTACK',38,685,14,'#e5f5ff');
     text('I / LT: BLOCK   O / RT: SUPER (4 BARS)   ESC / START: PAUSE',38,705,14,'#a6d8ea');
