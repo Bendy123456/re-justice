@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'glb-visuals.js'
+      - 'ui.js'
       - 'roster-preview-qa.mjs'
       - 'index.html'
       - '.github/workflows/roster-relaxed-qa.yml'
@@ -28,6 +29,7 @@ jobs:
       - name: Syntax and regression tests
         run: |
           node --check glb-visuals.js
+          node --check ui.js
           node --check roster-preview-qa.mjs
           node smoke-tests.cjs
           node model-tests.cjs
