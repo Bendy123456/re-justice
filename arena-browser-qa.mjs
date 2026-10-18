@@ -58,9 +58,32 @@ try{
     return {leafMaterials:[...mats].filter(n=>n.startsWith('Leaf blades')),
       oldBallMaterials:[...mats].filter(n=>n.startsWith('Leaf cluster')),
       hasTreeBark:[...mats].some(n=>n.includes('chestnut bark')),
-      triangles:Math.round(tris)};
+      triangles:Math.round(tris),
+      grassMaterials:[...mats].filter(n=>n.includes('GRASS')),
+      slabMaterials:[...mats].filter(n=>n.includes('WALL SLAB')),
+      meadowTurf:[...mats].includes('Meadow turf | textured living grass'),
+      grassTexture:(()=>{
+        let textured=false;
+        g.arena.traverse(obj=>{
+          if(!obj.isMesh)return;
+          for(const m of (Array.isArray(obj.material)?obj.material:[obj.material])){
+            if(m?.name==='Meadow turf | textured living grass'&&m.map?.image)
+              textured=true;
+          }
+        });
+        return textured;
+      })()
+    };
   });
   console.log('NATURAL_TREE_GEOMETRY_QA',JSON.stringify(treeQA));
+  console.log('STONE_SLAB_GRASS_ARENA_QA',JSON.stringify({
+    slabMaterials:treeQA.slabMaterials.length,
+    grassMaterials:treeQA.grassMaterials.length,
+    texturedGround:treeQA.grassTexture
+  }));
+  if(treeQA.slabMaterials.length<8||treeQA.grassMaterials.length<4||
+      !treeQA.meadowTurf||!treeQA.grassTexture)
+    throw Error('New Blender grass texture / stone slab wall absent');
   if(treeQA.leafMaterials.length<7||treeQA.oldBallMaterials.length>0||
      !treeQA.hasTreeBark||treeQA.triangles<100000)
     throw Error('The old primitive tree was served instead of the new sculpt');
