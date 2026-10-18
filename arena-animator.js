@@ -265,8 +265,8 @@ export function poseFighter(view,alpha){
   // Neutral idle: arms hang at the sides, never return to boxing guard
   // when movement stops. Guard remains exclusive to blocking/attacks.
   const pump=drive*stride;
-  const idleL=[-.16,-.96,.018],idleR=[.16,-.96,.018];
-  const idleForeL=[-.08,-.95,.025],idleForeR=[.08,-.95,.025];
+  const idleL=[-.12,-.985,.01],idleR=[.12,-.985,.01];
+  const idleForeL=[-.07,-.98,.018],idleForeR=[.07,-.98,.018];
   const walkL=[-.56,-.84,.26-pump*.76];
   const walkR=[.56,-.84,.26+pump*.76];
   const walkForeL=[-.26,-.65,.38-pump*.20];
@@ -359,9 +359,9 @@ export function poseFighter(view,alpha){
         // without the abrupt elbows-up guard or palms in front of the belly.
         const swing=side==='l'?-Math.sin(strideClock):Math.sin(strideClock);
         const forward=Math.max(0,swing),backward=Math.max(0,-swing);
-        handX=lerp(.15,.215+.012*forward,walkFade);
-        handY=lerp(-.95+breath*.002,-.87+.20*forward-.012*backward,walkFade);
-        handZ=lerp(.025,.045+.44*swing,walkFade);
+        handX=lerp(.115,.215+.012*forward,walkFade);
+        handY=lerp(-.984+breath*.001,-.87+.20*forward-.012*backward,walkFade);
+        handZ=lerp(.012,.045+.44*swing,walkFade);
       }
       if(dashing){
         handX=.42;
@@ -370,8 +370,8 @@ export function poseFighter(view,alpha){
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*(dashing?.95:lerp(.11,.25,walkFade)),.06,
-          dashing?-.32:-.96],rootQ);
+        [sgn*(dashing?.95:lerp(.055,.25,walkFade)),.05,
+          dashing?-.32:-.99],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
@@ -416,7 +416,7 @@ export function poseFighter(view,alpha){
     // A relaxed standing pose brings both legs beneath the pelvis rather
     // than leaving the feet in an exaggerated fighting stance.
     let target=relaxedIdle?
-      [sign*length*.018,-length*.972,length*.012]:
+      [sign*length*.018,-length*.988,length*.012]:
       [sign*length*.12,
         -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
         length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
