@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
-import {poseFighter} from './arena-animator.js?v=arm-clearance-2';
+import {poseFighter} from './arena-animator.js?v=hero-motion-1';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
@@ -48,6 +48,7 @@ class Combatant {
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
     this.gaitPhase=this.prevGaitPhase=0;
+    this.dashElapsed=0;this.dashRecovery=0;this.landingFrames=0;
     this.combo=0;this.comboTicks=0;this.dash=0;this.dashCooldown=0;
     this.dashDirection={x:1,z:0};this.knock={x:0,z:0};this.backpedal=false;
     // Simulation always targets the rival; these are VISUAL locomotion state.
@@ -60,7 +61,8 @@ class Combatant {
     this.grounded=true;this.health=this.maxHealth;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.combo=0;this.comboTicks=0;
-    this.dash=0;this.dashCooldown=0;this.dashElapsed=0;this.landingFrames=0;this.backpedal=false;
+    this.dash=0;this.dashCooldown=0;this.dashElapsed=0;
+    this.dashRecovery=0;this.landingFrames=0;this.backpedal=false;
     this.gaitPhase=this.prevGaitPhase=0;
     this.facing={x:this.slot===1?1:-1,z:0};
     this.travel={x:0,z:0};
@@ -307,6 +309,7 @@ class Arena3D {
     a.travel={x:0,z:0};
     a.backpedal=(control.y||0)>.2;
     if(a.dashCooldown>0)a.dashCooldown--;
+    if(a.dashRecovery>0)a.dashRecovery--;
     if(a.landingFrames>0)a.landingFrames--;
     if(a.flash>0)a.flash--;
     if(a.comboTicks>0)a.comboTicks--;else a.combo=0;
@@ -321,7 +324,8 @@ class Arena3D {
       if((control.pressed.burn||human&&keys.has('ShiftLeft'))&&!a.dashCooldown&&a.grounded){
         const x=control.x||0,z=-(control.y||0);
         a.dashDirection=unit(right.x*x+forward.x*z,right.z*x+forward.z*z,forward);
-        a.dash=DASH_FRAMES;a.dashElapsed=0;a.dashCooldown=DASH_COOLDOWN;
+        a.dash=DASH_FRAMES;a.dashElapsed=0;a.dashRecovery=0;
+        a.dashCooldown=DASH_COOLDOWN;
       }
       for(const button of ['light','medium','heavy']){
         if(control.pressed[button]&&a.attackWith(button)){
@@ -351,6 +355,7 @@ class Arena3D {
         a.z+=a.dashDirection.z*DASH*STEP;
         a.travel={...a.dashDirection};
         a.dash--;a.dashElapsed++;a.state='dash';
+        if(a.dash===0)a.dashRecovery=7;
       }else if(control.x||control.y){
         const dx=control.x||0,dz=-(control.y||0);
         const direction=unit(right.x*dx+forward.x*dz,right.z*dx+forward.z*dz);
@@ -375,7 +380,7 @@ class Arena3D {
     // holding run against the arena wall does not make the character skate.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
-      a.gaitPhase+=Math.min(.5,distance)*2.16;
+      a.gaitPhase+=Math.min(.5,distance)*3.0;
     }
     // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
     // and ensures backward/sideways locomotion faces the actual path.
