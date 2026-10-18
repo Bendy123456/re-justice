@@ -420,7 +420,7 @@ try{
   // independently; turning the whole arm is NOT enough.
   const articulation=await page.evaluate(()=>{
     const game=window.game;
-    game.startMatch({p1:'cyborg',p2:'wonder-woman',stage:'neon-rooftop',mode:'cpu'});
+    game.startMatch({p1:'superman',p2:'wonder-woman',stage:'neon-rooftop',mode:'cpu'});
     game.running=false;const arena=game.arena3d;
     arena.phase='live';
     const output=[];
