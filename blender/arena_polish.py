@@ -1,8 +1,6 @@
-"""RE-Justice arena visual polish. Fully Blender-generated, no collision meshes.
+"""RE-Justice Blender arena: giant medium-gray slab walls, grass and tree.
 
-Adds flush sculpted ground paint geometry, layered masonry, ornamental stone,
-a tree with bark flutes and full leaf clusters. All additions are visually
-decorative: the analytical collision radii in arena3d.js remain authoritative.
+Visual meshes only: arena3d.js retains the existing analytical collisions.
 """
 import bpy
 import math
@@ -12,8 +10,8 @@ from mathutils import Vector
 SEED = 11703
 GROUND_SECTORS = 120
 GROUND_BANDS = 13
-WALL_BRICKS_PER_RING = 128
-WALL_COURSES = 11
+WALL_BRICKS_PER_RING = 20
+WALL_COURSES = 3
 COLUMN_COUNT = 16
 BARK_RIDGES = 13
 ROOT_FINGERS = 10
@@ -135,99 +133,79 @@ def ground_details(radius=34.0):
           'triangles',len(out),'materials')
 
 def wall_details(radius=34.0,height=12.5):
-    """Big individual cut-stone slabs with deep recessed staggered joints.
+    """Clean superhero training arena: three courses of enormous gray slabs.
 
-    Five roughly 2.3-meter-high courses; forty massive slabs around each ring,
-    rather than hundreds of tiny multicoloured bricks. The dark underlying
-    continuous wall closes all joints and keeps the playfield sealed.
+    Exactly 20 slabs around a ring, three tall courses, and almost no tonal
+    variation. Face slabs are modelled on the INNER and OUTER wall; the
+    unbroken structural wall from build_training_arena.py closes the joints.
+    No tiny-brick tiling, warm sandstone, ornamental columns or checkerboard.
     """
-    rng=random.Random(SEED+8)
-    joint=paint('WALL SLAB | deep charcoal mortar',(.17,.20,.19),.99)
+    # Medium gray only: maximum RGB variation between faces is just .019.
+    # Rough surface for a stone impression, but not medieval weathering.
+    mortar=paint('WALL SLAB | medium-gray recessed seams',(.245,.255,.265),.97)
     slab=[
-        paint('WALL SLAB | weathered limestone light',(.51,.53,.50)),
-        paint('WALL SLAB | pale cool granite',(.49,.51,.50)),
-        paint('WALL SLAB | warm buff sandstone',(.51,.50,.47)),
-        paint('WALL SLAB | grey ashlar stone',(.48,.50,.49)),
-        paint('WALL SLAB | old stone ochre',(.50,.49,.47)),
-        paint('WALL SLAB | moss stained rock',(.47,.50,.47)),
-        paint('WALL SLAB | chalk highlight',(.53,.54,.51)),
-        paint('WALL SLAB | storm worn grey',(.48,.51,.50)),
+        paint('WALL SLAB | medium gray stone 01',(.395,.404,.415),.92),
+        paint('WALL SLAB | medium gray stone 02',(.403,.412,.423),.92),
+        paint('WALL SLAB | medium gray stone 03',(.387,.397,.408),.92),
+        paint('WALL SLAB | medium gray stone 04',(.399,.408,.419),.92)
     ]
-    bevel=paint('WALL SLAB | cut upper bevel',(.64,.65,.60))
-    shadow=paint('WALL SLAB | chipped underside',(.29,.33,.32))
-    moss=paint('WALL SLAB | dark seam moss',(.21,.30,.23))
-    pillar=paint('WALL SLAB | broad structural buttress',(.51,.52,.49))
+    bevel=paint('WALL SLAB | soft edge bevel',(.423,.430,.440),.89)
+    shade=paint('WALL SLAB | lower edge shade',(.347,.356,.367),.97)
+    cap=paint('WALL SLAB | medium gray capstones',(.400,.409,.420),.93)
+    capEdge=paint('WALL SLAB | capstone edge',(.421,.430,.440),.91)
     p=Painter()
-    n=40;courses=5
-    course_height=(height-.37)/courses
-    # The wall is thick enough to be seen from overhead and the entrance
-    # camera. Dress the EXTERIOR as well as the inside: no plain tube outside.
-    exterior=radius+2.60
-    # One recessed charcoal mortar shadow ribbon across the whole wall.
-    for i in range(n):
-        a0=2*PI*i/n;a1=2*PI*(i+1)/n
-        cylinder_ribbon(p,joint,radius-.07,radius+.03,a0,a1,.10,height+.12)
-    for level in range(courses):
-        bottom=.12+level*course_height
-        top=.12+(level+1)*course_height
-        for i in range(n):
-            # Stagger each row by half of a 5-meter-long slab.
-            offset=.5 if level%2 else 0
-            a0=2*PI*(i+offset+.014)/n
-            a1=2*PI*(i+offset+1-.014)/n
-            face_r=radius-.21-rng.uniform(-.021,.023)
-            z0=bottom+.045+rng.uniform(0,.026)
-            z1=top-.052-rng.uniform(0,.026)
-            material=slab[(i*9+level*7+rng.randrange(len(slab)))%len(slab)]
-            cylinder_ribbon(p,material,face_r,radius+.11,a0,a1,z0,z1)
-            # Matching outer ashlar face, reverse normal winding so the
-            # exterior has the same cut stone look as the interior.
-            ro=exterior+.055+rng.uniform(-.018,.018)
-            p.quad(material,
-                   (ro*math.cos(a1),ro*math.sin(a1),z0),
-                   (ro*math.cos(a0),ro*math.sin(a0),z0),
-                   (ro*math.cos(a0),ro*math.sin(a0),z1),
-                   (ro*math.cos(a1),ro*math.sin(a1),z1))
-            # A thin bright upper chiseled lip on the exterior surface.
-            lip=ro+.008
-            p.quad(bevel,
-                   (lip*math.cos(a1-.002),lip*math.sin(a1-.002),z1-.11),
-                   (lip*math.cos(a0+.002),lip*math.sin(a0+.002),z1-.11),
-                   (lip*math.cos(a0+.002),lip*math.sin(a0+.002),z1-.035),
-                   (lip*math.cos(a1-.002),lip*math.sin(a1-.002),z1-.035))
-            # Raised bevel on upper edge and dark undercut on lower edge.
-            cylinder_ribbon(p,bevel,face_r-.014,face_r,a0+.002,a1-.002,
-                            z1-.10,z1-.025)
-            cylinder_ribbon(p,shadow,face_r-.011,face_r+.018,a0+.002,a1-.002,
-                            z0+.015,z0+.064)
-            # A few moss patches in seams, not endless grid-like repetition.
-            if level<2 and (i*3+level)%7==0:
-                width=rng.uniform(.045,.11)
-                cylinder_ribbon(p,moss,face_r-.017,face_r,
-                   a0+width*.15,a0+width*.75,z0+.073,
-                   z0+rng.uniform(.23,.48))
-    # Heavy roofline capstones read as actual cut blocks from below.
-    for i in range(n):
-        a0=2*PI*(i+.012)/n;a1=2*PI*(i+.988)/n
-        cylinder_ribbon(p,slab[(i+3)%len(slab)],radius-.35,exterior+.27,
-                        a0,a1,height-.05,height+.61)
-        cylinder_ribbon(p,bevel,radius-.40,exterior+.32,
-                        a0+.005,a1-.005,height+.53,height+.65)
-    # Twelve giant buttresses tie the slabs together (subtle rather than
-    # the previous constant thin, tiny brick-column geometry).
-    for i in range(12):
-        center=2*PI*i/12
-        a0=center-.023;a1=center+.023
-        cylinder_ribbon(p,pillar,radius-.35,radius+.48,a0,a1,.05,height+.39)
-        cylinder_ribbon(p,bevel,radius-.43,radius+.52,
-                        a0-.002,a1+.002,3.02,3.14)
-        cylinder_ribbon(p,bevel,radius-.43,radius+.52,
-                        a0-.002,a1+.002,8.45,8.58)
-        cylinder_ribbon(p,shadow,radius-.37,radius+.49,
-                        a0-.001,a1+.001,.18,.32)
-    outputs=p.finish('WALL massive staggered stone slabs')
+    n=20
+    courses=3
+    inside=radius-.23
+    outside=radius+2.68
+    gap=.0053 # angular gap ~1.8cm at wall face per side
+    course_h=(height-.25)/courses
+    # Recessed mortar behind the entire set of genuinely separate slabs.
+    for k in range(n):
+        a0=2*PI*k/n
+        a1=2*PI*(k+1)/n
+        cylinder_ribbon(p,mortar,radius-.125,radius-.075,a0,a1,.04,height+.20)
+        # Mortar line on the outside, behind every raised exterior slab.
+        p.quad(mortar,
+            (outside-.045)*Vector((math.cos(a1),math.sin(a1),0))+Vector((0,0,.04)),
+            (outside-.045)*Vector((math.cos(a0),math.sin(a0),0))+Vector((0,0,.04)),
+            (outside-.045)*Vector((math.cos(a0),math.sin(a0),0))+Vector((0,0,height+.20)),
+            (outside-.045)*Vector((math.cos(a1),math.sin(a1),0))+Vector((0,0,height+.20)))
+    for row in range(courses):
+        z_lo=.085+row*course_h+.055
+        z_hi=.085+(row+1)*course_h-.06
+        # Half-slab stagger, huge monolithic ashlar panels.
+        for k in range(n):
+            offset=.5 if row%2 else 0
+            a0=2*PI*(k+offset)/n+gap
+            a1=2*PI*(k+offset+1)/n-gap
+            mat=slab[(k+row*3)%len(slab)]
+            # Interior 3D slab face; depth forms real chiseled seam reveals.
+            cylinder_ribbon(p,mat,inside,radius+.03,a0,a1,z_lo,z_hi)
+            # Exterior 3D slab, outward-facing with reversed winding.
+            r=outside
+            p.quad(mat,
+               (r*math.cos(a1),r*math.sin(a1),z_lo),
+               (r*math.cos(a0),r*math.sin(a0),z_lo),
+               (r*math.cos(a0),r*math.sin(a0),z_hi),
+               (r*math.cos(a1),r*math.sin(a1),z_hi))
+            # A narrow bevel across the top of each huge panel.
+            cylinder_ribbon(p,bevel,inside-.005,inside+.005,
+                a0+.002,a1-.002,z_hi-.058,z_hi-.013)
+            # Tiny undercut; not a heavy decorative brick course.
+            cylinder_ribbon(p,shade,inside-.002,inside+.006,
+                a0+.002,a1-.002,z_lo+.015,z_lo+.045)
+    # Individual wide cap slabs with subtle separation marks.
+    for k in range(n):
+        a0=2*PI*(k+gap/2)/n
+        a1=2*PI*(k+1-gap/2)/n
+        cylinder_ribbon(p,cap,inside-.20,outside+.16,
+            a0,a1,height-.03,height+.33)
+        cylinder_ribbon(p,capEdge,inside-.23,outside+.19,
+            a0+.002,a1-.002,height+.27,height+.36)
+    meshes=p.finish('WALL clean medium-gray giant stone slabs')
     print('STONE_SLAB_WALL_QA',n,'slabs per course',courses,'courses',
-          sum(len(o.data.polygons) for o in outputs),'faces',len(outputs),'materials')
+          sum(len(o.data.polygons) for o in meshes),'faces',len(meshes),'materials')
 
 def tree_details(tubular,leaf_ball,canopy_center=(.12,.18)):
     rng=random.Random(SEED+43)
