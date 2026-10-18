@@ -129,6 +129,61 @@ try{
      Math.min(...movementQA.armsAhead)<.06)
     throw Error('3D fighter no longer faces travel or hands are behind the chest');
   await page.screenshot({path:'arena-qa-images/locomotion-facing.png'});
+  // Inspect animated joint-space movement on BOTH imported 65-bone rigs.
+  // These are actual posed GLB bones; metrics alone would not prove animation.
+  const animationQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d,[a,b]=arena.fighters;
+    const v=arena.views[0];
+    const pos=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+    const facing=()=>({x:v.root.matrixWorld.elements[8],z:v.root.matrixWorld.elements[10]});
+    const reach=side=>{
+      const hand=pos('hand_'+side),shoulder=pos('upperarm_'+side),f=facing();
+      return (hand.x-shoulder.x)*f.x+(hand.z-shoulder.z)*f.z;
+    };
+    a.reset(-11,-7);b.reset(11,-7);
+    a.state='idle';arena.pose(v,1);
+    const idle={lean:v.poseMetrics.lean,left:reach('l'),right:reach('r')};
+    a.state='walk';a.gaitPhase=0;a.prevGaitPhase=0;v.walkWeight=1;v.lastStateTick=-1;
+    arena.pose(v,1);const firstFoot=pos('foot_l');
+    a.gaitPhase=1.57;a.prevGaitPhase=1.57;
+    arena.pose(v,1);const secondFoot=pos('foot_l');
+    const footTravel=firstFoot.distanceTo(secondFoot);
+    a.state='dash';a.dashElapsed=5;a.lean=.13;a.prevLean=.13;
+    arena.pose(v,1);
+    const dashLean=v.poseMetrics.lean;
+    const sample=kind=>{
+      a.attack=null;a.attackWith(kind);
+      if(kind==='super'){ // only manual pose samples; preserve gameplay meter.
+        a.attack={button:'super',kind:'standing',startup:16,active:5,recovery:32};
+      }
+      a.attackTick=a.attack.startup+1;
+      a.state='attack';
+      a.lean=0;a.prevLean=0;
+      arena.pose(v,1);
+      const full={left:reach('l'),right:reach('r'),twist:v.poseMetrics.torsoTwist,
+        attackReach:v.poseMetrics.attackReach};
+      a.attackTick=a.attack.startup+a.attack.active+Math.round(a.attack.recovery*.75);
+      arena.pose(v,1);
+      full.recover=v.poseMetrics.attackReach;
+      return full;
+    };
+    const light=sample('light'),medium=sample('medium'),heavy=sample('heavy');
+    a.reset(-11,-7);b.reset(11,-7);
+    return {rigBones:v.bones.size,idle,footTravel,dashLean,light,medium,heavy};
+  });
+  console.log('FULL_BODY_ANIMATION_QA',JSON.stringify(animationQA));
+  if(animationQA.rigBones<60||
+     animationQA.footTravel<.12||
+     animationQA.dashLean<animationQA.idle.lean+.18||
+     animationQA.light.left<animationQA.idle.left+.07||
+     animationQA.medium.right<animationQA.idle.right+.07||
+     animationQA.heavy.right<animationQA.idle.right+.07||
+     animationQA.light.twist>-.12||
+     animationQA.medium.twist<.14||
+     animationQA.heavy.twist<animationQA.medium.twist+.12||
+     animationQA.heavy.recover>=animationQA.heavy.attackReach*.55)
+    throw Error('Full-body gait, punch, or dash motion is not visible on real rigs');
+  await page.screenshot({path:'arena-qa-images/full-body-animation.png'});
   await page.evaluate(()=>{
     const arena=window.game.arena3d;
     arena.fighters[0].reset(-11,-7);arena.fighters[1].reset(11,-7);
