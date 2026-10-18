@@ -359,7 +359,7 @@ export function poseFighter(view,alpha){
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*.95,.12,naturalWalk?-.10:-.32],rootQ);
+        [sgn*(naturalWalk?.22:.95),.12,naturalWalk?-.95:-.32],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
