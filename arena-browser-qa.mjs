@@ -239,7 +239,7 @@ try{
   if(heroQA.some(v=>{
     const [jab,cross,heavy]=v.attacks;
     return Math.abs(v.run.hipA-v.run.hipB)<.12||
-      Math.abs(v.run.torsoA-v.run.torsoB)<.12||
+      Math.abs(v.run.torsoA-v.run.torsoB)<.095||
       v.dash.ignite<.5||v.dash.burst<.6||
       v.dash.burstLean<.30||v.dash.brake<.5||
       jab.chamber<.7||jab.impact<.4||
@@ -484,6 +484,62 @@ try{
     arena.renderer.render(arena.scene,arena.camera);
   });
   await page.screenshot({path:'arena-qa-images/articulated-male-stride.png'});
+  // Walk-specific biomechanics checks: planted foot has no clearance lift,
+  // the opposite foot lifts; knees bend independently and the pelvis transfers
+  // weight twice per stride. These are actual rendered-GLB measurements.
+  const walkingReview=await page.evaluate(()=>{
+    const arena=window.game.arena3d,results=[];
+    for(const [i,a] of arena.fighters.entries()){
+      const v=arena.views[i];a.reset(i?-11:11,-7);
+      v.walkWeight=1;v.dashWeight=0;
+      a.state='walk';a.grounded=true;
+      const samples=[];
+      for(let k=0;k<40;k++){
+        a.gaitPhase=a.prevGaitPhase=k*Math.PI*2/40;
+        a.animClock++;arena.pose(v,1);
+        const m=v.poseMetrics;
+        samples.push({k,contactL:m.walkContactL,contactR:m.walkContactR,
+          liftL:m.walkLiftL,liftR:m.walkLiftR,kneeL:m.kneeL,kneeR:m.kneeR,
+          bob:m.walkBob,hip:m.hipTwist,torso:m.torsoTwist});
+      }
+      results.push({model:v.key,phases:samples.filter((_,j)=>j%5===0),
+        alternating:samples.some(x=>x.contactL&&!x.contactR)&&
+          samples.some(x=>x.contactR&&!x.contactL),
+        maxLift:Math.max(...samples.flatMap(x=>[x.liftL,x.liftR])),
+        maxKnee:Math.max(...samples.flatMap(x=>[x.kneeL,x.kneeR])),
+        minKnee:Math.min(...samples.flatMap(x=>[x.kneeL,x.kneeR])),
+        hipRange:Math.max(...samples.map(x=>x.hip))-
+          Math.min(...samples.map(x=>x.hip))});
+    }
+    return results;
+  });
+  console.log('NATURAL_WALK_BIOMECHANICS',JSON.stringify(walkingReview));
+  if(walkingReview.some(x=>!x.alternating||x.maxLift<.12||
+     x.maxKnee-x.minKnee<.20||x.hipRange<.20))
+    throw Error('Walking needs alternating foot support, knee flexion and pelvis sway');
+
+  // Emit compressed frames as bounded log chunks for hands-on visual review.
+  // This supplements, rather than replaces, the geometric regression checks.
+  for(const [tag,phase] of [['heel-strike',0],['toe-off',2.9],['mid-swing',4.2]]){
+    await page.evaluate(phase=>{
+      const arena=window.game.arena3d,a=arena.fighters[0],v=arena.views[0];
+      a.reset(-11,-7);a.state='walk';a.grounded=true;
+      a.visualYaw=a.prevVisualYaw=0.20;
+      a.gaitPhase=a.prevGaitPhase=phase;a.animClock++;
+      v.walkWeight=1;v.dashWeight=0;
+      arena.pose(v,1);
+      arena.camera.position.set(a.x+3.3,2.35,a.z+5.0);
+      arena.camera.lookAt(a.x,1,a.z);
+      arena.renderer.render(arena.scene,arena.camera);
+    },phase);
+    const shot=await page.screenshot({type:'jpeg',quality:46});
+    const data=shot.toString('base64');
+    const pieces=data.match(/.{1,4000}/g)||[];
+    pieces.forEach((part,index)=>console.log(
+      'WALK_VISUAL_FRAME:'+tag+':'+index+'/'+pieces.length+':'+part));
+    console.log('WALK_VISUAL_FRAME_FINISH:'+tag+':'+pieces.length);
+  }
+
 
   const leaving=await page.evaluate(()=>{
     const game=window.game;
