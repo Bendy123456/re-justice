@@ -455,10 +455,9 @@ try{
         return {min:Math.min(...n),max:Math.max(...n),swing:Math.max(...n)-Math.min(...n)};
       };
       const distance=(x,y)=>Math.hypot(...x.map((v,j)=>v-y[j]));
-      // Opposite steps (sin phase +1 and -1), not mirrored same-sin phases.
-      const changed=key=>distance(
-        ['shoulder','elbow'].includes(key)?samples[0][key]:samples[8][key],
-        ['shoulder','elbow'].includes(key)?samples[16][key]:samples[24][key]);
+      // Walking arms are now counter-synchronized with the leg's sine phase.
+      // Measure the forward and backward extremes at PI/2 and 3PI/2.
+      const changed=key=>distance(samples[8][key],samples[24][key]);
       output.push({model:v.key,boneCount:v.bones.size,
         elbowL:range('elbowL'),elbowR:range('elbowR'),
         kneeL:range('kneeL'),kneeR:range('kneeR'),
