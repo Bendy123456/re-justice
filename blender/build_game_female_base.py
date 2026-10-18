@@ -76,11 +76,13 @@ def matte(name, color, roughness):
 suit = matte("RE-Justice blue gray • shared male/female cloth",
              SUIT_COLOR, .91)
 eye = matte("Neutral non-glowing eyes", EYE_COLOR, .92)
-apply_bald_head(body, eyes, brows, suit, suit, eye)
+bald_key = apply_bald_head(body, eyes, brows, suit, suit, eye)
 
 # Shape keys leave the CC0 underlying mesh, weights, and 65-bone skeleton
 # unchanged. Every body change is adjustable or can be disabled in Blender.
 sculpt = body.shape_key_add(name="Female anatomy • natural proportions", from_mix=True)
+# Existing bald-face morph is baked into female key; do not apply twice.
+bald_key.value = 0.0
 
 def gauss(value, center, radius):
     return math.exp(-((value - center) / radius) ** 2)
