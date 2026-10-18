@@ -30,9 +30,9 @@ const COMBAT_IDLE=Object.freeze({
   fadeIn:.19,fadeOut:.29,
   hipsOffset:[-.052,-.103,-.006],
   pelvisYaw:-.032,
-  spine01:[.082,-.018,.014],
-  spine02:[.124,-.036,.026],
-  spine03:[.082,-.030,.020],
+  spine01:[.105,-.018,.014],
+  spine02:[.150,-.036,.026],
+  spine03:[.093,-.030,.020],
   neck:[-.028,.015,-.006],
   head:[-.035,.025,.008],
   clavicleL:[-.070,.034,-.055],
@@ -42,9 +42,11 @@ const COMBAT_IDLE=Object.freeze({
   trailHand:[.20,.20,.53],
   leadArmPole:[.90,-.43,.27],
   trailArmPole:[.84,-.27,.32],
-  // Left/lead leg extended more; right/rear leg folds visibly lower.
-  leadFoot:[.23,-.90,.31],
-  trailFoot:[.36,-.74,-.09],
+  // Sculpted contact positions in the ground plane, relative to the hips.
+  // The Y components are only transition defaults; actual grounded Y is
+  // reconstructed from the measured sole offset of each imported rig.
+  leadFoot:[.25,-.90,.38],
+  trailFoot:[.36,-.78,-.08],
   leadKneePole:[.11,.12,1.02],
   trailKneePole:[.07,.11,1.42],
   leadFootYaw:-.04,
@@ -579,16 +581,39 @@ export function poseFighter(view,alpha){
         target=blendVec(target,locked,blend);
       }
     }else if(view.footPlants)view.footPlants[side]=null;
-    // Individually placed ankle and knee-pole targets. Left is straighter,
-    // right is deeply bent. Preserve ordinary ground-contact IK during travel.
+    // A sculpted, asymmetric foot layout: lead foot reaches forward,
+    // while the rear foot stays nearer the bent supporting knee. The
+    // animation's X/Z are authored; its floor Y comes from the real GLB rig.
     if(idlePose>.0001){
       const footPose=side==='l'?COMBAT_IDLE.leadFoot:COMBAT_IDLE.trailFoot;
-      const idleFoot=[
-        sign*length*footPose[0],
-        length*(footPose[1]+.002*breath),
-        length*(footPose[2]+.004*sin((a.animClock+alpha)*.026))
-      ];
-      target=blendVec(target,idleFoot,idlePose);
+      target=blendVec(target,[
+        sign*length*footPose[0],length*footPose[1],length*footPose[2]
+      ],idlePose);
+      // Important: a leg target expressed solely in hip-relative coordinates
+      // will leave the ankle hovering when the crouch changes. Instead, put
+      // the ankle pivot precisely above the arena plane by the calibrated
+      // ankle-to-sole offset, and solve the full leg toward that world point.
+      if(a.grounded&&!airborne){
+        const hipWorld=hip.getWorldPosition(vec());
+        const goalWorld=vec(...target).applyQuaternion(rootQ).add(hipWorld);
+        const ankleGround=view.footSoleHeights?.[side]??.09;
+        goalWorld.y=lerp(goalWorld.y,ankleGround,idlePose);
+        // If the rig proportions cannot reach a very wide pose, pull only
+        // the horizontal target toward the hip; never let the foot levitate.
+        const maxReach=length-.006;
+        const deltaY=goalWorld.y-hipWorld.y;
+        const lateralX=goalWorld.x-hipWorld.x,lateralZ=goalWorld.z-hipWorld.z;
+        const horizontal=Math.hypot(lateralX,lateralZ);
+        const maxHorizontal=Math.sqrt(Math.max(.0001,
+          maxReach*maxReach-deltaY*deltaY));
+        if(horizontal>maxHorizontal&&horizontal>.00001){
+          const shrink=maxHorizontal/horizontal;
+          goalWorld.x=hipWorld.x+lateralX*shrink;
+          goalWorld.z=hipWorld.z+lateralZ*shrink;
+        }
+        target=goalWorld.sub(hipWorld).applyQuaternion(
+          rootQ.clone().invert()).toArray();
+      }
     }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
     const kneeSculpt=side==='l'?COMBAT_IDLE.leadKneePole:COMBAT_IDLE.trailKneePole;
@@ -608,6 +633,14 @@ export function poseFighter(view,alpha){
     COMBAT_IDLE.leadFootYaw,rootQ);
   rotate(view,'foot_r',Y,(view.legSides?.r??1)*idlePose*
     COMBAT_IDLE.trailFootYaw,rootQ);
+  // Record measured ankle-vs-floor error for rig-level visual QA. This is
+  // *actual solved bone position*, not a speculative animation target.
+  const floorErrorL=view.bones.get('foot_l')?
+    view.bones.get('foot_l').getWorldPosition(vec()).y-
+    (view.footSoleHeights?.l??.09):null;
+  const floorErrorR=view.bones.get('foot_r')?
+    view.bones.get('foot_r').getWorldPosition(vec()).y-
+    (view.footSoleHeights?.r??.09):null;
 
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
@@ -638,7 +671,7 @@ export function poseFighter(view,alpha){
     walkHipShift:walkingMotion?supportShift:0,
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:idlePose,
-    authoredIdle:true,
+    floorErrorL,floorErrorR,contactFloorY:0,authoredIdle:true,
     rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
