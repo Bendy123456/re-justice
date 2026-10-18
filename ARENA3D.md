@@ -75,3 +75,17 @@ shapes, planted legs, hip drive, rib rotation, and a guarded opposite hand.
 These are runtime joint animations, not separate baked Blender Action clips.
 The real-browser movement test includes visual joint regression checks and
 records PNG screenshots as GitHub Actions artifacts.
+
+## Natural walking animation pass (October 2026)
+
+The `walk` state in `arena-animator.js` now has its own grounded procedural
+cycle, separate from dash/attacks. It uses approximately 60% foot stance and
+40% foot swing with smooth foot clearance, toe-off/heel-strike ankle rolls,
+2-bone knee IK, a narrower foot track, subtle vertical pelvis motion,
+contralateral arm swing with rearward elbow pole, and counter-rotating spine.
+The input/combat speeds and animation system for dash/attacks were not changed
+by this walk-only update. Tests capture heel strike, toe off and swing frames,
+verify male/female elbow/knee articulation and foot-contact alternation, and
+regress hand/rib clearance. Ground contact is a local gait approximation, not
+full world-space foot locking; extreme movement speed or abrupt turns may still
+show sliding, which should be addressed independently when refining movement.
