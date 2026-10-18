@@ -612,27 +612,39 @@
       this.modeCard(692,205,552,320,'1V1 VS BOT','02   /   SOLO MODE',
         'Train, practice and master your fighter.',
         'SOLO TRAINING   /   LOCAL MATCH',chosen==='cpu',g.uiHover==='cpu',false);
-      // Actionable instructions with no fake buttons.
-      c.save();rounded(c,132,549,1112,88,12);
-      const footer=c.createLinearGradient(132,549,1244,637);
-      footer.addColorStop(0,'rgba(18,37,54,.94)');
-      footer.addColorStop(1,'rgba(10,23,37,.95)');
-      c.fillStyle=footer;c.fill();
-      c.strokeStyle='rgba(122,164,194,.22)';c.lineWidth=1;c.stroke();c.restore();
-      c.fillStyle='#72d2ef';c.beginPath();c.arc(163,591,5,0,Math.PI*2);c.fill();
-      label(c,'READY WHEN YOU ARE',180,595,16,'#f2f8ff','left','900');
-      label(c,'Keyboard, mouse and Xbox / PlayStation controllers',180,619,12,'#94b2c8','left','600');
-      const action=chosen==='online'?'ONLINE  /  IN DEVELOPMENT':
-        chosen==='settings'?'SETTINGS  /  CONTROLS':'ENTER / A   TO CHOOSE FIGHTERS';
-      c.save();rounded(c,913,570,300,43,8);
-      c.fillStyle=chosen==='cpu'?'rgba(236,180,107,.12)':'rgba(106,179,215,.10)';c.fill();
-      c.strokeStyle=chosen==='cpu'?'rgba(241,191,123,.34)':'rgba(124,188,217,.25)';
-      c.lineWidth=1;c.stroke();
-      label(c,action,1063,597,12,chosen==='cpu'?'#ffd59b':'#accfe1','center','900');
+      // SANDBOX replaces the old READY panel and the redundant nav strip.
+      // This whole card is an actionable mode selection, not decorative UI.
+      const active=chosen==='sandbox'||g.uiHover==='sandbox';
+      const t=g.frame/60,pulse=.5+.5*Math.sin(t*3);
+      c.save();rounded(c,132,549,1112,135,13);c.clip();
+      const bg=c.createLinearGradient(132,549,1244,684);
+      bg.addColorStop(0,active?'#1b3941':'#142630');
+      bg.addColorStop(.57,'#132b35');bg.addColorStop(1,'#111d2a');
+      c.fillStyle=bg;c.fillRect(132,549,1112,135);
+      const glow=c.createRadialGradient(1125,613,20,1131,608,260);
+      glow.addColorStop(0,'rgba(110,226,206,.18)');
+      glow.addColorStop(1,'rgba(110,226,206,0)');
+      c.fillStyle=glow;c.fillRect(880,548,364,136);
+      for(let k=0;k<12;k++){
+        line(c,624+k*63,549,554+k*63,684,'rgba(159,225,211,.037)',1);
+      }
+      c.fillStyle='#62d7c9';c.fillRect(132,549,4,135);
       c.restore();
-      line(c,134,660,1243,660,'rgba(119,161,193,.14)',1);
-      label(c,'← / →  OR  D-PAD   NAVIGATE         ENTER / A   CONFIRM',
-        689,687,13,'#9bb7ca','center','700');
+      c.save();
+      if(active){c.shadowColor='#50ddc3';c.shadowBlur=9+5*pulse;}
+      rounded(c,132.5,549.5,1111,134,13);
+      c.strokeStyle=active?'#8beeda':'rgba(125,197,185,.40)';
+      c.lineWidth=active?2.2:1;c.stroke();c.restore();
+      label(c,'03  /  FREE ROAM',163,579,12,'#78dcca','left','900');
+      label(c,'SANDBOX',163,627,35,'#f3fff9','left','900');
+      label(c,'Choose any character and explore the training arena alone. No bot. No timer.',
+        165,655,14,'#b6d5d4','left','600');
+      c.save();rounded(c,956,581,250,60,9);
+      c.fillStyle=active?'#6ce0c9':'rgba(95,206,183,.14)';c.fill();
+      c.strokeStyle='#76dcca';c.lineWidth=1.5;c.stroke();
+      label(c,'CHOOSE CHARACTER   ›',1081,618,14,
+        active?'#0b2c2c':'#95f1df','center','900');
+      c.restore();
     }
     settings(){
       const c=this.ctx,g=this.game,input=g.input,actions=FG.InputUtils.ACTIONS;
@@ -792,26 +804,32 @@
       }
       // Draw portrait banks after the stage preview to keep their metallic
       // frames completely clean and readable.
-      for(let i=0;i<FG.ROSTER.length;i++)this.selectPortrait(i,g.p1Id,g.p2Id,g.frame);
+      for(let i=0;i<FG.ROSTER.length;i++)this.selectPortrait(i,g.p1Id,g.mode==='sandbox'?null:g.p2Id,g.frame);
       this.verticalSelectName(FG.CHARACTERS[g.p1Id].name,true,'#e33b51');
-      this.verticalSelectName(FG.CHARACTERS[g.p2Id].name,false,'#79bfe7');
+      if(g.mode!=='sandbox')this.verticalSelectName(FG.CHARACTERS[g.p2Id].name,false,'#79bfe7');
       // Soft readable nameplates and small, unobtrusive controls at the foot.
       const scrim=c.createLinearGradient(0,550,0,720);
       scrim.addColorStop(0,'rgba(3,5,9,0)');scrim.addColorStop(.65,'rgba(3,5,10,.64)');
       scrim.addColorStop(1,'rgba(0,1,4,.94)');c.fillStyle=scrim;c.fillRect(350,550,580,170);
-      const desc=def.playable?'READY TO FIGHT':'ROSTER PREVIEW · FIGHTER NOT YET PLAYABLE';
+      const desc=g.mode==='sandbox'?'SANDBOX · SOLO FREE ROAM':
+        def.playable?'READY TO FIGHT':'ROSTER PREVIEW · FIGHTER NOT YET PLAYABLE';
       label(c,def.name.toUpperCase(),640,592,36,'#f7f7f5','center');
-      label(c,desc,640,621,13,def.playable?'#ddc6a0':'#e6a5a7','center','700');
+      label(c,desc,640,621,13,g.mode==='sandbox'?'#83e9d0':
+        def.playable?'#ddc6a0':'#e6a5a7','center','700');
       line(c,454,636,826,636,'rgba(190,190,196,.23)',1);
       const map=FG.STAGES[g.stageId];
-      label(c,`P1  ${g.selectLocked[1]?'LOCKED':'SELECT'}    ·    P2  ${g.mode==='cpu'?'CPU':g.selectLocked[2]?'LOCKED':'SELECT'}`,640,659,15,'#e0e3e9','center','700');
+      label(c,g.mode==='sandbox'?'ONE CHARACTER  ·  NO OPPONENT':
+        `P1  ${g.selectLocked[1]?'LOCKED':'SELECT'}    ·    P2  ${g.mode==='cpu'?'CPU':g.selectLocked[2]?'LOCKED':'SELECT'}`,
+        640,659,15,'#e0e3e9','center','700');
       const button=g.input?.glyph(1,'light')||'J',confirm=g.input?.glyph(1,'power')||'H';
-      label(c,`MOVE  WASD / ARROWS / D-PAD     •     PICK  ${button} / ${confirm}     •     FIGHT  ENTER / START`,640,680,13,'#aeb9c7','center','700');
-      const threeReady=g.mode==='cpu'&&g.arena3d?.ready;
-      const stageLabel=threeReady?'STAGE: ANCIENT TRAINING GROUNDS · 3D LOCK-ON ARENA  ·  1V1 VS CPU':
+      label(c,`MOVE  WASD / ARROWS / D-PAD     •     PICK  ${button} / ${confirm}     •     ${g.mode==='sandbox'?'ENTER MAP':'FIGHT'}  ENTER / START`,
+        640,680,13,'#aeb9c7','center','700');
+      const threeReady=(g.mode==='cpu'||g.mode==='sandbox')&&g.arena3d?.ready;
+      const stageLabel=g.mode==='sandbox'?'STAGE: TRAINING GROUNDS · 3D FREE ROAM · NO BOT':
+        threeReady?'STAGE: ANCIENT TRAINING GROUNDS · 3D LOCK-ON ARENA · 1V1 VS CPU':
         'STAGE: '+map.name.toUpperCase()+' [T / TAB] · '+(g.mode==='cpu'?'1 PLAYER · VS CPU':'LOCAL VERSUS');
       label(c,stageLabel+'       ESC · BACK',640,700,12,'#929daa','center','700');
-      if(g.mode!=='cpu'&&!(g.input?.keyboardJoined[2]||g.input?.padSlots[2]!==null)){
+      if(g.mode!=='cpu'&&g.mode!=='sandbox'&&!(g.input?.keyboardJoined[2]||g.input?.padSlots[2]!==null)){
         label(c,'P2 · PRESS A KEY OR CONTROLLER BUTTON TO JOIN',640,34,15,'#b5d2e8','center','700');
       }
     }
