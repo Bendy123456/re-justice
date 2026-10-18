@@ -1,5 +1,16 @@
 # Changelog
 
+## Real Blender GLB Models Integrated — Male Roster (2026-10-17)
+
+- Added a shared anatomically rigged blue-gray bald male GLB base for 21 unarmored male roster slots, preserving 65 imported humanoid bones. Batman uses the separately finished armored model.
+- All 22 male character-select previews, portrait tiles, and playable male match models use the new real GLB rendering layer. Eight female slots retain the existing 2D models.
+- New `model-assets.js` holds visual mapping per slot, `glb-visuals.js` draws real skinned Blender models through Three.js without changing the fixed-step 2D simulation.
+- Read-only 3D representation consumes original fighter x/y, facing, action state, attack frame and pause state. Existing health, hitboxes, collision, attacks, controls and round timing are untouched.
+- Visual fallback remains enabled if WebGL or optional GLB assets fail. Character selection and match HUD are preserved.
+- Added `blender/build_game_male_base.py` and `blender/bald_head_sculpt.py` for regenerating the model; assets are at `assets/models/`.
+- Automated Node roster/assets tests passed; actual Chromium WebGL checks passed for Batman, male base, female fallback, fighting two models and independent Batman mirror-model rigs. A heavy-attack pose displaced the rigged hand while fighter health remained unchanged.
+- Male roster entries still have placeholder visuals by design and are **not** made playable when move data does not yet exist. Rendering refinements and bespoke armor will be added per character later.
+
 ## 0.2.0 — Starter Fighter Rig and Model Viewer (2026-10-17)
 
 ### Added
