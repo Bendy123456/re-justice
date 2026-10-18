@@ -1,0 +1,199 @@
+{
+  "meshes": [
+    {
+      "name": "Eyebrows",
+      "vertices": 912,
+      "dimensions": [
+        0.126,
+        0.0403,
+        0.0376
+      ],
+      "modifiers": [
+        "ARMATURE"
+      ],
+      "parent": "Armature",
+      "keys": [],
+      "materials": [],
+      "bbox_min": [
+        -0.063,
+        -0.0916,
+        1.6493
+      ],
+      "bbox_max": [
+        0.063,
+        -0.0513,
+        1.6869
+      ]
+    },
+    {
+      "name": "Eyes",
+      "vertices": 556,
+      "dimensions": [
+        0.1021,
+        0.0324,
+        0.033
+      ],
+      "modifiers": [
+        "ARMATURE"
+      ],
+      "parent": "Armature",
+      "keys": [],
+      "materials": [],
+      "bbox_min": [
+        -0.0511,
+        -0.0753,
+        1.6395
+      ],
+      "bbox_max": [
+        0.0511,
+        -0.0429,
+        1.6726
+      ]
+    },
+    {
+      "name": "Superhero_Female",
+      "vertices": 7376,
+      "dimensions": [
+        1.6689,
+        0.3027,
+        1.7751
+      ],
+      "modifiers": [
+        "ARMATURE"
+      ],
+      "parent": "Armature",
+      "keys": [],
+      "materials": [],
+      "bbox_min": [
+        -0.8344,
+        -0.1402,
+        -0.0084
+      ],
+      "bbox_max": [
+        0.8344,
+        0.1625,
+        1.7666
+      ]
+    },
+    {
+      "name": "Cube",
+      "vertices": 8,
+      "dimensions": [
+        2.0,
+        2.0,
+        2.0
+      ],
+      "modifiers": [],
+      "parent": null,
+      "keys": [],
+      "materials": [
+        "Material"
+      ],
+      "bbox_min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "bbox_max": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "name": "Icosphere",
+      "vertices": 42,
+      "dimensions": [
+        1.9021,
+        2.0,
+        2.0
+      ],
+      "modifiers": [],
+      "parent": null,
+      "keys": [],
+      "materials": [],
+      "bbox_min": [
+        -0.9511,
+        -1.0,
+        -1.0
+      ],
+      "bbox_max": [
+        0.9511,
+        1.0,
+        1.0
+      ]
+    }
+  ],
+  "rigs": [
+    {
+      "name": "Armature",
+      "bones": [
+        "root",
+        "pelvis",
+        "spine_01",
+        "spine_02",
+        "spine_03",
+        "neck_01",
+        "Head",
+        "clavicle_l",
+        "upperarm_l",
+        "lowerarm_l",
+        "hand_l",
+        "index_01_l",
+        "index_02_l",
+        "index_03_l",
+        "index_04_leaf_l",
+        "middle_01_l",
+        "middle_02_l",
+        "middle_03_l",
+        "middle_04_leaf_l",
+        "pinky_01_l",
+        "pinky_02_l",
+        "pinky_03_l",
+        "pinky_04_leaf_l",
+        "ring_01_l",
+        "ring_02_l",
+        "ring_03_l",
+        "ring_04_leaf_l",
+        "thumb_01_l",
+        "thumb_02_l",
+        "thumb_03_l",
+        "thumb_04_leaf_l",
+        "clavicle_r",
+        "upperarm_r",
+        "lowerarm_r",
+        "hand_r",
+        "index_01_r",
+        "index_02_r",
+        "index_03_r",
+        "index_04_leaf_r",
+        "middle_01_r",
+        "middle_02_r",
+        "middle_03_r",
+        "middle_04_leaf_r",
+        "pinky_01_r",
+        "pinky_02_r",
+        "pinky_03_r",
+        "pinky_04_leaf_r",
+        "ring_01_r",
+        "ring_02_r",
+        "ring_03_r",
+        "ring_04_leaf_r",
+        "thumb_01_r",
+        "thumb_02_r",
+        "thumb_03_r",
+        "thumb_04_leaf_r",
+        "thigh_l",
+        "calf_l",
+        "foot_l",
+        "ball_l",
+        "ball_leaf_l",
+        "thigh_r",
+        "calf_r",
+        "foot_r",
+        "ball_r",
+        "ball_leaf_r"
+      ]
+    }
+  ]
+}
