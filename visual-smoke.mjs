@@ -27,6 +27,41 @@ try{
     };
   });
   console.log('GLB load state:',JSON.stringify(state));
+  // Showcases/portrait cards use a distinct arms-down stance, never the
+  // crouched, hands-up combat guard. Inspect real cloned GLB joint positions.
+  const relaxed=await page.evaluate(()=>{
+    const presentation=window.game.renderer.model3d;
+    const samples=[];
+    const get=(v,n)=>v.bones.get(n).getWorldPosition(v.root.position.clone());
+    for(const kind of ['male','female','batman']){
+      const v=presentation.makeInstance(kind,'neutral-preview-qa-'+kind);
+      v.root.position.set(0,0,0);
+      v.root.rotation.set(0,0,0);
+      v.root.scale.setScalar(1);
+      presentation.poseRelaxed(v);
+      const chest=get(v,'spine_02');
+      const data=['l','r'].map(side=>{
+        const shoulder=get(v,'upperarm_'+side);
+        const elbow=get(v,'lowerarm_'+side);
+        const hand=get(v,'hand_'+side);
+        const sign=v.armSides[side];
+        return {side,
+          handBelowShoulder:shoulder.y-hand.y,
+          handOutsideChest:sign*(hand.x-chest.x),
+          elbowOutsideChest:sign*(elbow.x-chest.x),
+          handInFront:hand.z-chest.z,
+          handBelowChest:chest.y-hand.y};
+      });
+      samples.push({kind,data});
+    }
+    return samples;
+  });
+  console.log('RELAXED_ROSTER_POSE_QA',JSON.stringify(relaxed));
+  if(relaxed.some(v=>v.data.some(a=>
+     a.handBelowShoulder<.38 || a.handBelowChest<.28 ||
+     a.handOutsideChest<.19 || a.elbowOutsideChest<.17)))
+    throw Error('Character-select arms are not hanging naturally beside the body');
+
   fs.mkdirSync('ci-images',{recursive:true});
   await page.evaluate(()=>{
     const g=window.game;
