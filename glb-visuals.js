@@ -122,7 +122,18 @@ class RosterGLBPresentation {
     const shadow=new THREE.Sprite(shadowMat);
     shadow.position.set(0,.038,-.45);shadow.scale.set(1.25,.17,1);
     root.add(shadow);
-    const obj={kind:key,name,root,bones,rests,copy};
+    // Bones ending _l/_r are not guaranteed to match -X/+X.
+    // Quaternius exports used here have left-arm bones on local +X.
+    root.updateWorldMatrix(true,true);
+    const chest=bones.get('spine_02')?.getWorldPosition(new THREE.Vector3())||new THREE.Vector3();
+    const outward=(name,fallback)=>{
+      const shoulder=bones.get(name);
+      if(!shoulder)return fallback;
+      const x=shoulder.getWorldPosition(new THREE.Vector3()).x-chest.x;
+      return Math.abs(x)<1e-5?fallback:Math.sign(x);
+    };
+    const armSides={l:outward('upperarm_l',1),r:outward('upperarm_r',-1)};
+    const obj={kind:key,name,root,bones,rests,copy,armSides};
     this.instances.set(name,obj);
     return obj;
   }
@@ -167,6 +178,23 @@ class RosterGLBPresentation {
     const localDelta=parentWorld.clone().invert().multiply(worldDelta).multiply(parentWorld);
     bone.quaternion.premultiply(localDelta).normalize();
     bone.updateWorldMatrix(false,true);
+  }
+  // Character-select ONLY: relaxed stance with arms hanging beside the hips,
+  // not the hands-up combat guard. Aim using the actual anatomical shoulder
+  // handedness of each imported model; do not hardcode left=-X/right=+X.
+  poseRelaxed(o){
+    this.resetPose(o);
+    o.root.updateWorldMatrix(true,true);
+    for(const side of ['l','r']){
+      const sign=o.armSides[side];
+      // A small natural separation from the torso, straight hanging upper arm,
+      // and a loose wrist a little in front of the thigh.
+      this.aimSegment(o,'upperarm_'+side,'lowerarm_'+side,
+        [sign*.21,-.97,.06]);
+      this.aimSegment(o,'lowerarm_'+side,'hand_'+side,
+        [sign*.055,-.987,.15]);
+    }
+    o.root.userData.crouchYOffset=0;
   }
   pose(o,f,tick){
     this.resetPose(o);
@@ -234,7 +262,7 @@ class RosterGLBPresentation {
     }
     o.root.userData.crouchYOffset=isCrouch?-.23:0;
   }
-  position(o,f,x,feet,zoom,tick){
+  position(o,f,x,feet,zoom,tick,relaxed=false){
     o.root.visible=true;
     const facing=Number(f.facing||1)>=0?1:-1;
     // Pose in natural unmirrored space, then mirror the finished skeleton.
@@ -243,7 +271,8 @@ class RosterGLBPresentation {
     o.root.position.set((x-CW/2)/PIXELS_PER_METER,
       (CH/2-feet)/PIXELS_PER_METER,0);
     o.root.rotation.set(0,0,0);
-    this.pose(o,f,tick);
+    if(relaxed)this.poseRelaxed(o);
+    else this.pose(o,f,tick);
     o.root.scale.x=facing*zoom;
     o.root.rotation.y=facing*.20;
     o.root.position.y+=(o.root.userData.crouchYOffset||0)*zoom;
@@ -278,7 +307,7 @@ class RosterGLBPresentation {
     this.hideInstances();
     const o=this.makeInstance(this.modelKey(def.id),'select');
     const actor={def,x:640,y:642,facing:1,state:'idle',animClock:frame,grounded:true};
-    this.position(o,actor,640,642,PREVIEW_SCALE,frame);
+    this.position(o,actor,640,642,PREVIEW_SCALE,frame,true);
     return this.drawScene(ctx);
   }
   portraitFor(def){
@@ -288,7 +317,8 @@ class RosterGLBPresentation {
     this.hideInstances();
     const o=this.makeInstance(which,'portrait');
     o.root.visible=true;
-    this.pose(o,{state:'idle',grounded:true,animClock:0},0);
+    o.root.rotation.set(0,0,0);
+    this.poseRelaxed(o);
     o.root.position.set(0,0,0);
     o.root.scale.setScalar(1);
     o.root.rotation.y=.12;
