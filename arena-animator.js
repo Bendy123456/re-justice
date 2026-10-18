@@ -29,8 +29,8 @@ const COMBAT_IDLE=Object.freeze({
   forwardSlouch:.29, spineTwist:-.10, spineSideBend:.06,
   headCounterTilt:-.06,
   // Broad lead/rear foot triangle like the reference ninja stance.
-  leadFoot:[.24,-.82,.34],    // bent lead knee with weight above this foot
-  trailFoot:[.43,-.86,-.18],  // rear leg pushed farther out and back
+  leadFoot:[.25,-.90,.32],    // left leg reaches longer and supports more weight
+  trailFoot:[.39,-.78,-.10],  // right knee bends deeper without widening any farther
   // Fists tucked closer to the face, while elbows stay off the rib cage.
   leadHand:[.18,.16,.62],
   trailHand:[.23,.03,.56]
@@ -562,8 +562,14 @@ export function poseFighter(view,alpha){
       target=blendVec(target,ninjaFoot,idlePose);
     }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
+    // Bias the RIGHT kneecap toward the facing direction as its leg folds.
+    // Keep the same ordinary walk/combat pole when the idle pose fades out.
+    const rightKneeBend=side==='r'?idlePose:0;
+    const kneePole=[sign*lerp(.12,.10,rightKneeBend),
+      lerp(.15,.13,rightKneeBend),
+      lerp(1,1.35,rightKneeBend)];
     solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
-      target,[sign*.12,.15,1],rootQ);
+      target,kneePole,rootQ);
   }
   rotate(view,'foot_l',X,(walkingMotion?leftStep.roll*walkAmount:
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
