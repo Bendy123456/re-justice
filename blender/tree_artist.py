@@ -153,9 +153,9 @@ def make_bark_texture():
             dark=-.088 if groove>.975 else 0
             d=ridge*.5+grunge+dark
             i=(y*width+x)*4
-            pixels[i]=max(.10,min(.46,.292+d))
-            pixels[i+1]=max(.06,min(.34,.188+d*.73))
-            pixels[i+2]=max(.035,min(.22,.111+d*.48))
+            pixels[i]=max(.14,min(.57,.425+d))
+            pixels[i+1]=max(.10,min(.41,.285+d*.73))
+            pixels[i+2]=max(.055,min(.27,.166+d*.48))
             pixels[i+3]=1.0
     image=bpy.data.images.new('Fine ribbed brown tree bark',width,height,alpha=True)
     image.pixels.foreach_set(pixels)
