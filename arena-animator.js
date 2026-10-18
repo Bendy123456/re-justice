@@ -13,7 +13,6 @@ const lerp=(a,b,t)=>a+(b-a)*t;
 const ease=t=>{t=clamp(t);return t*t*(3-2*t);};
 const vec=(x=0,y=0,z=0)=>new THREE.Vector3(x,y,z);
 const Y=vec(0,1,0),X=vec(1,0,0),Z=vec(0,0,1);
-const Q=new THREE.Quaternion();
 const temp=new THREE.Vector3();
 const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 
@@ -83,7 +82,6 @@ function rotate(view,name,localAxis,amount,rootQ){
   bone.updateWorldMatrix(false,true);
 }
 const blendVec=(a,b,t)=>a.map((x,i)=>lerp(x,b[i],clamp(t)));
-const forwardHand=(side)=>side==='l'?-.15:.15;
 
 // Captures a neutral state once so the exported Blender rig stays intact.
 // Each frame rebuilds from bind/rest; no accumulation or wrist drift.
@@ -98,7 +96,9 @@ export function poseFighter(view,alpha){
   const airborne=!a.grounded||a.state==='jump';
   const blocked=a.blocking||a.state==='block';
   const hit=a.state==='hitstun';
-  const strideClock=(a.animClock+alpha)*(dashing?.32:.225);
+  const strideClock=Number.isFinite(a.gaitPhase)?
+    lerp(a.prevGaitPhase??a.gaitPhase,a.gaitPhase,alpha):
+    (a.animClock+alpha)*(dashing?.32:.225);
   const stride=sin(strideClock),step=cos(strideClock);
   // Smooth transition from movement to stillness and back in real frames.
   if(view.lastStateTick!==a.animClock){
@@ -157,8 +157,6 @@ export function poseFighter(view,alpha){
   rotate(view,'clavicle_l',Z,-.025+drive*stride*.04,rootQ);
   rotate(view,'clavicle_r',Z,.025-drive*stride*.04,rootQ);
 
-  const baselineL=[-.35,-.62,.49],baselineR=[.35,-.62,.49];
-  const idleForeL=[-.14,.62,.75],idleForeR=[.14,.62,.75];
   // Running arms oppose their legs, dash uses compact sprinter arm drive.
   const pump=drive*stride;
   let leftUpper=[-.35,-.62,.49-pump*.34];
