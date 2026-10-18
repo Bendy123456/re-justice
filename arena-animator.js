@@ -248,11 +248,11 @@ export function poseFighter(view,alpha){
   // The chest follows the pelvis with a slight delay, then counter-rotates:
   // ribcage and shoulders should visibly move rather than stay rigid while
   // arms/legs take longer steps. Preserve combat poses by gating to walk.
-  const torsoTwist=-(walkingMotion?walkAmount*.205:drive*.16)*stride+
+  const torsoTwist=-(walkingMotion?walkAmount*.230:drive*.16)*stride+
     (attack?.twist||0)-dashKick*.075;
   const chestLead=walkingMotion?walkAmount*sin(strideClock-.42):0;
   const chestRoll=walkingMotion?
-    (-supportShift*.31+walkAmount*.047*sin(strideClock-.42)):0;
+    (-supportShift*.31+walkAmount*.075*sin(strideClock-.42)):0;
   const chestPitch=walkingMotion?
     walkAmount*(.031+.022*cos(2*strideClock+.48)):0;
   const torsoBend=(walkingMotion?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
@@ -268,7 +268,7 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',Z,chestRoll*.20,rootQ);
   rotate(view,'spine_02',Z,chestRoll*.49,rootQ);
   rotate(view,'spine_03',Z,chestRoll*.31+
-    (walkingMotion?chestLead*.022:drive*.046*stride)+
+    (walkingMotion?chestLead*.033:drive*.046*stride)+
     (attack?.twist||0)*-.07,rootQ);
   rotate(view,'neck_01',X,-pitch*(walkingMotion?.37:.21),rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
