@@ -14,7 +14,7 @@ permissions:
 
 concurrency:
   group: rejustice-stone-grass-main-build
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   blender:
@@ -37,11 +37,21 @@ jobs:
           grep 'GRASS_QA' /tmp/rejustice-blender.log
           grep 'STONE_SLAB_WALL_QA' /tmp/rejustice-blender.log
           grep 'VERTICAL_WALL_QA' /tmp/rejustice-blender.log
+          grep 'HIGH_DETAIL_TURF_QA' /tmp/rejustice-blender.log
+          grep 'HIGH_DETAIL_GRASS_QA' /tmp/rejustice-blender.log
+          grep 'HIGH_DETAIL_STONE_QA' /tmp/rejustice-blender.log
+          grep 'HIGH_DETAIL_TREE_QA' /tmp/rejustice-blender.log
+          grep 'HIGH_DETAIL_BARK_QA' /tmp/rejustice-blender.log
           grep 'TRAINING_GROUND_SUCCESS' /tmp/rejustice-blender.log
           test -s assets/arena/training-ground.glb
           test -s assets/arena/training-ground.blend
           test -s assets/arena/training-ground-preview.png
           test -s assets/arena/grass-turf.png
+          test -s assets/arena/stone-grain.png
+          test -s assets/arena/tree-bark-grain.png
+          test -s assets/arena/training-wall-grass-detail.png
+          test -s assets/arena/training-tree-detail.png
+          test -s assets/arena/training-tree-trunk.png
       - name: Validate exported grass texture and actual stone materials
         run: |
           python3 - <<'PY'
@@ -56,23 +66,40 @@ jobs:
           assert any('GRASS' in x for x in names),names
           assert len([x for x in names if x.startswith('WALL VERTICAL | light limestone')])==4,names
           assert not any('medium gray stone' in x or 'sandstone' in x for x in names),names
-          assert data.get('textures') and data.get('images'), 'Embedded grass texture absent'
+          assert len(data.get('textures',[]))>=3 and len(data.get('images',[]))>=3, 'Grass, stone and bark textures missing'
+          mat_images=[]
+          for m in data['materials']:
+            tex=m.get('pbrMetallicRoughness',{}).get('baseColorTexture')
+            if tex:mat_images.append(m.get('name',''))
+          assert 'Meadow turf | textured living grass' in mat_images,mat_images
+          assert any(name.startswith('WALL VERTICAL | light limestone') for name in mat_images),mat_images
+          assert any('chestnut bark' in name for name in mat_images),mat_images
+          triangles=0
+          for mesh in data['meshes']:
+            for p in mesh.get('primitives',[]):
+              acc=data['accessors'][p['indices']]
+              triangles+=acc['count']//3
+          assert triangles<1350000, f'Too many triangles for browser gameplay: {triangles}'
+          assert len(glb)<44000000, f'Model too heavy for browser: {len(glb)}'
+          print('PERFORMANCE_DETAIL_QA',triangles,'triangles',len(glb),'bytes')
           print('EXPORTED_VERTICAL_WALL_QA',len(glb),'bytes',
               len(data.get('materials',[])),'materials',
               len(data.get('textures',[])),'textures')
           PY
-      - name: Create lightweight art-review image and source data
+      - name: Prepare overhead and close-up visual QA previews
         run: |
           python3 - <<'PY'
           from PIL import Image
           from pathlib import Path
           import base64
           p=Path('assets/arena')
-          im=Image.open(p/'training-ground-preview.png').convert('RGB')
-          im.thumbnail((900,600))
-          im.save(p/'training-ground-review.jpg',quality=78,optimize=True)
-          (p/'training-ground-review.base64.txt').write_text(
-            base64.b64encode((p/'training-ground-review.jpg').read_bytes()).decode('ascii'))
+          for name in ['training-ground','training-tree-detail',
+                       'training-tree-trunk','training-wall-grass-detail']:
+            im=Image.open(p/(name+'-preview.png' if name=='training-ground' else name+'.png')).convert('RGB')
+            im.thumbnail((960,640))
+            im.save(p/(name+'-review.jpg'),quality=81,optimize=True)
+            (p/(name+'-review.base64.txt')).write_text(
+              base64.b64encode((p/(name+'-review.jpg')).read_bytes()).decode('ascii'))
           PY
       - uses: actions/upload-artifact@v4
         with:
@@ -82,7 +109,12 @@ jobs:
             assets/arena/training-ground.glb
             assets/arena/training-ground-preview.png
             assets/arena/training-ground-review.jpg
+            assets/arena/training-tree-detail.png
+            assets/arena/training-tree-trunk.png
+            assets/arena/training-wall-grass-detail.png
             assets/arena/grass-turf.png
+            assets/arena/stone-grain.png
+            assets/arena/tree-bark-grain.png
           retention-days: 30
       - name: Commit new Blender assets to live main branch
         run: |
@@ -95,11 +127,21 @@ jobs:
           cp assets/arena/training-ground-review.jpg /tmp/new-arena/
           cp assets/arena/training-ground-review.base64.txt /tmp/new-arena/
           cp assets/arena/grass-turf.png /tmp/new-arena/
+          cp assets/arena/stone-grain.png /tmp/new-arena/
+          cp assets/arena/tree-bark-grain.png /tmp/new-arena/
+          cp assets/arena/training-tree-detail.png /tmp/new-arena/
+          cp assets/arena/training-tree-trunk.png /tmp/new-arena/
+          cp assets/arena/training-wall-grass-detail.png /tmp/new-arena/
+          cp assets/arena/training-tree-*-review.* /tmp/new-arena/
+          cp assets/arena/training-wall-grass-detail-review.* /tmp/new-arena/
           git fetch origin main
           git reset --hard origin/main
           cp /tmp/new-arena/* assets/arena/
-          git add assets/arena/training-ground.blend assets/arena/training-ground.glb assets/arena/training-ground-preview.png assets/arena/training-ground-review.jpg assets/arena/training-ground-review.base64.txt assets/arena/grass-turf.png
+          git add assets/arena/training-ground.blend assets/arena/training-ground.glb assets/arena/training-ground-preview.png assets/arena/training-ground-review.jpg assets/arena/training-ground-review.base64.txt
+          git add assets/arena/grass-turf.png assets/arena/stone-grain.png assets/arena/tree-bark-grain.png
+          git add assets/arena/training-tree-detail.png assets/arena/training-tree-trunk.png assets/arena/training-wall-grass-detail.png
+          git add assets/arena/training-tree-*-review.* assets/arena/training-wall-grass-detail-review.*
           if ! git diff --cached --quiet; then
-            git commit -m "Export stone slab walls and meadow grass into live 3D arena [skip ci]"
+            git commit -m "Export higher-detail tree, stone slabs and meadow terrain [skip ci]"
             git push origin HEAD:main
           fi
