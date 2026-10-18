@@ -85,23 +85,48 @@ function rotate(view,name,localAxis,amount,rootQ){
 }
 const blendVec=(a,b,t)=>a.map((x,i)=>lerp(x,b[i],clamp(t)));
 
-// One step uses a 60%-stance/40%-swing cycle. Phase advances from ACTUAL
-// travel distance (in arena3d.js), so planted feet keep pace with the ground.
-// The world-space stance IK below handles turns and body/hip movement.
+// Render-only locomotion controller, evaluated once per simulation tick.
+// Speed and 2D direction are measured from ACTUAL displacement, not keys.
+// It interpolates movement into a physically grounded pose without altering
+// collision, combat, fixed timestep, damage or gameplay move speeds.
+function locomotionState(view,a){
+  if(view.motionTick===a.animClock)return view.motion;
+  const m=view.motion||(view.motion={weight:0,forward:1,side:0,speed:0,turn:0});
+  const dx=a.x-a.prevX,dz=a.z-a.prevZ,dist=Math.hypot(dx,dz);
+  const walking=a.state==='walk'&&a.grounded&&!a.attack&&!a.blocking;
+  const yaw=a.visualYaw;
+  const f=dist>1e-5?(dx*Math.sin(yaw)+dz*Math.cos(yaw))/dist:m.forward;
+  const side=dist>1e-5?(dx*Math.cos(yaw)-dz*Math.sin(yaw))/dist:m.side;
+  const speed=walking?Math.min(12,dist*60):0;
+  m.speed=lerp(m.speed,speed,walking?.30:.22);
+  m.weight=lerp(m.weight,walking?clamp(speed/2.8):0,walking?.28:.19);
+  m.forward=lerp(m.forward,walking?f:m.forward,walking?.28:.12);
+  m.side=lerp(m.side,walking?side:m.side,walking?.28:.12);
+  m.turn=lerp(m.turn,Math.atan2(sin(a.visualYaw-a.prevVisualYaw),
+    cos(a.visualYaw-a.prevVisualYaw)),.30);
+  if(!walking&&m.weight<.002){m.weight=0;m.speed=0;}
+  view.motionTick=a.animClock;
+  return m;
+}
+function unitMotion(m){
+  const length=Math.hypot(m.forward,m.side);
+  return length>.001?{forward:m.forward/length,side:m.side/length}:
+    {forward:1,side:0};
+}
+// Foot-contact gait: 62% grounded stance, 38% eased swing with a
+// separate heel strike, toe-off and recovery lift (not a pure sine wave).
 function walkStep(phase){
-  const TAU=Math.PI*2;
-  const u=((phase/TAU)%1+1)%1;
-  const stance=.60;
+  const u=((phase/(2*Math.PI))%1+1)%1,stance=.62;
   if(u<stance){
     const t=u/stance;
-    return {contact:true,travel:lerp(.495,-.495,t),lift:0,
-      roll:t<.18?lerp(.12,0,t/.18):t>.77?lerp(0,-.19,(t-.77)/.23):0,
-      support:Math.sin(Math.PI*t)**2};
+    return {contact:true,travel:.50-1.0*t,lift:0,
+      roll:.12*(1-ease(t/.18))-.20*ease((t-.78)/.22),
+      support:sin(Math.PI*t)**2};
   }
   const t=(u-stance)/(1-stance);
-  return {contact:false,travel:lerp(-.495,.495,ease(t)),
-    lift:.157*Math.sin(Math.PI*t),roll:Math.sin(Math.PI*t)*.13,
-    support:0};
+  return {contact:false,travel:lerp(-.50,.50,ease(t)),
+    lift:.175*Math.pow(Math.max(0,sin(Math.PI*t)),.8),
+    roll:.13*sin(Math.PI*t),support:0};
 }
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
 // Unlike directing both segments toward fixed angles, the elbow/knee is
@@ -155,7 +180,8 @@ export function poseFighter(view,alpha){
     Math.atan2(sin(a.visualYaw-a.prevVisualYaw),cos(a.visualYaw-a.prevVisualYaw))*alpha;
   const locomoting=a.state==='walk',dashing=a.state==='dash';
   const naturalWalk=locomoting&&!a.attack&&!a.blocking&&a.grounded;
-  // Only the rendered skeleton is animated; hitboxes remain fixed.
+  const motion=locomotionState(view,a),direction=unitMotion(motion);
+  const localForward=direction.forward,localSide=direction.side;
   const attack=strikePose(a);
   const airborne=!a.grounded||a.state==='jump';
   const blocked=a.blocking||a.state==='block';
@@ -164,20 +190,13 @@ export function poseFighter(view,alpha){
     lerp(a.prevGaitPhase??a.gaitPhase,a.gaitPhase,alpha):
     (a.animClock+alpha)*(dashing?.32:.225);
   const stride=sin(strideClock),step=cos(strideClock);
-  // Smooth transition from movement to stillness and back in real frames.
   if(view.lastStateTick!==a.animClock){
-    view.walkWeight=lerp(view.walkWeight||0,locomoting?1:0,.20);
     view.dashWeight=lerp(view.dashWeight||0,dashing?1:0,.42);
     view.lastStateTick=a.animClock;
   }
-  // When manually driving the state in QA or pausing on a frame, never force
-  // movement to zero based on elapsed real-world time.
-  const walk=locomoting?Math.max(.17,view.walkWeight||0):view.walkWeight||0;
+  const walk=motion.weight;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
-  // Retain a small, decaying walk influence after input stops. Without this,
-  // a stopped character instantly snaps from a planted stride into a wide
-  // fighting stance, even though walkWeight is still fading toward zero.
   const relaxedIdle=a.state==='idle'&&a.grounded&&!attack&&!blocked&&!hit;
   const walkAmount=(!dashing&&!airborne&&!attack&&!blocked&&!hit)?
     clamp(walk):0;
@@ -185,9 +204,8 @@ export function poseFighter(view,alpha){
   const walkFade=ease(walkAmount);
   const leftStep=walkStep(strideClock),rightStep=walkStep(strideClock+Math.PI);
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
-  const supportShift=walkAmount*.075*
+  const supportShift=walkAmount*.055*
     (leftStep.support*legL+rightStep.support*legR);
-  // Retired anchors should not survive idle, dash, attack or a jump.
   if(!naturalWalk&&view.footPlants)view.footPlants={l:null,r:null};
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
   const dashIgnite=dashing?1-ease(dashFrames/3):0;
