@@ -24,13 +24,16 @@ const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 // Tweak these values together; combat timing and locomotion remain untouched.
 const COMBAT_IDLE=Object.freeze({
   fadeIn:.21, fadeOut:.34,
-  pelvisDrop:.077, leadWeightShift:.048,
-  forwardSlouch:.205, spineTwist:-.085, spineSideBend:.046,
-  headCounterTilt:-.045,
-  leadFoot:[.19,-.86,.29],     // bent and weight bearing
-  trailFoot:[.35,-.87,-.16],   // kicked outward, slightly behind
-  leadHand:[.24,.055,.49],     // high fist ahead of cheek
-  trailHand:[.30,-.105,.43]    // second fist in front of chest
+  // Deeper crouch, rolled-forward shoulders, and head tucked over the guard.
+  pelvisDrop:.10, leadWeightShift:.06,
+  forwardSlouch:.29, spineTwist:-.10, spineSideBend:.06,
+  headCounterTilt:-.06,
+  // Broad lead/rear foot triangle like the reference ninja stance.
+  leadFoot:[.24,-.82,.34],    // bent lead knee with weight above this foot
+  trailFoot:[.43,-.86,-.18],  // rear leg pushed farther out and back
+  // Fists tucked closer to the face, while elbows stay off the rib cage.
+  leadHand:[.18,.16,.62],
+  trailHand:[.23,.03,.56]
 });
 const STRIKES=Object.freeze({
   light: {hand:'l',chamber:.26,rotation:-.31,hip:-.17,lean:.12,step:.11,hook:0},
@@ -463,9 +466,9 @@ export function poseFighter(view,alpha){
       const elbowOut=dashing?.95:lerp(.055,.30,walkFade);
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*lerp(elbowOut,.78,idlePose),
-          lerp(.05,-.36,idlePose),
-          lerp(dashing?-.32:-.99,.23,idlePose)],rootQ);
+        [sgn*lerp(elbowOut,.90,idlePose),
+          lerp(.05,-.44,idlePose),
+          lerp(dashing?-.32:-.99,.28,idlePose)],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
