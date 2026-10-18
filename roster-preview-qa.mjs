@@ -91,12 +91,21 @@ try{
   const beforeMove=await page.evaluate(()=>{
     const f=window.game.arena3d.fighters[0];return {x:f.x,z:f.z};
   });
+  // SwiftShader on CI may take longer than 350ms to render the first 3D
+  // frame of a high-detail map. Wait for actual world-space movement,
+  // testing real keyboard input without assuming a fixed frame rate.
   await page.keyboard.down('w');
-  await page.waitForTimeout(350);
-  await page.keyboard.up('w');
+  try{
+    await page.waitForFunction((initialZ)=>{
+      const g=window.game?.arena3d,f=g?.fighters?.[0];
+      return f?.z>initialZ+.31;
+    },beforeMove.z,{polling:125,timeout:15000});
+  }finally{
+    await page.keyboard.up('w');
+  }
   const afterMove=await page.evaluate(()=>{
     const g=window.game.arena3d,f=g.fighters[0];
-    return {x:f.x,z:f.z,count:g.fighters.length,phase:g.phase};
+    return {x:f.x,z:f.z,count:g.fighters.length,phase:g.phase,tick:g.tick};
   });
   console.log('SANDBOX_WALK',JSON.stringify({beforeMove,afterMove}));
   if(afterMove.z<=beforeMove.z+.3||afterMove.count!==1||
