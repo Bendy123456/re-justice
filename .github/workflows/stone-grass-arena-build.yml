@@ -1,4 +1,4 @@
-name: Build stone slab walls and grassy Blender arena
+name: Build tall light-gray stone slabs and grassy Blender arena
 on:
   push:
     branches: [main]
@@ -36,6 +36,7 @@ jobs:
           tail -45 /tmp/rejustice-blender.log
           grep 'GRASS_QA' /tmp/rejustice-blender.log
           grep 'STONE_SLAB_WALL_QA' /tmp/rejustice-blender.log
+          grep 'VERTICAL_WALL_QA' /tmp/rejustice-blender.log
           grep 'TRAINING_GROUND_SUCCESS' /tmp/rejustice-blender.log
           test -s assets/arena/training-ground.glb
           test -s assets/arena/training-ground.blend
@@ -53,9 +54,10 @@ jobs:
           data=json.loads(glb[20:20+n].decode('utf-8'))
           names=[m.get('name','') for m in data.get('materials',[])]
           assert any('GRASS' in x for x in names),names
-          assert any('WALL SLAB' in x for x in names),names
+          assert len([x for x in names if x.startswith('WALL VERTICAL | light limestone')])==4,names
+          assert not any('medium gray stone' in x or 'sandstone' in x for x in names),names
           assert data.get('textures') and data.get('images'), 'Embedded grass texture absent'
-          print('EXPORTED_GRASS_STONE_QA',len(glb),'bytes',
+          print('EXPORTED_VERTICAL_WALL_QA',len(glb),'bytes',
               len(data.get('materials',[])),'materials',
               len(data.get('textures',[])),'textures')
           PY
