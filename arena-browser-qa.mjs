@@ -456,7 +456,9 @@ try{
       };
       const distance=(x,y)=>Math.hypot(...x.map((v,j)=>v-y[j]));
       // Opposite steps (sin phase +1 and -1), not mirrored same-sin phases.
-      const changed=key=>distance(samples[8][key],samples[24][key]);
+      const changed=key=>distance(
+        ['shoulder','elbow'].includes(key)?samples[0][key]:samples[8][key],
+        ['shoulder','elbow'].includes(key)?samples[16][key]:samples[24][key]);
       output.push({model:v.key,boneCount:v.bones.size,
         elbowL:range('elbowL'),elbowR:range('elbowR'),
         kneeL:range('kneeL'),kneeR:range('kneeR'),
