@@ -1,5 +1,17 @@
 # Changelog
 
+## Full 3D arena-fighter training grounds prototype — 2026-10-17
+
+- Created a new original daytime anime training ground in **Blender**: a 34m-radius circular fighting floor, a large sculpted central tree and 12.5m continuous enclosing stone walls. Exported editable `assets/arena/training-ground.blend`, game-ready `.glb` and QA render.
+- Added `arena3d.js`: a **new optional 3D combat mode** for 1v1 CPU fights, using existing male, female and armored Batman skinned GLBs.
+- Camera follows player from behind and locks toward CPU opponent; supports full X/Z running/strafe, 60Hz jump gravity, dash, basic attacks, throw, block/chip, combo damage scaling, four-bar super, KO, 99-second rounds and best-of-three wins.
+- Gameplay collision uses deterministic radial wall and trunk constraints plus fighter capsule/circle approximations. Blender geometry is presentation-only, never substituted for collision data.
+- Added contact shadows, target lock-on marker, camera wall/tree avoidance, impact HUD sparks and gamepad controls through the existing input manager.
+- Existing RE-Justice title/settings/character select are kept, with stage label updated to "Training Grounds" when ready; old 2D match remains a fallback if WebGL/assets fail.
+- Added startup readiness check so selecting a match before loading asks to wait rather than unintentionally entering the 2D match.
+- Added automated Blender build and Chromium browser QA. Passed actual GLB loading, independent character skeletons, tree/wall collisions, run/jump/land/dash, block chip, single-hit detection, paused timer, CPU stepping and exit-to-menu tests. Existing 36/36 2D engine tests and 30-character asset mapping tests also passed.
+- This is the **first 3D gameplay phase**, not fully feature-complete. Remaining work: bespoke character animation clips/specials and air combos, performance improvements for low-end GPUs, refined environmental art and more camera edge-case QA. Online mode remains unimplemented.
+
 ## Native female anatomical model replaces male-derived placeholder (2026-10-17)
 
 - Replaced the previously modified male mesh with the actual **Quaternius Superhero Female** model from the CC0 Universal Base Characters Standard pack, keeping the same humanoid 65-bone rig.
