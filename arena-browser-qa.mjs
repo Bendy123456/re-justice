@@ -117,6 +117,21 @@ try{
       lightStone:[...mats].filter(n=>n.startsWith('WALL VERTICAL | light limestone')),
       oldHorizontalBricks:[...mats].filter(n=>n.startsWith('WALL SLAB |')),
       meadowTurf:[...mats].includes('Meadow turf | textured living grass'),
+      textureDetail:(()=>{
+        const info={turf:0,stone:0,bark:0,texturedFaces:0};
+        g.arena.traverse(obj=>{
+          if(!obj.isMesh)return;
+          for(const m of (Array.isArray(obj.material)?obj.material:[obj.material])){
+            const width=m?.map?.image?.width||0;
+            if(!width)continue;
+            info.texturedFaces++;
+            if(m.name==='Meadow turf | textured living grass')info.turf=Math.max(info.turf,width);
+            if(m.name.startsWith('WALL VERTICAL | light limestone'))info.stone=Math.max(info.stone,width);
+            if(m.name.includes('chestnut bark'))info.bark=Math.max(info.bark,width);
+          }
+        });
+        return info;
+      })(),
       grassTexture:(()=>{
         let textured=false;
         g.arena.traverse(obj=>{
@@ -136,8 +151,15 @@ try{
     lightGrayPanelMaterials:treeQA.lightStone.length,
     leftoverHorizontalBrickMaterials:treeQA.oldHorizontalBricks.length,
     grassMaterials:treeQA.grassMaterials.length,
-    texturedGround:treeQA.grassTexture
+    texturedGround:treeQA.grassTexture,
+    highDetailTextures:treeQA.textureDetail,
+    triangles:treeQA.triangles
   }));
+  if(treeQA.textureDetail.turf<768||
+     treeQA.textureDetail.stone<768||
+     treeQA.textureDetail.bark<512||
+     treeQA.triangles>650000)
+    throw Error('High-detail Blender textures missing or excessive polygon count');
   if(treeQA.verticalStone.length<8||treeQA.grassMaterials.length<4||
       treeQA.lightStone.length!==4||treeQA.oldHorizontalBricks.length!==0||
       !treeQA.meadowTurf||!treeQA.grassTexture)
