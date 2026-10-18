@@ -1,0 +1,48 @@
+name: RE-Justice 3D movement browser QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'arena3d.js'
+      - 'arena-browser-qa.mjs'
+      - '.github/workflows/fighter-movement-browser-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rejustice-fighter-movement-browser
+  cancel-in-progress: true
+
+jobs:
+  browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify JS and combat smoke tests
+        run: |
+          node --check arena3d.js
+          node --check arena-browser-qa.mjs
+          node smoke-tests.cjs
+          node model-tests.cjs
+          test -s assets/arena/training-ground.glb
+      - name: Install Chromium for Three.js rendering tests
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install chromium --with-deps
+      - name: Exercise the actual fighter rigs and arena in a browser
+        run: |
+          python3 -m http.server 8765 > /tmp/rejustice-qa-server.log 2>&1 &
+          sleep 3
+          node arena-browser-qa.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rejustice-fighter-locomotion-screenshots
+          path: arena-qa-images/*.png
+          retention-days: 14
