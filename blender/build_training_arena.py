@@ -105,80 +105,15 @@ for i in range(WALL_SECTIONS):
                (1,5,6,2),(2,6,7,3),(3,7,4,0)]
         mesh("WALL | segment %02d | trim %d"%(i,part),vertices,faces,ma)
 
-# Stylized hand-shaped tree: a tapered continuous trunk and thick roots.
-def tubular(name,positions,radii,m,radials=10):
-    verts=[];faces=[]
-    for j,(p,r) in enumerate(zip(positions,radii)):
-        prev=Vector(positions[max(0,j-1)])
-        nex=Vector(positions[min(len(positions)-1,j+1)])
-        tangent=(nex-prev).normalized()
-        guide=Vector((0,1,0))
-        if abs(tangent.dot(guide))>.92: guide=Vector((1,0,0))
-        u=tangent.cross(guide).normalized()
-        v=tangent.cross(u).normalized()
-        for k in range(radials):
-            a=k*2*pi/radials
-            perturb=1+.08*sin(a*5+j*1.3)
-            pos=Vector(p)+r*perturb*(u*cos(a)+v*sin(a))
-            verts.append(tuple(pos))
-    for j in range(len(positions)-1):
-        for k in range(radials):
-            n=j*radials+k
-            kk=(k+1)%radials
-            faces.append((n,j*radials+kk,(j+1)*radials+kk,(j+1)*radials+k))
-    faces += [tuple(reversed(tuple(range(radials)))),
-              tuple((len(positions)-1)*radials+k for k in range(radials))]
-    return mesh(name,verts,faces,m)
-
-tubular("TREE | old bark sculpted trunk",
-        [(0,0,-.10),(.01,0,.8),(.06,-.05,2),(.12,.03,4),
-         (.30,.08,6),(.35,.23,8),(.15,.18,10.5)],
-        [2.23,1.88,1.59,1.42,1.27,.84,.27],bark,14)
-for i in range(8):
-    a=2*pi*i/8
-    u=Vector((cos(a),sin(a),0))
-    tubular("TREE | rooted buttress "+str(i),[
-        tuple(u*3.1+Vector((0,0,.03))),tuple(u*2.3+Vector((0,0,.38))),
-        tuple(u*1.55+Vector((0,0,1.12))),(.04,.02,2.35)
-    ],[.13,.26,.48,.52],bark_light,8)
-
-# Branches intentionally merge visually into the canopy: separate meshes
-# but a continuous wood material and no hard rectangular limbs.
-for i in range(BRANCH_COUNT):
-    a=2*pi*i/BRANCH_COUNT+.18
-    r=8.0 + random.random()*3
-    z=10.2+random.random()*2
-    base=(.17,.18,7.5)
-    p1=(2.4*cos(a),2.4*sin(a),8.5)
-    p2=(r*.60*cos(a),r*.60*sin(a),z-.35)
-    p3=(r*cos(a),r*sin(a),z+.5)
-    tubular("TREE | winding branch %02d"%i,[base,p1,p2,p3],
-            [.49,.32,.17,.047],bark,8)
-
-def leaf_ball(name,x,y,z,rx,ry,rz,ma):
-    # Icosahedron leaves read as layered stylized anime foliage.
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1,radius=1,location=(x,y,z))
-    o=bpy.context.object;o.name=name;o.scale=(rx,ry,rz)
-    o.data.materials.append(ma)
-    return o
-
-# Thick canopy above ~8.5m to keep fighter sight lines beneath foliage.
-for i in range(FOLIAGE_COUNT):
-    a=random.random()*2*pi
-    r=math.sqrt(random.random())*12.2
-    x=r*cos(a)+.10
-    y=r*sin(a)+.08
-    z=11.8+2.3*(1-r/14.0)+random.uniform(-1.6,1.8)
-    size=random.uniform(1.65,3.2)
-    leaf_ball("CANOPY | faceted green foliage %02d"%i,x,y,z,
-              size*1.4,size*1.15,size*.82,leaves[i%len(leaves)])
-
-# Add high-quality sculpted masonry, carved bark and earthy training-circle
-# designs. Everything is visibly flush: the unchanged 3D fighter collision
-# remains analytic, with no raycasts into rendered decoration.
+# Art-directed botanical mesh replaces old ico-sphere / blocky tree.
+# Retain the current stage's 2D radial collision boundary unchanged.
 sys.path.insert(0,os.path.dirname(__file__))
-from arena_polish import apply as apply_polish
-apply_polish(mesh,tubular,leaf_ball,RADIUS,WALL_HEIGHT)
+from tree_artist import build_tree
+from arena_polish import ground_details,wall_details
+build_tree()
+ground_details(RADIUS)
+wall_details(RADIUS,WALL_HEIGHT)
+
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
 scene.cycles.samples=18
@@ -199,6 +134,18 @@ cam=bpy.data.objects.new("Review camera",camd);scene.collection.objects.link(cam
 cam.location=(62,-74,52);cam.rotation_euler=(Vector((0,0,5))-cam.location).to_track_quat("-Z","Y").to_euler()
 camd.type="ORTHO";camd.ortho_scale=91;scene.camera=cam
 scene.render.filepath=os.path.join(OUTPUT,"training-ground-preview.png")
+bpy.ops.render.render(write_still=True)
+# Explicit tree-focused art QA renders to judge the shapes in perspective,
+# not just an overhead arena shot where poor branch silhouette is easy to miss.
+cam.location=(17,-20,17.5)
+cam.rotation_euler=(Vector((0,0,9.0))-cam.location).to_track_quat("-Z","Y").to_euler()
+camd.ortho_scale=39
+scene.render.filepath=os.path.join(OUTPUT,"training-tree-detail.png")
+bpy.ops.render.render(write_still=True)
+cam.location=(10,-13,5.9)
+cam.rotation_euler=(Vector((0,0,4.5))-cam.location).to_track_quat("-Z","Y").to_euler()
+camd.ortho_scale=18
+scene.render.filepath=os.path.join(OUTPUT,"training-tree-trunk.png")
 bpy.ops.render.render(write_still=True)
 # Export just 3D arena meshes (exclude preview lights and cameras).
 bpy.ops.object.select_all(action="DESELECT")

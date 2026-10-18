@@ -136,7 +136,7 @@ class Arena3D {
   async loadAssets(){
     try{
       const files=[
-        'assets/arena/training-ground.glb?v=2',
+        'assets/arena/training-ground.glb?v=natural-tree-3',
         'assets/models/male-unarmored.glb',
         'assets/models/female-unarmored.glb',
         'assets/models/batman-armored.glb'

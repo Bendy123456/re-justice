@@ -41,6 +41,40 @@ try{
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
+  // Inspect real updated GLB materials, not merely the existence of the
+  // old cached arena. This catches accidental reintroduction of ico balls.
+  const treeQA=await page.evaluate(()=>{
+    const g=window.game.arena3d;
+    const mats=new Set();
+    let tris=0;
+    g.arena.traverse(obj=>{
+      if(!obj.isMesh)return;
+      const ms=Array.isArray(obj.material)?obj.material:[obj.material];
+      for(const m of ms)if(m?.name)mats.add(m.name);
+      const geom=obj.geometry;
+      if(geom?.index)tris+=geom.index.count/3;
+      else if(geom?.attributes?.position)tris+=geom.attributes.position.count/3;
+    });
+    return {leafMaterials:[...mats].filter(n=>n.startsWith('Leaf blades')),
+      oldBallMaterials:[...mats].filter(n=>n.startsWith('Leaf cluster')),
+      hasTreeBark:[...mats].some(n=>n.includes('chestnut bark')),
+      triangles:Math.round(tris)};
+  });
+  console.log('NATURAL_TREE_GEOMETRY_QA',JSON.stringify(treeQA));
+  if(treeQA.leafMaterials.length<7||treeQA.oldBallMaterials.length>0||
+     !treeQA.hasTreeBark||treeQA.triangles<100000)
+    throw Error('The old primitive tree was served instead of the new sculpt');
+  await page.evaluate(()=>{
+    const game=window.game,arena=game.arena3d;
+    // Freeze the original requestAnimationFrame loop so the player-follow
+    // camera cannot overwrite our intended static tree-inspection view.
+    game.running=false;
+    arena.camera.position.set(0,7.8,-22);
+    arena.camera.lookAt(0,10.5,0);
+    arena.renderer.render(arena.scene,arena.camera);
+    arena.hudCtx.clearRect(0,0,1280,720);
+  });
+  await page.screenshot({path:'arena-qa-images/tree-in-game.png'});
   // Native 3D meshes are Blender -Y -> glTF +Z forward.
   // Neither backward motion nor strafing may turn either mesh away from target.
   const facingQA=await page.evaluate(()=>{
