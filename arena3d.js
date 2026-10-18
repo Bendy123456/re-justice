@@ -474,9 +474,21 @@ function install(game){
     };
   }
 }
+let attachAttempts=0;
 function attach(){
-  if(window.game)install(window.game);
-  else document.addEventListener('DOMContentLoaded',attach,{once:true});
+  const game=window.game;
+  // Before the engine bootstraps, the canvas id="game" itself is exposed
+  // as window.game by HTML named-element access. Wait for the *Game instance*.
+  if(game instanceof FG.Game && typeof game.startMatch==='function'){
+    install(game);return;
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',attach,{once:true});
+  }else if(++attachAttempts<60){
+    setTimeout(attach,40);
+  }else{
+    console.warn('Arena integration skipped: a Game instance never initialized');
+  }
 }
 attach();
 FG.Arena3D=Arena3D;
