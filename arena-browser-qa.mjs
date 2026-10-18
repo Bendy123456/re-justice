@@ -41,6 +41,46 @@ try{
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
+  // The sky is game geometry, not a static image. Verify both layers
+  // share one procedural cloud texture and drift at different speeds.
+  const skyQA=await page.evaluate(()=>{
+    const a=window.game.arena3d,g=window.game;
+    const sky=a.skyDome,layers=a.cloudLayers;
+    const counts=layers?.map(x=>x.children.length)||[];
+    const textures=new Set(layers.flatMap(l=>l.children.map(c=>c.material.map)));
+    const previous=g.frame;
+    g.frame=0;a.updateSky(0);
+    const before=layers.map(x=>x.rotation.y);
+    g.frame=3600;a.updateSky(0);
+    const after=layers.map(x=>x.rotation.y);
+    const moving=after.map((v,i)=>v-before[i]);
+    g.frame=previous;a.updateSky(0);
+    return {sky:sky?.name,backSide:sky?.material.side,
+      layers:layers.length,counts,textureCount:textures.size,
+      textureSize:a.cloudTexture?.image?.width,
+      opacity:layers.map(x=>x.children[0]?.material.opacity),drift:moving,
+      fogIgnored:layers.every(x=>x.children.every(c=>c.material.fog===false))};
+  });
+  console.log('DAYTIME_CLOUD_SKY_QA',JSON.stringify(skyQA));
+  if(skyQA.sky!=='Daytime Sky Dome'||skyQA.layers!==2||
+     skyQA.counts[0]<10||skyQA.counts[1]<10||
+     skyQA.textureCount!==1||skyQA.textureSize!==256||
+     !skyQA.fogIgnored||skyQA.drift[0]<.1||skyQA.drift[1]>-.1)
+    throw Error('Bright sky or gently animated clouds missing');
+  await page.evaluate(()=>{
+    const a=window.game.arena3d;
+    window.game.running=false;
+    a.camera.position.set(0,4,-12);
+    a.camera.lookAt(0,19,28);
+    a.updateSky(0);
+    a.renderer.render(a.scene,a.camera);
+    a.hudCtx.clearRect(0,0,1280,720);
+  });
+  await page.screenshot({path:'arena-qa-images/bright-sky-soft-clouds.png'});
+  const skyScreenshot=await page.screenshot({type:'jpeg',quality:53});
+  const skyChunks=skyScreenshot.toString('base64').match(/.{1,4000}/g)||[];
+  skyChunks.forEach((part,i)=>console.log('DAY_SKY_VISUAL:'+i+'/'+skyChunks.length+':'+part));
+  console.log('DAY_SKY_VISUAL_FINISH:'+skyChunks.length);
   // Inspect real updated GLB materials, not merely the existence of the
   // old cached arena. This catches accidental reintroduction of ico balls.
   const treeQA=await page.evaluate(()=>{
