@@ -22,7 +22,7 @@ const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 const STRIKES=Object.freeze({
   light: {hand:'l',chamber:.26,rotation:-.31,hip:-.17,lean:.12,step:.11,hook:0},
   medium:{hand:'r',chamber:.35,rotation:.46,hip:.31,lean:.20,step:.18,hook:.12},
-  heavy: {hand:'r',chamber:.58,rotation:.78,hip:.52,lean:.30,step:.25,hook:.38},
+  heavy: {hand:'r',chamber:.58,rotation:.99,hip:.64,lean:.33,step:.27,hook:.45},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22},
   super: {hand:'r',chamber:.68,rotation:.92,hip:.66,lean:.33,step:.30,hook:.45}
 });
@@ -110,7 +110,7 @@ export function poseFighter(view,alpha){
   // movement to zero based on elapsed real-world time.
   const walk=locomoting?Math.max(.17,view.walkWeight||0):view.walkWeight||0;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
-  const drive=clamp(walk+dash);
+  const drive=(attack||blocked||hit)?0:clamp(walk+dash);
   const movingGait=drive*stride;
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
   const dashKick=dashing?sin(clamp(dashFrames/11)*Math.PI):0;
