@@ -207,7 +207,7 @@ export function poseFighter(view,alpha){
   // shifts over the weight-bearing foot. The upper spine counterbalances so
   // the head doesn't lurch around with every stride.
   // Limit the engine's existing walk lean so we don't double the tilt.
-  const walkLean=walkAmount*(.063+.011*abs(stride));
+  const walkLean=walkAmount*(.077+.009*abs(stride));
   const turnDelta=Math.atan2(sin(a.visualYaw-a.prevVisualYaw),
     cos(a.visualYaw-a.prevVisualYaw));
   const walkTurnBank=walkingMotion?clamp(-turnDelta*.26,-.07,.07)*walkAmount:0;
