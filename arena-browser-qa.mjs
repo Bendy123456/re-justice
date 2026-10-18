@@ -525,6 +525,9 @@ try{
   for(const [tag,phase] of [['heel-strike',0],['toe-off',2.9],['mid-swing',4.2]]){
     await page.evaluate(phase=>{
       const arena=window.game.arena3d,a=arena.fighters[0],v=arena.views[0];
+      // Visual inspection must show ONE model, not overlapping P1 and P2.
+      arena.fighters[1].reset(11,-7);
+      arena.pose(arena.views[1],1);
       a.reset(-11,-7);a.state='walk';a.grounded=true;
       a.visualYaw=a.prevVisualYaw=0.20;
       a.gaitPhase=a.prevGaitPhase=phase;a.animClock++;
