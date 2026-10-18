@@ -5,6 +5,7 @@ on:
     paths:
       - 'assets/models/*.glb'
       - 'glb-visuals.js'
+      - 'visual-smoke.mjs'
       - '.github/workflows/glb-browser-qa.yml'
   workflow_dispatch:
 permissions:
