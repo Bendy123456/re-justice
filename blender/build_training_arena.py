@@ -199,6 +199,10 @@ bpy.ops.object.select_all(action="DESELECT")
 objs=[o for o in bpy.context.scene.objects if o.type=="MESH"]
 for o in objs:o.select_set(True)
 bpy.context.view_layer.objects.active=ground_obj
+# Merge the dozens of wall/tree pieces into one shared object; Blender keeps
+# their face materials, but Three.js avoids hundreds of separate scene nodes.
+bpy.ops.object.join()
+ground_obj.name="RE-Justice | Complete Training Arena"
 glb=os.path.join(OUTPUT,"training-ground.glb")
 bpy.ops.export_scene.gltf(filepath=glb,export_format="GLB",
                           use_selection=True,export_apply=True)
