@@ -81,6 +81,19 @@ try{
   const skyChunks=skyScreenshot.toString('base64').match(/.{1,4000}/g)||[];
   skyChunks.forEach((part,i)=>console.log('DAY_SKY_VISUAL:'+i+'/'+skyChunks.length+':'+part));
   console.log('DAY_SKY_VISUAL_FINISH:'+skyChunks.length);
+  await page.evaluate(()=>{
+    const a=window.game.arena3d;
+    a.camera.position.set(0,2.6,-24);
+    a.camera.lookAt(0,36,-65);
+    a.updateSky(0);
+    a.renderer.render(a.scene,a.camera);
+  });
+  await page.screenshot({path:'arena-qa-images/clouds-above-wall.png'});
+  const cloudPreview=await page.screenshot({type:'jpeg',quality:55});
+  const chunks=cloudPreview.toString('base64').match(/.{1,4000}/g)||[];
+  chunks.forEach((part,i)=>console.log('CLOUD_EDGE_FRAME:'+i+'/'+chunks.length+':'+part));
+  console.log('CLOUD_EDGE_FRAME_FINISH:'+chunks.length);
+
   // Inspect real updated GLB materials, not merely the existence of the
   // old cached arena. This catches accidental reintroduction of ico balls.
   const treeQA=await page.evaluate(()=>{
