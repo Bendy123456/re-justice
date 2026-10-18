@@ -191,9 +191,9 @@ def make_stone_grain():
             mineral=.075 if rng.random()<.0021 else 0
             var=broad*.034+grain*.036+fine+pits+mineral
             idx=4*(y*size+x)
-            pixels[idx]=max(.45,min(.78,.659+var))
-            pixels[idx+1]=max(.46,min(.79,.669+var))
-            pixels[idx+2]=max(.48,min(.81,.679+var))
+            pixels[idx]=max(.55,min(.94,.81+var))
+            pixels[idx+1]=max(.56,min(.95,.82+var))
+            pixels[idx+2]=max(.57,min(.96,.83+var))
             pixels[idx+3]=1.0
     img=bpy.data.images.new('Subtle porous light-gray stone surface',size,size,alpha=True)
     img.pixels.foreach_set(pixels)
