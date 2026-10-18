@@ -386,24 +386,17 @@ export function poseFighter(view,alpha){
       const reach=shoulder.getWorldPosition(vec()).distanceTo(elbow.getWorldPosition(vec()))+
         elbow.getWorldPosition(vec()).distanceTo(hand.getWorldPosition(vec()));
       const travel=clamp(phase,-1,1);
-      // Forward-running hands rise while the elbow folds; rearward hands
-      // swing down/back with a straighter elbow, independently of shoulder.
-      let handX=.32,handY=-.68+travel*.16;
-      let handZ=.16+travel*.43;
+      let handX=.32,handY=-.68+travel*.16,handZ=.16+travel*.43;
       if(!dashing){
-        // Relaxed idle hands fall close to the OUTER thighs. During the
-        // last few frames of a walk, blend their old swing into neutral,
-        // without the abrupt elbows-up guard or palms in front of the belly.
-        const swing=side==='l'?-Math.sin(strideClock):Math.sin(strideClock);
-        const forward=Math.max(0,swing),backward=Math.max(0,-swing);
-        handX=lerp(.115,.233+.014*forward,walkFade);
-        // Forward elbow flexes, trailing arm opens. Wrist stays outside ribs.
-        handY=lerp(-.984+breath*.001,-.89+.255*forward-.01*backward,walkFade);
-        handZ=lerp(.012,.045+.49*swing,walkFade);
-      }
-      if(dashing){
-        handX=.42;
-        handY=-.57+travel*.09;
+        // Arm swing opposes stepping leg; backpedals/strafe are distinct.
+        const swing=side==='l'?-sin(strideClock):sin(strideClock);
+        const stepSwing=swing*(localForward+localSide*.32);
+        const front=Math.max(0,stepSwing),back=Math.max(0,-stepSwing);
+        handX=lerp(.135,.22+.028*front+abs(localSide)*.025,walkFade);
+        handY=lerp(-.975+breath*.001,-.87+.125*front-.045*back,walkFade);
+        handZ=lerp(.02,.055+.38*stepSwing,walkFade);
+      }else{
+        handX=.42;handY=-.57+travel*.09;
         handZ=.15+travel*.20-dashBurst*.53;
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
@@ -458,27 +451,22 @@ export function poseFighter(view,alpha){
         -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
         length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
     if(walkingMotion){
-      const foot=side==='l'?leftStep:rightStep;
-      const blend=walkAmount;
-      const forward=.045+foot.travel;
-      const extensionY=Math.min(.946,
-        Math.sqrt(Math.max(.55,.985*.985-forward*forward))-.007);
-      // The leg is long and near-straight in stance, flexing as the
-      // opposite foot swings past. Compensate the small root bob for contact.
-      const walkTarget=[sign*length*.035,
-        -length*(extensionY-foot.lift)-(foot.contact?walkBob:0),
-        length*forward];
+      const foot=side==='l'?leftStep:rightStep,blend=walkAmount;
+      // Each heel travels along the character-local 2D ground direction.
+      // Reversing/strafe reorients the stride without rotating combat facing.
+      const lateral=sign*length*.065+foot.travel*localSide;
+      const fore=length*.025+foot.travel*localForward;
+      const reachSq=(lateral*lateral+fore*fore)/(length*length);
+      const extensionY=Math.sqrt(Math.max(.57,.985*.985-reachSq));
+      const walkTarget=[lateral,
+        -length*extensionY+foot.lift-(foot.contact?walkBob:0),
+        fore];
       target=blendVec(target,walkTarget,blend);
-      // True world-space planted-foot IK. Keep the ankle fixed during stance
-      // as the pelvis travels/rotates over it. Unlock during swing/idle/dash.
-      // Manual QA pose scrubbing without character travel uses the analytic
-      // step curve above, so static inspection remains deterministic.
       if(!view.footPlants)view.footPlants={l:null,r:null};
       const movingRoot=Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.0001;
       const worldHip=hip.getWorldPosition(vec());
       let planted=view.footPlants[side];
-      // After a teleport, reset or large displacement, discard a cached
-      // contact point rather than pulling the leg toward the old location.
+      // Discard a stale world anchor on teleport, jump, or large separation.
       if(planted&&(worldHip.distanceTo(planted.world)>length*1.22||
           Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.65)){
         view.footPlants[side]=null;planted=null;
