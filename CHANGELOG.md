@@ -1,5 +1,15 @@
 # Changelog
 
+## Complete natural-tree sculpt and leaf geometry replacement — 2026-10-17
+
+- Rebuilt the **center tree** in Blender rather than stacking additional decorative geometric primitives onto the old version. The previous icosphere canopy, matching radial branches and blocky bark poles are replaced.
+- `blender/tree_artist.py`: gently curved and flared bark trunk; swept and tapered asymmetrical main boughs with secondary forks; stable buttress roots; subtler thin carved bark creases; individual double-sided curved leaf blades organized into natural layered sprays.
+- Leaves are actual Blender geometry arranged in multiple tones and asymmetrical branching clusters, not spherical blob meshes. All parts are exported into the existing consolidated stage GLB.
+- Kept the 34m arena dimensions, the same tree-center analytic collision radius, walls, floor, control scheme, lock-on facing, attacks, round/meter systems and original game logic.
+- Updated `assets/arena/training-ground.glb` and the editable `training-ground.blend`. Added `training-tree-detail.png` and `training-tree-trunk.png` plus normal overview for art inspection.
+- Added automated in-browser assertions that the GLB contains new `Leaf blades` materials and natural bark geometry, rather than the legacy `Leaf cluster` primitives. Previous 3D movement, collision and combat tests still run.
+- Versioned arena GLB and JS loading URLs to avoid stale cached models. The new tree GLB is larger than the old one because it uses genuine leaf geometry; detailed runtime FPS testing across older GPUs remains a follow-up.
+
 ## Anime training grounds visual overhaul + lock-on facing fix (2026-10-17)
 
 - Resculpted the existing original **Blender** training arena without changing its gameplay colliders or radius: multi-course carved stone perimeter, decorative pilasters, engraved bands, nuanced packed-earth floor, concentric training rings, weathered patches and leaf/moss detailing.
