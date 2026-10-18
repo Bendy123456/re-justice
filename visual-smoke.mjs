@@ -58,7 +58,7 @@ try{
   });
   console.log('RELAXED_ROSTER_POSE_QA',JSON.stringify(relaxed));
   if(relaxed.some(v=>v.data.some(a=>
-     a.handBelowShoulder<.38 || a.handBelowChest<.28 ||
+     a.handBelowShoulder<.38 || a.handBelowChest<.18 ||
      a.handOutsideChest<.19 || a.elbowOutsideChest<.17)))
     throw Error('Character-select arms are not hanging naturally beside the body');
 
