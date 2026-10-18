@@ -149,6 +149,24 @@ class RosterGLBPresentation {
     }
     bone.updateMatrixWorld(true);
   }
+  aimSegment(o,startName,endName,target){
+    const bone=o.bones.get(startName), child=o.bones.get(endName);
+    if(!bone||!child)return;
+    // Anatomical Blender joints have arbitrary bind axes; aim from actual
+    // bone endpoints instead of assuming local XYZ matches world rotations.
+    o.root.updateMatrixWorld(true);
+    const p=bone.getWorldPosition(new THREE.Vector3());
+    const end=child.getWorldPosition(new THREE.Vector3());
+    const original=end.sub(p);
+    if(original.lengthSq()<1e-8)return;
+    original.normalize();
+    const dir=new THREE.Vector3(...target).normalize();
+    const worldDelta=new THREE.Quaternion().setFromUnitVectors(original,dir);
+    const parentWorld=bone.parent.getWorldQuaternion(new THREE.Quaternion());
+    const localDelta=parentWorld.clone().invert().multiply(worldDelta).multiply(parentWorld);
+    bone.quaternion.premultiply(localDelta).normalize();
+    bone.updateWorldMatrix(false,true);
+  }
   pose(o,f,tick){
     this.resetPose(o);
     o.root.updateMatrixWorld(true);
@@ -177,15 +195,18 @@ class RosterGLBPresentation {
     this.poseBone(o,'spine_02',hit?-.14:attack?-.10*strike:breath*.07);
     this.poseBone(o,'spine_03',hit?-.19:attack?.10*strike:breath*.1);
     this.poseBone(o,'Head',hit?.11:-breath*.12);
-    // The CC0 GLB starts in A/T pose; rotate both anatomical upper arms
-    // down into a guard, then extend one arm on attack active frames.
-    const guard=block?.24:0;
-    this.poseBone(o,'upperarm_l',left+guard+strike*.96-windup*.16);
-    this.poseBone(o,'upperarm_r',right-guard);
-    this.poseBone(o,'lowerarm_l',.96-strike*.92);
-    this.poseBone(o,'lowerarm_r',-.96);
-    this.poseBone(o,'clavicle_l',.04+strike*.11);
-    this.poseBone(o,'clavicle_r',-.04);
+    // Solve real joint-to-joint directions so all Blender rigs leave T pose.
+    // Strike extension is intentionally visual-only and frame-accurate.
+    const guard=block?-.13:0;
+    this.poseBone(o,'clavicle_l',.035);
+    this.poseBone(o,'clavicle_r',-.035);
+    const attackWeight=clamp(strike,0,1);
+    const lUpper=[-.30-attackWeight*.58,-.76+attackWeight*.56,.37-attackWeight*.17];
+    const lFore=[-.24-attackWeight*.70,.57-attackWeight*.64,.76-attackWeight*.25];
+    this.aimSegment(o,'upperarm_l','lowerarm_l',lUpper);
+    this.aimSegment(o,'upperarm_r','lowerarm_r',[.31,-.79+guard,.37]);
+    this.aimSegment(o,'lowerarm_l','hand_l',lFore);
+    this.aimSegment(o,'lowerarm_r','hand_r',[.23,.55,.75]);
     this.poseBone(o,'thigh_l',(.06+swing)*.48+(isCrouch?-.46:0));
     this.poseBone(o,'thigh_r',(-.06-swing)*.48+(isCrouch?.46:0));
     this.poseBone(o,'calf_l',isCrouch?.75:walk?Math.max(0,-swing)*.22:0);
@@ -215,11 +236,15 @@ class RosterGLBPresentation {
   position(o,f,x,feet,zoom,tick){
     o.root.visible=true;
     const facing=Number(f.facing||1)>=0?1:-1;
-    o.root.scale.set(facing*zoom,zoom,zoom);
+    // Pose in natural unmirrored space, then mirror the finished skeleton.
+    // Avoid extracting quaternions through a negative-scale transform.
+    o.root.scale.set(zoom,zoom,zoom);
     o.root.position.set((x-CW/2)/PIXELS_PER_METER,
       (CH/2-feet)/PIXELS_PER_METER,0);
-    o.root.rotation.set(0,facing*.20,0);
+    o.root.rotation.set(0,0,0);
     this.pose(o,f,tick);
+    o.root.scale.x=facing*zoom;
+    o.root.rotation.y=facing*.20;
     o.root.position.y+=(o.root.userData.crouchYOffset||0)*zoom;
   }
   hideInstances(){for(const obj of this.instances.values())obj.root.visible=false;}
