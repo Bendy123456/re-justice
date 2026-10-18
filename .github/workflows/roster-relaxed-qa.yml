@@ -4,7 +4,7 @@ on:
     branches: [main]
     paths:
       - 'glb-visuals.js'
-      - 'visual-smoke.mjs'
+      - 'roster-preview-qa.mjs'
       - 'index.html'
       - '.github/workflows/roster-relaxed-qa.yml'
   workflow_dispatch:
@@ -28,7 +28,7 @@ jobs:
       - name: Syntax and regression tests
         run: |
           node --check glb-visuals.js
-          node --check visual-smoke.mjs
+          node --check roster-preview-qa.mjs
           node smoke-tests.cjs
           node model-tests.cjs
       - name: Install headless Chromium for WebGL
@@ -39,7 +39,7 @@ jobs:
         run: |
           python3 -m http.server 8765 >/tmp/roster-qa.log 2>&1 &
           sleep 3
-          node visual-smoke.mjs
+          node roster-preview-qa.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
