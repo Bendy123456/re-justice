@@ -175,7 +175,14 @@ export function poseFighter(view,alpha){
   const walk=locomoting?Math.max(.17,view.walkWeight||0):view.walkWeight||0;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
-  const walkAmount=naturalWalk?clamp(walk):0;
+  // Retain a small, decaying walk influence after input stops. Without this,
+  // a stopped character instantly snaps from a planted stride into a wide
+  // fighting stance, even though walkWeight is still fading toward zero.
+  const relaxedIdle=a.state==='idle'&&a.grounded&&!attack&&!blocked&&!hit;
+  const walkAmount=(!dashing&&!airborne&&!attack&&!blocked&&!hit)?
+    clamp(walk):0;
+  const walkingMotion=walkAmount>.0005;
+  const walkFade=ease(walkAmount);
   const leftStep=walkStep(strideClock),rightStep=walkStep(strideClock+Math.PI);
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
   const dashIgnite=dashing?1-ease(dashFrames/3):0;
@@ -187,7 +194,7 @@ export function poseFighter(view,alpha){
   // Superhero/anime: crouched ignition, flying acceleration and a skid stop.
   // Two subtle weight rises per stride; no bouncy vertical sliding.
   const walkBob=walkAmount*(.019-.011*Math.cos(2*strideClock));
-  const bob=(naturalWalk?walkBob:drive*(.009+abs(stride)*.049))+
+  const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
   const lean=lerp(a.prevLean,a.lean,alpha)+(attack?.lean||0)-(hit?.21:0);
@@ -195,14 +202,14 @@ export function poseFighter(view,alpha){
   // shifts over the weight-bearing foot. The upper spine counterbalances so
   // the head doesn't lurch around with every stride.
   // Limit the engine's existing walk lean so we don't double the tilt.
-  const walkLean=naturalWalk?walkAmount*(.082+.012*abs(stride)):0;
+  const walkLean=walkAmount*(.082+.012*abs(stride));
   const turnDelta=Math.atan2(sin(a.visualYaw-a.prevVisualYaw),
     cos(a.visualYaw-a.prevVisualYaw));
-  const walkTurnBank=naturalWalk?clamp(-turnDelta*.26,-.07,.07):0;
+  const walkTurnBank=walkingMotion?clamp(-turnDelta*.26,-.07,.07)*walkAmount:0;
   const bank=lerp(a.prevBank,a.bank,alpha)+
-    (naturalWalk?-walkAmount*.045*step:drive*step*.047)+
+    (walkingMotion?-walkAmount*.045*step:drive*step*.047)+
     walkTurnBank+(attack?.impact||0)*.02;
-  const pitch=(naturalWalk?lean*.48+walkLean:lean)+
+  const pitch=(walkingMotion?lean*.48+walkLean:lean)+
     dash*.23+dashBurst*.12-dashIgnite*.06-
     dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
@@ -222,7 +229,7 @@ export function poseFighter(view,alpha){
 
   // Weight shifts onto each planted leg. The original torso can rotate,
   // but this lateral pelvis translation makes support actually visible.
-  if(naturalWalk){
+  if(walkingMotion){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
     if(hips)hips.position.x+=walkAmount*.049*step;
     root.updateWorldMatrix(true,true);
@@ -231,11 +238,11 @@ export function poseFighter(view,alpha){
   // Pelvis leads the stride, ribs/shoulders counter-rotate and head stabilizes.
   // Spine chain makes a strike originate at the feet, not from a disembodied arm.
   // Hips initiate the stride and strike; shoulders counter-rotate.
-  const hipTwist=(naturalWalk?walkAmount*.16:drive*.19)*stride+
+  const hipTwist=(walkingMotion?walkAmount*.16:drive*.19)*stride+
     (attack?.hip||0)+dashKick*.055;
-  const torsoTwist=-(naturalWalk?walkAmount*.14:drive*.16)*stride+
+  const torsoTwist=-(walkingMotion?walkAmount*.14:drive*.16)*stride+
     (attack?.twist||0)-dashKick*.075;
-  const torsoBend=(naturalWalk?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
+  const torsoBend=(walkingMotion?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
   rotate(view,'pelvis',Y,hipTwist,rootQ);
@@ -245,28 +252,26 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',X,torsoBend*.25,rootQ);
   rotate(view,'spine_02',X,torsoBend*.45+(hit?-.13:0),rootQ);
   rotate(view,'spine_03',X,torsoBend*.30+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',Z,(naturalWalk?walkAmount*.017:drive*.046)*
+  rotate(view,'spine_03',Z,(walkingMotion?walkAmount*.017:drive*.046)*
     stride+(attack?.twist||0)*-.07,rootQ);
-  rotate(view,'neck_01',X,-pitch*(naturalWalk?.37:.21),rootQ);
+  rotate(view,'neck_01',X,-pitch*(walkingMotion?.37:.21),rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
-  rotate(view,'head',X,-pitch*(naturalWalk?.32:.25)+breath*.012,rootQ);
+  rotate(view,'head',X,-pitch*(walkingMotion?.32:.25)+breath*.012,rootQ);
   rotate(view,'clavicle_l',Z,-.025+
-    (naturalWalk?walkAmount*.025:drive*.04)*stride,rootQ);
+    (walkingMotion?walkAmount*.025:drive*.04)*stride,rootQ);
   rotate(view,'clavicle_r',Z,.025-
-    (naturalWalk?walkAmount*.025:drive*.04)*stride,rootQ);
+    (walkingMotion?walkAmount*.025:drive*.04)*stride,rootQ);
 
-  // A relaxed walk keeps the hands OUTSIDE the ribs and down beside
-  // the hips. The old perpetual high boxing guard sent wrists through the
-  // abdomen whenever the torso counter-rotated. Blend in the guard only when
-  // stopping or engaging in combat; arms pump opposite the corresponding leg.
+  // Neutral idle: arms hang at the sides, never return to boxing guard
+  // when movement stops. Guard remains exclusive to blocking/attacks.
   const pump=drive*stride;
-  const idleL=[-.43,-.58,.55],idleR=[.43,-.58,.55];
-  const idleForeL=[-.26,.39,.81],idleForeR=[.26,.39,.81];
+  const idleL=[-.16,-.96,.018],idleR=[.16,-.96,.018];
+  const idleForeL=[-.08,-.95,.025],idleForeR=[.08,-.95,.025];
   const walkL=[-.56,-.84,.26-pump*.76];
   const walkR=[.56,-.84,.26+pump*.76];
   const walkForeL=[-.26,-.65,.38-pump*.20];
   const walkForeR=[.26,-.65,.38+pump*.20];
-  const walkBlend=ease(clamp(walk));
+  const walkBlend=walkFade;
   let leftUpper=blendVec(idleL,walkL,walkBlend);
   let rightUpper=blendVec(idleR,walkR,walkBlend);
   let leftFore=blendVec(idleForeL,walkForeL,walkBlend);
@@ -348,30 +353,25 @@ export function poseFighter(view,alpha){
       // swing down/back with a straighter elbow, independently of shoulder.
       let handX=.32,handY=-.68+travel*.16;
       let handZ=.16+travel*.43;
-      if(naturalWalk){
-        // Opposite the same-side leg: a loose elbow, relaxed wrist and
-        // a visible but restrained shoulder swing around the rib cage.
-        // Left/right arms counter-swing to the SAME side leg, not a quarter
-        // cycle ahead of it. Forward travel folds the elbow and raises the
-        // wrist; the trailing arm straightens as it moves behind the hip.
-        // The target is relative to the live shoulder so torso twist and
-        // side-to-side weight shifts remain coupled to the arm movement.
+      if(!dashing){
+        // Relaxed idle hands fall close to the OUTER thighs. During the
+        // last few frames of a walk, blend their old swing into neutral,
+        // without the abrupt elbows-up guard or palms in front of the belly.
         const swing=side==='l'?-Math.sin(strideClock):Math.sin(strideClock);
         const forward=Math.max(0,swing),backward=Math.max(0,-swing);
-        handX=.215+.012*forward;
-        handY=-.87+.20*forward-.012*backward;
-        handZ=.045+.44*swing;
+        handX=lerp(.15,.215+.012*forward,walkFade);
+        handY=lerp(-.95+breath*.002,-.87+.20*forward-.012*backward,walkFade);
+        handZ=lerp(.025,.045+.44*swing,walkFade);
       }
       if(dashing){
         handX=.42;
         handY=-.57+travel*.09;
         handZ=.15+travel*.20-dashBurst*.53;
-      }else if(!locomoting){
-        handX=.37;handY=-.57;handZ=.51;
       }
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],
-        [sgn*(naturalWalk?.25:.95),.12,naturalWalk?-.95:-.32],rootQ);
+        [sgn*(dashing?.95:lerp(.11,.25,walkFade)),.06,
+          dashing?-.32:-.96],rootQ);
     }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
@@ -384,9 +384,9 @@ export function poseFighter(view,alpha){
   for(const [side,sign,phase] of [['l',armL,-pump],['r',armR,pump]]){
     // Wrist rotation is a separate joint, slightly delayed behind the
     // upper-arm swing; fingers remain loose rather than locked in a guard.
-    const wristSwing=naturalWalk?
+    const wristSwing=walkingMotion?
       (side==='l'?-sin(strideClock-.27):sin(strideClock-.27)):phase;
-    rotate(view,'hand_'+side,X,drive*wristSwing*(naturalWalk?.13:.17)+
+    rotate(view,'hand_'+side,X,drive*wristSwing*(walkingMotion?.13:.17)+
       (attack?.impact||0)*-.06,rootQ);
     rotate(view,'hand_'+side,Y,sign*(.045+drive*.035),rootQ);
   }
@@ -413,10 +413,14 @@ export function poseFighter(view,alpha){
       knee.getWorldPosition(vec()).distanceTo(ankle.getWorldPosition(vec()));
     const stepMotion=swing*strideDamp;
     const lift=Math.max(0,stepMotion);
-    let target=[sign*length*.12,
-      -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
-      length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
-    if(naturalWalk){
+    // A relaxed standing pose brings both legs beneath the pelvis rather
+    // than leaving the feet in an exaggerated fighting stance.
+    let target=relaxedIdle?
+      [sign*length*.018,-length*.972,length*.012]:
+      [sign*length*.12,
+        -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
+        length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
+    if(walkingMotion){
       const foot=side==='l'?leftStep:rightStep;
       const blend=walkAmount;
       // Foot planted ~60% of cycle. During swing, ankle rises and the
@@ -434,9 +438,9 @@ export function poseFighter(view,alpha){
     solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
       target,[sign*.12,.15,1],rootQ);
   }
-  rotate(view,'foot_l',X,(naturalWalk?leftStep.roll*walkAmount:
+  rotate(view,'foot_l',X,(walkingMotion?leftStep.roll*walkAmount:
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
-  rotate(view,'foot_r',X,(naturalWalk?rightStep.roll*walkAmount:
+  rotate(view,'foot_r',X,(walkingMotion?rightStep.roll*walkAmount:
     -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
 
   // Individual articulated joint angles measured on the rendered bones.
@@ -463,7 +467,8 @@ export function poseFighter(view,alpha){
     walkLiftL:leftStep.lift,walkLiftR:rightStep.lift,walkBob,
     walkFootL:leftStep.travel,walkFootR:rightStep.travel,
     walkForwardLean:walkLean,walkTurnBank,
-    walkHipShift:naturalWalk?walkAmount*.049*step:0,
+    walkHipShift:walkingMotion?walkAmount*.049*step:0,
+    idleWeight:1-walkFade,relaxedIdle,
     rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
