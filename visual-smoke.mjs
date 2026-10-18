@@ -54,6 +54,12 @@ try{
       scene:g.scene,health:g.fighters.map(x=>x.health),ids:g.fighters.map(x=>x.def.id)};
   });
   console.log('Combat model check:',JSON.stringify(loadedFight));
+  console.log('Renderer diagnostic:',JSON.stringify(await page.evaluate(()=>{
+    const p=window.game?.renderer?.model3d;
+    return {enabled:p?.enabled,error:p?.error,loaded:[...(p?.loaded||[])],
+      instances:[...(p?.instances?.keys()||[])]};
+  })));
+  console.log('Browser diagnostics:',JSON.stringify(errors));
   if(!loadedFight.hasP1||!loadedFight.hasP2||loadedFight.sameSkeleton)throw Error('2 independent GLB fighter rigs were not created');
   await page.screenshot({path:'ci-images/batman-vs-male.png'});
   await page.evaluate(()=>window.game.startMatch({p1:'batman',p2:'batman',stage:'neon-rooftop',mode:'cpu'}));
