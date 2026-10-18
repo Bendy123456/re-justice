@@ -131,7 +131,9 @@ function walkStep(phase,runMix=0){
   const t=(u-stance)/(1-stance);
   return {contact:false,travel:lerp(-reach,reach,ease(t)),
     lift:lerp(.175,.30,runMix)*Math.pow(Math.max(0,sin(Math.PI*t)),.8),
-    roll:.13*sin(Math.PI*t),support:0};
+    // Match preceding toe-off (-0.20 rad) and next heel strike (+0.12)
+    // exactly; no wrist/ankle snapping at the stance/swing boundaries.
+    roll:-.20*(1-ease(t/.18))+.12*ease((t-.82)/.18),support:0};
 }
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
 // Unlike directing both segments toward fixed angles, the elbow/knee is
@@ -290,9 +292,10 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',Y,torsoTwist*.31,rootQ);
   rotate(view,'spine_02',Y,torsoTwist*.36,rootQ);
   rotate(view,'spine_03',Y,torsoTwist*.33,rootQ);
-  rotate(view,'spine_01',X,torsoBend*.25+chestPitch*.15,rootQ);
-  rotate(view,'spine_02',X,torsoBend*.45+chestPitch*.45+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',X,torsoBend*.30+chestPitch*.40+(hit?-.13:0),rootQ);
+  const idleBreath=relaxedIdle?(1-walkFade)*breath*.014:0;
+  rotate(view,'spine_01',X,torsoBend*.25+chestPitch*.15+idleBreath*.24,rootQ);
+  rotate(view,'spine_02',X,torsoBend*.45+chestPitch*.45+idleBreath*.40+(hit?-.13:0),rootQ);
+  rotate(view,'spine_03',X,torsoBend*.30+chestPitch*.40+idleBreath*.36+(hit?-.13:0),rootQ);
   rotate(view,'spine_01',Z,chestRoll*.20,rootQ);
   rotate(view,'spine_02',Z,chestRoll*.49,rootQ);
   rotate(view,'spine_03',Z,chestRoll*.31+
