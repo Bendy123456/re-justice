@@ -1,8 +1,9 @@
-"""RE-Justice: original anime training-ground arena, Blender 3.x/4.x.
-Large circular ground, high enclosing stone walls and one ancient central tree.
-No imported IP assets, no props, no physical dependencies.
-Exports real, reusable GLB (visuals only; gameplay has simple analytic colliders).
-Blender coordinate system Z-up -> glTF and Three.js Y-up automatically.
+"""RE-Justice: Blender-generated grassy hero training grounds.
+
+Continuous textured short grass with tiny tuft meshes and heavy, staggered
+stone-slab perimeter walls. Keeps the existing training tree, scene dimensions,
+analytic combat collisions, Blender source and embedded-texture GLB export.
+Blender Z-up is transformed into Three.js Y-up by glTF.
 """
 import bpy, math, os, random, sys
 from mathutils import Vector
@@ -29,11 +30,11 @@ def mat(name,rgb,rough=.8):
     bsdf.inputs["Roughness"].default_value=rough
     m.diffuse_color=(*rgb,1)
     return m
-ground=mat("Training clay | sunlit ochre",(.51,.405,.292))
-earth=mat("Earth edge | deeper cinnamon",(.31,.238,.155))
-stone=[mat("Wall sandstone "+str(i),col) for i,col in enumerate([
- (.35,.39,.37),(.36,.40,.38),(.35,.40,.37),(.37,.41,.38)])]
-wall_trim=mat("Wall top | pale stone",(.69,.69,.59))
+ground=mat("Meadow turf | textured living grass",(.22,.40,.18),.99)
+earth=mat("Damp garden earth | perimeter",(.26,.25,.20))
+stone=[mat("Stone slab structural core "+str(i),col) for i,col in enumerate([
+ (.28,.30,.28),(.30,.32,.30),(.33,.34,.32),(.29,.32,.32)])]
+wall_trim=mat("Stone slab cap | weathered limestone",(.54,.54,.50))
 bark=mat("Tree bark | warm walnut",(.245,.138,.079))
 bark_light=mat("Tree bark roots | copper",(.36,.212,.116))
 leaves=[mat("Leaf cluster "+str(i),col) for i,col in enumerate([
@@ -44,8 +45,50 @@ def mesh(name,vs,fs,m):
     dat=bpy.data.meshes.new(name+" mesh");dat.from_pydata(vs,[],fs);dat.update()
     obj=bpy.data.objects.new(name,dat);bpy.context.scene.collection.objects.link(obj)
     dat.materials.append(m)
-    for f in dat.polygons:f.use_smooth=True
+    for f in dat.polygons:f.use_smooth=(name.startswith("ARENA |"))
     return obj
+
+# A seamless, embedded grass texture for the primary FLAT floor.
+# No online image assets or Blender-only shader features: the PNG is embedded
+# in the GLB so the browser renders exactly the same grass as Blender.
+TEX_SIZE=384
+TILE_METERS=10.0
+def turf_image():
+    p=os.path.join(OUTPUT,"grass-turf.png")
+    rng=random.Random(SEED+229)
+    img=bpy.data.images.new("Seamless short meadow grass",TEX_SIZE,TEX_SIZE,alpha=True)
+    pixels=[0.0]*(TEX_SIZE*TEX_SIZE*4)
+    def noise(x,y):
+        # Periodic modulation avoids obvious horizontal/vertical tiling edges.
+        u=2*pi*x/TEX_SIZE;v=2*pi*y/TEX_SIZE
+        return (.47*sin(3*u+1.5*cos(2*v))+
+                .32*sin(7*v-3*u)+.17*sin(12*u+9*v)+
+                .12*sin(19*u-12*v))
+    for y in range(TEX_SIZE):
+        for x in range(TEX_SIZE):
+            n=noise(x,y)
+            scatter=rng.uniform(-.085,.085)
+            blade=sin((x*2.37+y*.91)%6.283)*.018
+            m=n*.078+scatter+blade
+            k=(y*TEX_SIZE+x)*4
+            pixels[k]=max(.045,min(.53,.205+m*.75))
+            pixels[k+1]=max(.095,min(.69,.36+m))
+            pixels[k+2]=max(.034,min(.45,.138+m*.60))
+            pixels[k+3]=1.0
+    img.pixels.foreach_set(pixels)
+    img.filepath_raw=p
+    img.file_format='PNG'
+    img.save()
+    texture=bpy.data.images.load(p,check_existing=False)
+    texture.colorspace_settings.name='sRGB'
+    bsdf=ground.node_tree.nodes.get('Principled BSDF')
+    tex=ground.node_tree.nodes.new('ShaderNodeTexImage')
+    tex.image=texture
+    tex.interpolation='Linear'
+    tex.extension='REPEAT'
+    ground.node_tree.links.new(tex.outputs['Color'],bsdf.inputs['Base Color'])
+    return p
+turf_image()
 
 # Ground is a single concentric mesh, slightly displaced for visible natural
 # variation without causing uneven walk/jump physics.
@@ -65,7 +108,15 @@ for ring in range(1,GROUND_RINGS):
     for j in range(n):
         k=(j+1)%n
         fs.append((base+j,base+k,nxt+k,nxt+j))
-ground_obj=mesh("ARENA | single circular flat training ground",vs,fs,ground)
+ground_obj=mesh("ARENA | continuous grassy training ground",vs,fs,ground)
+# UVs span an integer number of repeated texture tiles, so the image wraps
+# without a seam at the perimeter and no radial/checkerboard pattern remains.
+uv=ground_obj.data.uv_layers.new(name="Grass ground UV")
+for poly in ground_obj.data.polygons:
+    for li in poly.loop_indices:
+        vtx=ground_obj.data.vertices[ground_obj.data.loops[li].vertex_index]
+        uv.data[li].uv=(vtx.co.x/TILE_METERS+3.5,
+                        vtx.co.y/TILE_METERS+3.5)
 
 # A deliberate ring path at the walls lends structure without clutter.
 def torus(name,major,minor,z,material,major_segments=96,minor_segments=8):
@@ -83,7 +134,7 @@ def torus(name,major,minor,z,material,major_segments=96,minor_segments=8):
             faces.append((a,b,((j+1)%major_segments)*minor_segments+(k+1)%minor_segments,
                           j*minor_segments+(k+1)%minor_segments))
     return mesh(name,verts,faces,material)
-torus("Ground perimeter | raised earth edge",RADIUS-1.35,.23,-.02,earth)
+torus("Ground perimeter | mossy stone threshold",RADIUS-1.20,.13,-.075,earth)
 
 # Circular wall comprised of adjoining 64 wedge sections. No gaps and tall
 # enough to fully enclose the playfield. There are NO passable gates.
@@ -116,7 +167,7 @@ wall_details(RADIUS,WALL_HEIGHT)
 
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=18
+scene.cycles.samples=12
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=960;scene.render.resolution_y=540
