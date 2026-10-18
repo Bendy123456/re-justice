@@ -633,6 +633,25 @@ export function poseFighter(view,alpha){
     COMBAT_IDLE.leadFootYaw,rootQ);
   rotate(view,'foot_r',Y,(view.legSides?.r??1)*idlePose*
     COMBAT_IDLE.trailFootYaw,rootQ);
+  // Preserve the Blender-authored, floor-flat rest orientation on both feet.
+  // A thigh/calf IK bend changes the ankle's inherited world rotation; this
+  // cancels that unwanted pitch/roll without altering its ground position.
+  // Render-only: walking, air motion and all attack poses remain unchanged.
+  if(idlePose>.0001&&a.grounded&&!airborne){
+    for(const [side,turn] of [['l',COMBAT_IDLE.leadFootYaw],
+        ['r',COMBAT_IDLE.trailFootYaw]]){
+      const foot=view.bones.get('foot_'+side);
+      const neutralQ=view.footRestWorldQuats?.[side];
+      if(!foot||!neutralQ||!foot.parent)continue;
+      const worldNow=foot.getWorldQuaternion(new THREE.Quaternion());
+      const flatWorld=new THREE.Quaternion()
+        .setFromAxisAngle(Y,yaw+turn*idlePose).multiply(neutralQ);
+      worldNow.slerp(flatWorld,idlePose).normalize();
+      const parentWorld=foot.parent.getWorldQuaternion(new THREE.Quaternion());
+      foot.quaternion.copy(parentWorld.invert().multiply(worldNow)).normalize();
+      foot.updateWorldMatrix(false,true);
+    }
+  }
   // Record measured ankle-vs-floor error for rig-level visual QA. This is
   // *actual solved bone position*, not a speculative animation target.
   const floorErrorL=view.bones.get('foot_l')?
