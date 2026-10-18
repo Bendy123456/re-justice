@@ -160,6 +160,9 @@ def wall_details(radius=34.0,height=12.5):
     p=Painter()
     n=40;courses=5
     course_height=(height-.37)/courses
+    # The wall is thick enough to be seen from overhead and the entrance
+    # camera. Dress the EXTERIOR as well as the inside: no plain tube outside.
+    exterior=radius+2.60
     # One recessed charcoal mortar shadow ribbon across the whole wall.
     for i in range(n):
         a0=2*PI*i/n;a1=2*PI*(i+1)/n
@@ -177,6 +180,21 @@ def wall_details(radius=34.0,height=12.5):
             z1=top-.052-rng.uniform(0,.026)
             material=slab[(i*9+level*7+rng.randrange(len(slab)))%len(slab)]
             cylinder_ribbon(p,material,face_r,radius+.11,a0,a1,z0,z1)
+            # Matching outer ashlar face, reverse normal winding so the
+            # exterior has the same cut stone look as the interior.
+            ro=exterior+.055+rng.uniform(-.018,.018)
+            p.quad(material,
+                   (ro*math.cos(a1),ro*math.sin(a1),z0),
+                   (ro*math.cos(a0),ro*math.sin(a0),z0),
+                   (ro*math.cos(a0),ro*math.sin(a0),z1),
+                   (ro*math.cos(a1),ro*math.sin(a1),z1))
+            # A thin bright upper chiseled lip on the exterior surface.
+            lip=ro+.008
+            p.quad(bevel,
+                   (lip*math.cos(a1-.002),lip*math.sin(a1-.002),z1-.11),
+                   (lip*math.cos(a0+.002),lip*math.sin(a0+.002),z1-.11),
+                   (lip*math.cos(a0+.002),lip*math.sin(a0+.002),z1-.035),
+                   (lip*math.cos(a1-.002),lip*math.sin(a1-.002),z1-.035))
             # Raised bevel on upper edge and dark undercut on lower edge.
             cylinder_ribbon(p,bevel,face_r-.014,face_r,a0+.002,a1-.002,
                             z1-.10,z1-.025)
@@ -191,9 +209,9 @@ def wall_details(radius=34.0,height=12.5):
     # Heavy roofline capstones read as actual cut blocks from below.
     for i in range(n):
         a0=2*PI*(i+.012)/n;a1=2*PI*(i+.988)/n
-        cylinder_ribbon(p,slab[(i+3)%len(slab)],radius-.35,radius+.31,
+        cylinder_ribbon(p,slab[(i+3)%len(slab)],radius-.35,exterior+.27,
                         a0,a1,height-.05,height+.44)
-        cylinder_ribbon(p,bevel,radius-.40,radius+.32,
+        cylinder_ribbon(p,bevel,radius-.40,exterior+.32,
                         a0+.005,a1-.005,height+.35,height+.49)
     # Twelve giant buttresses tie the slabs together (subtle rather than
     # the previous constant thin, tiny brick-column geometry).
