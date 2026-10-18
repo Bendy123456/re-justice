@@ -12,7 +12,7 @@ const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
 const RUN=7.1,BACK=4.8,STRAFE=5.7,DASH=16.4,DASH_FRAMES=11,DASH_COOLDOWN=44;
 const JUMP=11.0,GRAVITY=25,ROUND_FRAMES=99*60,INTRO_FRAMES=78,KO_FRAMES=110;
-const CAM_DIST=8.5,CAM_HEIGHT=4.6,CAM_SIDE=1.3,CAM_LERP=.11;
+const CAM_DIST=6.2,CAM_HEIGHT=3.65,CAM_SIDE=1.45,CAM_LERP=.12;
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
 const lerp=(a,b,t)=>a+(b-a)*t;
 const len=(x,z)=>Math.hypot(x,z);
@@ -114,7 +114,7 @@ class Arena3D {
       this.scene=new THREE.Scene();
       this.scene.background=new THREE.Color('#a8d6f7');
       this.scene.fog=new THREE.FogExp2('#afcfe1',.0045);
-      this.camera=new THREE.PerspectiveCamera(62,1280/720,.08,200);
+      this.camera=new THREE.PerspectiveCamera(58,1280/720,.08,200);
       this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,2.2));
       const sunlight=new THREE.DirectionalLight(0xffebbf,3.2);
       sunlight.position.set(-28,48,-24);this.scene.add(sunlight);
@@ -379,7 +379,7 @@ class Arena3D {
       const right={x:-forward.z,z:forward.x};
       const desired=new THREE.Vector3(px-forward.x*CAM_DIST+right.x*CAM_SIDE,
         CAM_HEIGHT+py*.5,pz-forward.z*CAM_DIST+right.z*CAM_SIDE);
-      const focus=new THREE.Vector3(px+forward.x*2.8,1.5+py*.4,pz+forward.z*2.8);
+      const focus=new THREE.Vector3(px+forward.x*1.35,1.5+py*.4,pz+forward.z*1.35);
       if(!this.initialCamera){this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;}
       else{this.camera.position.lerp(desired,CAM_LERP);this.cameraFocus.lerp(focus,CAM_LERP);}
       this.camera.lookAt(this.cameraFocus);
