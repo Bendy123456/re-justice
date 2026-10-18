@@ -13,11 +13,12 @@ decorative Blender mesh and is combined with the existing stage GLB.
 import bpy
 import math
 import random
+import os
 from mathutils import Vector
 
 TREE_SEED = 142981
-WOOD_RINGS = 26
-WOOD_SIDES = 20
+WOOD_RINGS = 38
+WOOD_SIDES = 28
 MAJOR_BRANCHES = 12
 ROOT_COUNT = 9
 LEAF_GROUPS = 13
@@ -26,7 +27,7 @@ LEAF_WIDTH_MIN = .16
 LEAF_WIDTH_MAX = .38
 LEAF_LENGTH_MIN = .52
 LEAF_LENGTH_MAX = 1.04
-BARK_STRANDS = 24
+BARK_STRANDS = 44
 CANOPY_BASE = 7.05
 CANOPY_TOP = 17.7
 BRANCH_REACH = 10.8
@@ -58,6 +59,22 @@ def commit(name,verts,faces,mat,smooth=False):
     bpy.context.collection.objects.link(obj)
     dat.materials.append(mat)
     for f in dat.polygons:f.use_smooth=smooth
+    if name.startswith('OLD TREE |') and (
+        'trunk' in name or 'branches and forks' in name or 'root buttresses' in name
+    ):
+        # Cylindrical/triplanar-like continuous projection for baked bark.
+        uv=dat.uv_layers.new(name='Organic bark UV')
+        for face in dat.polygons:
+            loops=list(face.loop_indices)
+            angles=[]
+            for li in loops:
+                vertex=dat.vertices[dat.loops[li].vertex_index].co
+                angles.append(math.atan2(vertex.y,vertex.x))
+            center=angles[0]
+            for li,angle in zip(loops,angles):
+                vertex=dat.vertices[dat.loops[li].vertex_index].co
+                angle+=2*PI*round((center-angle)/(2*PI))
+                uv.data[li].uv=(angle/(2*PI)*2,vertex.z/3.1)
     return obj
 
 class Batch:
@@ -116,6 +133,44 @@ def hermite_points(a,b,c,d,steps):
         result.append(p)
     return result
 
+def make_bark_texture():
+    """Small embedded vertical-fissure bark image for close-up trunk detail."""
+    width,height=512,768
+    out=os.path.abspath(os.path.join(os.path.dirname(__file__),'..',
+                                     'assets','arena','tree-bark-grain.png'))
+    os.makedirs(os.path.dirname(out),exist_ok=True)
+    rng=random.Random(TREE_SEED+212)
+    pixels=[0.0]*(width*height*4)
+    for y in range(height):
+        v=y*TAU/height
+        for x in range(width):
+            u=x*TAU/width
+            # Skinny almost-vertical crevices, irregular wood grain,
+            # and a few pale ridges; no horizontal "ring" stripes.
+            groove=abs(math.sin(15*u+.21*math.sin(2*v)+.11*math.sin(7*v)))
+            ridge=.09*math.sin(32*u+1.4*math.sin(5*v))
+            grunge=rng.uniform(-.025,.025)
+            dark=-.088 if groove>.975 else 0
+            d=ridge*.5+grunge+dark
+            i=(y*width+x)*4
+            pixels[i]=max(.10,min(.46,.292+d))
+            pixels[i+1]=max(.06,min(.34,.188+d*.73))
+            pixels[i+2]=max(.035,min(.22,.111+d*.48))
+            pixels[i+3]=1.0
+    image=bpy.data.images.new('Fine ribbed brown tree bark',width,height,alpha=True)
+    image.pixels.foreach_set(pixels)
+    image.filepath_raw=out;image.file_format='PNG';image.save()
+    tex=bpy.data.images.load(out,check_existing=False)
+    tex.colorspace_settings.name='sRGB'
+    print('HIGH_DETAIL_BARK_QA',width,height)
+    return tex
+
+def apply_wood_texture(material,texture):
+    p=material.node_tree.nodes.get('Principled BSDF')
+    image=material.node_tree.nodes.new('ShaderNodeTexImage')
+    image.image=texture;image.extension='REPEAT';image.interpolation='Linear'
+    material.node_tree.links.new(image.outputs['Color'],p.inputs['Base Color'])
+
 def make_wood():
     trunk=Batch();branches=Batch();roots=Batch()
     # Trunk axis is slightly twisted; rings have bark ridge noise in actual
@@ -143,8 +198,8 @@ def make_wood():
         tip_points.append((d,axis,angle))
 
         # Each large bough splits into smaller asymmetrical finger branches.
-        for j in range(3):
-            t=.49+j*.16+_rng.uniform(-.045,.04)
+        for j in range(4):
+            t=.43+j*.14+_rng.uniform(-.033,.037)
             start=pts[max(1,min(10,round(t*11)))]
             rotate=angle+((-1)**j)*(_rng.uniform(.32,.78))
             spread=Vector((math.cos(rotate),math.sin(rotate),0))
@@ -154,8 +209,18 @@ def make_wood():
                 start+spread*(off*.78)+Vector((0,0,1.45)),
                 start+spread*off+Vector((0,0,1.85+_rng.random()*1.5)),7)
             tube_path(branches,fork,[mix(.20,.022,k/6) for k in range(7)],7,
-                      i*3+j,.04)
+                      i*4+j,.04)
             tip_points.append((fork[-1],spread,rotate))
+            # Thin tertiary twigs support the leaves and add fine silhouette.
+            for twig in range(2):
+                az=rotate+(1 if twig else -1)*_rng.uniform(.24,.56)
+                twigDir=Vector((math.cos(az),math.sin(az),.23))
+                origin=fork[-2] if twig else fork[-1]
+                end=origin+twigDir*_rng.uniform(.6,1.10)
+                tpts=hermite_points(origin,origin+twigDir*.21+
+                  Vector((0,0,.07)),end-twigDir*.12,end,5)
+                tube_path(branches,tpts,[.033,.027,.019,.012,.005],
+                          5,i*60+j*2+twig,.045)
 
     # Root buttresses flare smoothly from the real trunk and stay completely
     # within the established non-walkable tree collision radius (3.15 m).
@@ -170,6 +235,9 @@ def make_wood():
         tube_path(roots,root,[.38,.39,.36,.29,.24,.17,.12,.07,.026],10,i,.11)
     wood_material=material("Centuries-old warm chestnut bark",(.265,.167,.096))
     root_material=material("Sculpted root bark ochre",(.327,.218,.136))
+    bark_texture=make_bark_texture()
+    apply_wood_texture(wood_material,bark_texture)
+    apply_wood_texture(root_material,bark_texture)
     trunk.finish("OLD TREE | continuous ridged trunk",wood_material,True)
     branches.finish("OLD TREE | tapered curved branches and forks",wood_material,True)
     roots.finish("OLD TREE | flowing flared root buttresses",root_material,True)
@@ -242,7 +310,7 @@ def make_leaves(wood_tips):
     # undersides. Small voids separate independent sprays.
     for p,d,a in wood_tips:
         sprays.append((p+Vector((0,0,.4)),1.0+_rng.uniform(-.1,.5)))
-    for i in range(28):
+    for i in range(34):
         angle=_rng.random()*TAU
         r=math.sqrt(_rng.random())*10.2
         center=Vector((r*math.cos(angle),r*math.sin(angle),
@@ -281,6 +349,8 @@ def build_tree():
     tips=make_wood()
     make_bark_ribbons()
     make_leaves(tips)
+    print("HIGH_DETAIL_TREE_QA",{"branch_tips":len(tips),
+        "bark_strands":BARK_STRANDS,"wood_rings":WOOD_RINGS})
     print("ARTIST_TREE_BUILT",{"major_branches":MAJOR_BRANCHES,
         "tips":len(tips),"bark_strands":BARK_STRANDS,
         "foliage_meshes":9,"canopy_range":[CANOPY_BASE,CANOPY_TOP]})
