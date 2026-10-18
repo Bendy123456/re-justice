@@ -133,11 +133,25 @@ class RosterGLBPresentation {
   poseBone(o,name,rz=0,rx=0,ry=0){
     const bone=o.bones.get(name);
     if(!bone)return;
-    const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,ry,rz,'XYZ'));
-    bone.quaternion.copy(o.rests.get(name)).multiply(q);
+    // GLTF armature bones are oriented along anatomical bone axes, NOT
+    // standardized camera axes. A local-Z rotation barely moves a T-posed
+    // arm. Transform the desired side-view world rotation into the current
+    // bone's parent space so elbows and shoulders bend on screen.
+    bone.parent.updateWorldMatrix(true,false);
+    const parentQ=bone.parent.getWorldQuaternion(new THREE.Quaternion());
+    const axis=new THREE.Vector3(0,0,1);
+    const worldQ=new THREE.Quaternion().setFromAxisAngle(axis,rz);
+    const localQ=parentQ.clone().invert().multiply(worldQ).multiply(parentQ);
+    bone.quaternion.premultiply(localQ);
+    if(rx||ry){
+      const tilt=new THREE.Quaternion().setFromEuler(new THREE.Euler(rx,ry,0));
+      bone.quaternion.multiply(tilt);
+    }
+    bone.updateMatrixWorld(true);
   }
   pose(o,f,tick){
     this.resetPose(o);
+    o.root.updateMatrixWorld(true);
     const state=f.state||'idle';
     const attack=f.attack||null;
     const isCrouch=Boolean(f.crouch||state==='crouch'||f.blockLow);
@@ -204,10 +218,9 @@ class RosterGLBPresentation {
     o.root.scale.set(facing*zoom,zoom,zoom);
     o.root.position.set((x-CW/2)/PIXELS_PER_METER,
       (CH/2-feet)/PIXELS_PER_METER,0);
-    o.root.rotation.set(0,0,0);
+    o.root.rotation.set(0,facing*.20,0);
     this.pose(o,f,tick);
     o.root.position.y+=(o.root.userData.crouchYOffset||0)*zoom;
-    o.root.rotation.y=facing*.20;
   }
   hideInstances(){for(const obj of this.instances.values())obj.root.visible=false;}
   drawScene(ctx){
