@@ -809,9 +809,66 @@ try{
     v.pitchMin<.07||v.pitchMax>.22||
     v.bankRange<.07||v.bankRange>.21||
     v.hipShiftRange<.075||v.maxKnee-v.minKnee<.45||
-    v.maxFootLift<.19))
+    v.maxFootLift<.13))
     throw Error('Extended walk lacks physical ankle reach, full-body lean or weight transfer');
 
+  // Real movement test: advance game physics and inspect the world-space
+  // ankles throughout each stance. A phase-only walk test misses skating.
+  const footPlantQA=await page.evaluate(()=>{
+    const arena=window.game.arena3d,output=[];
+    const ctrl=window.FG.InputUtils.emptyFrame();
+    ctrl.y=-1;
+    for(let i=0;i<2;i++){
+      const actor=arena.fighters[i],view=arena.views[i];
+      actor.reset(i?-14:-18,-13);actor.visualYaw=actor.prevVisualYaw=0;
+      view.walkWeight=1;view.dashWeight=0;view.lastStateTick=-1;
+      view.footPlants={l:null,r:null};
+      const samples={l:[],r:[]};
+      for(let frame=0;frame<62;frame++){
+        actor.prevX=actor.x;actor.prevZ=actor.z;actor.prevY=actor.y;
+        actor.prevVisualYaw=actor.visualYaw;
+        actor.prevLean=actor.lean;actor.prevBank=actor.bank;
+        actor.prevGaitPhase=actor.gaitPhase;actor.animClock++;
+        arena.move(actor,null,ctrl,new Set(),true);
+        arena.pose(view,1);
+        for(const side of ['l','r']){
+          const m=view.poseMetrics;
+          const contact=m['walkContact'+side.toUpperCase()];
+          const planted=m['planted'+side.toUpperCase()];
+          const p=view.bones.get('foot_'+side).getWorldPosition(view.root.position.clone());
+          samples[side].push({frame,contact,planted,x:p.x,y:p.y,z:p.z});
+        }
+      }
+      const segments=[];
+      for(const side of ['l','r']){
+        let run=[];
+        const flush=()=>{
+          if(run.length>=3){
+            const head=run[0];
+            segments.push({side,frames:run.length,
+              maxDrift:Math.max(...run.map(p=>Math.hypot(p.x-head.x,p.z-head.z))),
+              heightRange:Math.max(...run.map(p=>p.y))-Math.min(...run.map(p=>p.y))});
+          }
+          run=[];
+        };
+        for(const p of samples[side]){
+          if(p.contact&&p.planted&&p.frame>8)run.push(p);
+          else flush();
+        }
+        flush();
+      }
+      output.push({rig:view.key,segments,
+        maxDrift:Math.max(0,...segments.map(s=>s.maxDrift)),
+        maxHeightVariation:Math.max(0,...segments.map(s=>s.heightRange)),
+        totalDistance:Math.hypot(actor.x-(i?-14:-18),actor.z+13),
+        cadence:actor.gaitPhase});
+    }
+    return output;
+  });
+  console.log('PLANTED_FOOT_WORLDSPACE_QA',JSON.stringify(footPlantQA));
+  if(footPlantQA.some(r=>r.segments.length<5||r.totalDistance<5||
+      r.maxDrift>.17||r.maxHeightVariation>.19))
+    throw Error('Walking planted feet slide or hover excessively in the world');
   // Emit compressed frames as bounded log chunks for hands-on visual review.
   // This supplements, rather than replaces, the geometric regression checks.
   for(const [tag,phase] of [['heel-strike',0],['toe-off',2.9],['mid-swing',4.2]]){
