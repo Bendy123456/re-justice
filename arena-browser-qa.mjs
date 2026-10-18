@@ -79,7 +79,7 @@ try{
   // character must turn into movement. Combat still aims at the opponent.
   const movementQA=await page.evaluate(()=>{
     const arena=window.game.arena3d;
-    game.running=false;
+    window.game.running=false;
     arena.phase='live';
     const [a,b]=arena.fighters,view=arena.views[0],enemyView=arena.views[1];
     arena.move(b,a,window.FG.InputUtils.emptyFrame(),new Set(),false);
@@ -102,10 +102,10 @@ try{
     const movedAway=(a.x-base.x)*enemy.x+(a.z-base.z)*enemy.z<0;
     const sideways=travel(1,0);
     const forward=travel(0,-1);
-    const shoulderL=view.bones.get('upperarm_l').getWorldPosition(new THREE.Vector3());
-    const shoulderR=view.bones.get('upperarm_r').getWorldPosition(new THREE.Vector3());
-    const handL=view.bones.get('hand_l').getWorldPosition(new THREE.Vector3());
-    const handR=view.bones.get('hand_r').getWorldPosition(new THREE.Vector3());
+    const shoulderL=view.bones.get('upperarm_l').getWorldPosition(view.root.position.clone());
+    const shoulderR=view.bones.get('upperarm_r').getWorldPosition(view.root.position.clone());
+    const handL=view.bones.get('hand_l').getWorldPosition(view.root.position.clone());
+    const handR=view.bones.get('hand_r').getWorldPosition(view.root.position.clone());
     const armsAhead=[handL,handR].map((hand,i)=>{
       const shoulder=i?shoulderR:shoulderL;
       const forward=facing(view);
