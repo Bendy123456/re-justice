@@ -98,9 +98,12 @@ The editable `assets/arena/training-ground.blend` and the in-game
 
 - Seamless color-varied green lawn with an embedded PNG turf texture and
   14,500 low-poly short-grass tufts; no brown checkerboard earth tiles
-- Five staggered courses of massive weathered cut-stone slabs, on both the
-  inside and the outside of the circular perimeter wall, with dark joints,
-  chipped bevels and thick capstones
+- Three staggered courses of **20 enormous medium-gray stone slabs per row**
+  on both the inside and outside of the arena wall, with thin joints and
+  correctly oriented slab faces; all stones use nearly identical cool-neutral
+  gray materials in a clean modern superhero-training-ground style
+- Individual medium-gray top capstones; no little bricks, warm sandstone
+  patches, or decorative buttresses
 - The central natural tree, arena radius (34m), wall height (12.5m), tree
   collider, wall collider, controls, fighters, and combat remain unchanged
 - A workflow regenerates, visually previews, validates, and commits the
