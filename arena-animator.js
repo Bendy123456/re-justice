@@ -115,17 +115,22 @@ function unitMotion(m){
 }
 // Foot-contact gait: 62% grounded stance, 38% eased swing with a
 // separate heel strike, toe-off and recovery lift (not a pure sine wave).
-function walkStep(phase){
-  const u=((phase/(2*Math.PI))%1+1)%1,stance=.62;
+function walkStep(phase,runMix=0){
+  const u=((phase/(2*Math.PI))%1+1)%1;
+  // Sprinting has a shorter grounded phase and longer airborne recovery;
+  // ordinary steps retain stable walk contact. Full-speed movement is 7m/s,
+  // which MUST animate as a run, never as a hyper-fast short-step walk.
+  const stance=lerp(.62,.43,runMix);
+  const reach=lerp(.50,.66,runMix);
   if(u<stance){
     const t=u/stance;
-    return {contact:true,travel:.50-1.0*t,lift:0,
+    return {contact:true,travel:reach*(1-2*t),lift:0,
       roll:.12*(1-ease(t/.18))-.20*ease((t-.78)/.22),
       support:sin(Math.PI*t)**2};
   }
   const t=(u-stance)/(1-stance);
-  return {contact:false,travel:lerp(-.50,.50,ease(t)),
-    lift:.175*Math.pow(Math.max(0,sin(Math.PI*t)),.8),
+  return {contact:false,travel:lerp(-reach,reach,ease(t)),
+    lift:lerp(.175,.30,runMix)*Math.pow(Math.max(0,sin(Math.PI*t)),.8),
     roll:.13*sin(Math.PI*t),support:0};
 }
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
@@ -202,7 +207,9 @@ export function poseFighter(view,alpha){
     clamp(walk):0;
   const walkingMotion=walkAmount>.0005;
   const walkFade=ease(walkAmount);
-  const leftStep=walkStep(strideClock),rightStep=walkStep(strideClock+Math.PI);
+  const runMix=clamp((motion.speed-3.6)/2.7)*walkFade;
+  const leftStep=walkStep(strideClock,runMix);
+  const rightStep=walkStep(strideClock+Math.PI,runMix);
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
   const supportShift=walkAmount*.055*
     (leftStep.support*legL+rightStep.support*legR);
@@ -216,14 +223,16 @@ export function poseFighter(view,alpha){
   const breath=sin((a.animClock+alpha)*.063);
   // Gravity-like weight absorption on contact, directional lean and
   // counter-balance rather than spinning a motionless torso on top of legs.
-  const walkBob=walkAmount*(.010+.011*(1-cos(2*strideClock))*.5);
+  const walkBob=walkAmount*(.010+.011*(1-cos(2*strideClock))*.5+
+    runMix*.028*(.5-.5*cos(2*strideClock)));
   const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
   const rawLean=lerp(a.prevLean,a.lean,alpha);
   const lean=(walkingMotion?rawLean*.22:rawLean)+
     (attack?.lean||0)-(hit?.21:0);
-  const walkLean=walkAmount*(.058*localForward-.010*abs(localSide));
+  const walkLean=walkAmount*((.058+runMix*.074)*localForward-
+    .010*abs(localSide));
   const walkTurnBank=walkingMotion?
     clamp(-motion.turn*.31,-.075,.075)*walkAmount:0;
   const bank=lerp(a.prevBank,a.bank,alpha)*(!walkingMotion?1:.33)+
@@ -393,8 +402,9 @@ export function poseFighter(view,alpha){
         const stepSwing=swing*(localForward+localSide*.32);
         const front=Math.max(0,stepSwing),back=Math.max(0,-stepSwing);
         handX=lerp(.135,.22+.028*front+abs(localSide)*.025,walkFade);
-        handY=lerp(-.975+breath*.001,-.87+.125*front-.045*back,walkFade);
-        handZ=lerp(.02,.055+.38*stepSwing,walkFade);
+        handY=lerp(-.975+breath*.001,
+          lerp(-.87+.125*front-.045*back,-.75+.16*front-.03*back,runMix),walkFade);
+        handZ=lerp(.02,.055+(.38+runMix*.12)*stepSwing,walkFade);
       }else{
         handX=.42;handY=-.57+travel*.09;
         handZ=.15+travel*.20-dashBurst*.53;
@@ -512,7 +522,7 @@ export function poseFighter(view,alpha){
   }
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
-    localForward,localSide,gaitWeight:walkAmount,groundSpeed:motion.speed,
+    localForward,localSide,gaitWeight:walkAmount,groundSpeed:motion.speed,runMix,
     state:a.state,hipTwist,torsoTwist,chestRoll,chestPitch,chestLead,
     lean:pitch,walk:drive,
     walkContactL:leftStep.contact,walkContactR:rightStep.contact,
