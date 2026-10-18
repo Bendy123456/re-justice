@@ -350,7 +350,7 @@
     c.restore();
   }
   class Renderer {
-    constructor(ctx,game){this.ctx=ctx;this.game=game;this.selectBg=null;this.portraitCache=new Map();}
+    constructor(ctx,game){this.ctx=ctx;this.game=game;this.selectBg=null;this.portraitCache=new Map();this.model3d=FG.GLTFPresentation?new FG.GLTFPresentation():null;}
     render(){
       const g=this.game,c=this.ctx;
       c.save();c.clearRect(0,0,CW,CH);
@@ -545,6 +545,10 @@
     portraitFor(def){
       const external=this.game.assets?.image('portraits',def.id);
       if(external)return external;
+      // Prefer a cached bust rendered from the very same Blender mesh used
+      // in combat and selection. Until GLB finishes loading, keep 2D art.
+      const threePortrait=this.model3d?.portraitFor(def);
+      if(threePortrait)return threePortrait;
       if(this.portraitCache.has(def.id))return this.portraitCache.get(def.id);
       const rig=FG.FighterRig?.portrait?.(def);
       if(rig){this.portraitCache.set(def.id,rig);return rig;}
@@ -625,7 +629,10 @@
       halo.addColorStop(0,rgba(def.secondary,.17));halo.addColorStop(.55,'rgba(175,183,200,.07)');
       halo.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=halo;c.fillRect(330,0,620,690);
       c.save();c.beginPath();c.rect(355,20,570,650);c.clip();
-      if(!(FG.FighterRig?.preview?.(c,def,g.frame)))armoredHero(c,def,g.frame);
+      // On male slots display the approved Blender GLB, including unfinished
+      // roster entries. Females and unloaded models retain existing previews.
+      if(!this.model3d?.drawSelect(c,def,g.frame))
+        if(!(FG.FighterRig?.preview?.(c,def,g.frame)))armoredHero(c,def,g.frame);
       c.restore();
       // Front haze veils the fighter's feet like the provided screenshot.
       for(let i=0;i<5;i++){
@@ -660,7 +667,11 @@
       if(g.shake){const t=g.frame;const m=Math.min(7,g.shake)*.7;
         c.translate(Math.sin(t*47.25)*m,Math.cos(t*33.8)*m*.56);}
       const fx=[...g.fighters].sort((a,b)=>a.x-b.x);
-      for(const fighter of fx)figure(c,fighter,fighter.x,fighter.y,1,1,g.assets);
+      const glbSlots=this.model3d?.drawFight(c,g);
+      for(const fighter of fx){
+        // Preserve sprite/2D fallbacks and all gameplay hitbox coordinates.
+        if(!glbSlots?.has(fighter.slot))figure(c,fighter,fighter.x,fighter.y,1,1,g.assets);
+      }
       for(const e of g.effects)this.spark(e);
       if(g.debug)this.hitboxes();
       c.restore();

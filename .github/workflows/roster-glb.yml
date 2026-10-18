@@ -1,0 +1,74 @@
+name: Build roster 3D models
+on:
+  push:
+    branches: [roster-glb-integration]
+    paths:
+      - 'blender/build_game_male_base.py'
+      - 'blender/bald_head_sculpt.py'
+      - '.github/workflows/roster-glb.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  models:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: roster-glb-integration
+      - name: Install Blender and Python requirements
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-numpy
+      - name: Fetch approved model sources
+        run: |
+          mkdir -p blender/resources assets/models
+          curl -fLsS --retry 3 -o blender/resources/cc0_humanoid.glb https://raw.githubusercontent.com/programasweights/avatar/main/public/assets/character.glb
+          curl -fLsS --retry 3 -o assets/models/batman-armored.glb https://raw.githubusercontent.com/Bendy123456/re-justice/batman-blender-asset/generated/batman_cc0/REJustice_Batman_CC0_Base.glb
+          test -s assets/models/batman-armored.glb
+      - name: Build shared bald unarmored male model
+        run: |
+          blender --background --factory-startup --python-exit-code 1 --python blender/build_game_male_base.py > /tmp/rejustice-male-build.log 2>&1 || (tail -90 /tmp/rejustice-male-build.log && exit 1)
+          tail -25 /tmp/rejustice-male-build.log
+      - name: Check GLB files, roster and unchanged combat engine
+        run: |
+          node --check glb-visuals.js
+          node --check model-assets.js
+          node --check ui.js
+          node model-tests.cjs
+          node smoke-tests.cjs
+          test -s assets/models/male-unarmored-preview.png
+      - name: Build small visual-review image
+        run: |
+          sudo apt-get install -y --no-install-recommends python3-pil
+          python3 - <<'PY'
+          import base64
+          from PIL import Image
+          from pathlib import Path
+          p=Path('assets/models')
+          im=Image.open(p/'male-unarmored-preview.png').convert('RGB')
+          im.thumbnail((550,660))
+          im.save(p/'male-unarmored-review.jpg',quality=72,optimize=True)
+          (p/'male-unarmored-review.base64.txt').write_text(base64.b64encode((p/'male-unarmored-review.jpg').read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rejustice-male-and-batman-models
+          path: |
+            assets/models/*.glb
+            assets/models/*preview.png
+            assets/models/*review.jpg
+          retention-days: 30
+      - name: Save vetted assets on integration branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cp -a assets/models /tmp/glb-artifacts
+          git fetch origin roster-glb-integration
+          git reset --hard origin/roster-glb-integration
+          mkdir -p assets/models
+          cp -a /tmp/glb-artifacts/. assets/models/
+          git add assets/models
+          git diff --cached --quiet || git commit -m "Publish vetted armored Batman and unarmored male GLB assets [skip ci]"
+          git push origin HEAD:roster-glb-integration
