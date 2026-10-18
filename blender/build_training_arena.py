@@ -173,9 +173,9 @@ wall_details(RADIUS,WALL_HEIGHT)
 
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=16
-scene.cycles.use_denoising=True
-bpy.context.view_layer.cycles.use_denoising=True
+scene.cycles.samples=20
+scene.cycles.use_denoising=False
+bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=960;scene.render.resolution_y=540
 scene.render.resolution_percentage=100
 scene.world.use_nodes=True
