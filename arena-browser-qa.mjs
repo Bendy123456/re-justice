@@ -581,6 +581,55 @@ try{
      x.maxKnee-x.minKnee<.20||x.hipRange<.20))
     throw Error('Walking needs alternating foot support, knee flexion and pelvis sway');
 
+  // Longer strides must be actual ankle travel, not just numeric gait
+  // parameters. Capture movement-relative foot clearance, forward pitch,
+  // lateral weight shifts, knee bends and opposing torso motion for BOTH rigs.
+  const strideReview=await page.evaluate(()=>{
+    const arena=window.game.arena3d,result=[];
+    for(let i=0;i<2;i++){
+      const a=arena.fighters[i],v=arena.views[i];
+      a.reset(i?-11:11,-7);v.walkWeight=1;v.dashWeight=0;
+      a.state='walk';a.grounded=true;
+      const samples=[];
+      const loc=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+      for(let j=0;j<48;j++){
+        a.gaitPhase=a.prevGaitPhase=j*2*Math.PI/48;
+        a.animClock++;arena.pose(v,1);
+        const m=v.poseMetrics;
+        const shoulder=loc('spine_03'),hip=loc('thigh_l'),knee=loc('calf_l'),
+          ankle=loc('foot_l');
+        const legLength=hip.distanceTo(knee)+knee.distanceTo(ankle);
+        const world=v.root.matrixWorld.elements;
+        const forward=v.root.position.clone().set(world[8],world[9],world[10]).normalize();
+        const ankleForward=ankle.sub(hip).dot(forward)/legLength;
+        samples.push({pitch:m.rootPitch,bank:m.rootBank,hipShift:m.walkHipShift,
+          stride:m.walkFootL,footTravel:ankleForward,
+          kneeL:m.kneeL,kneeR:m.kneeR,torso:m.torsoTwist,
+          contact:m.walkContactL,lift:m.walkLiftL});
+      }
+      const range=key=>Math.max(...samples.map(x=>x[key]))-
+        Math.min(...samples.map(x=>x[key]));
+      result.push({model:v.key,footTravel:range('footTravel'),
+        phaseStride:range('stride'),pitchMin:Math.min(...samples.map(x=>x.pitch)),
+        pitchMax:Math.max(...samples.map(x=>x.pitch)),
+        bankRange:range('bank'),hipShiftRange:range('hipShift'),
+        maxKnee:Math.max(...samples.map(x=>x.kneeL)),
+        minKnee:Math.min(...samples.map(x=>x.kneeL)),
+        maxFootLift:Math.max(...samples.map(x=>x.lift)),
+        stanceCount:samples.filter(x=>x.contact).length,
+        sampleStart:samples[0],sampleQuarter:samples[12],
+        sampleHalf:samples[24]});
+    }
+    return result;
+  });
+  console.log('LONG_STRIDE_BODY_LEAN_QA',JSON.stringify(strideReview));
+  if(strideReview.some(v=>v.phaseStride<.72||v.footTravel<.55||
+    v.pitchMin<.07||v.pitchMax>.22||
+    v.bankRange<.07||v.bankRange>.21||
+    v.hipShiftRange<.075||v.maxKnee-v.minKnee<.45||
+    v.maxFootLift<.19))
+    throw Error('Extended walk lacks physical ankle reach, full-body lean or weight transfer');
+
   // Emit compressed frames as bounded log chunks for hands-on visual review.
   // This supplements, rather than replaces, the geometric regression checks.
   for(const [tag,phase] of [['heel-strike',0],['toe-off',2.9],['mid-swing',4.2]]){
