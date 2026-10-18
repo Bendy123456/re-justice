@@ -144,14 +144,14 @@ def wall_details(radius=34.0,height=12.5):
     rng=random.Random(SEED+8)
     joint=paint('WALL SLAB | deep charcoal mortar',(.17,.20,.19),.99)
     slab=[
-        paint('WALL SLAB | weathered limestone light',(.55,.56,.52)),
-        paint('WALL SLAB | pale cool granite',(.48,.52,.51)),
-        paint('WALL SLAB | warm buff sandstone',(.54,.50,.43)),
-        paint('WALL SLAB | grey ashlar stone',(.43,.46,.45)),
-        paint('WALL SLAB | old stone ochre',(.50,.48,.43)),
-        paint('WALL SLAB | moss stained rock',(.38,.44,.39)),
-        paint('WALL SLAB | chalk highlight',(.60,.60,.55)),
-        paint('WALL SLAB | storm worn grey',(.44,.48,.48)),
+        paint('WALL SLAB | weathered limestone light',(.51,.53,.50)),
+        paint('WALL SLAB | pale cool granite',(.49,.51,.50)),
+        paint('WALL SLAB | warm buff sandstone',(.51,.50,.47)),
+        paint('WALL SLAB | grey ashlar stone',(.48,.50,.49)),
+        paint('WALL SLAB | old stone ochre',(.50,.49,.47)),
+        paint('WALL SLAB | moss stained rock',(.47,.50,.47)),
+        paint('WALL SLAB | chalk highlight',(.53,.54,.51)),
+        paint('WALL SLAB | storm worn grey',(.48,.51,.50)),
     ]
     bevel=paint('WALL SLAB | cut upper bevel',(.64,.65,.60))
     shadow=paint('WALL SLAB | chipped underside',(.29,.33,.32))
@@ -210,9 +210,9 @@ def wall_details(radius=34.0,height=12.5):
     for i in range(n):
         a0=2*PI*(i+.012)/n;a1=2*PI*(i+.988)/n
         cylinder_ribbon(p,slab[(i+3)%len(slab)],radius-.35,exterior+.27,
-                        a0,a1,height-.05,height+.44)
+                        a0,a1,height-.05,height+.61)
         cylinder_ribbon(p,bevel,radius-.40,exterior+.32,
-                        a0+.005,a1-.005,height+.35,height+.49)
+                        a0+.005,a1-.005,height+.53,height+.65)
     # Twelve giant buttresses tie the slabs together (subtle rather than
     # the previous constant thin, tiny brick-column geometry).
     for i in range(12):
