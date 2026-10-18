@@ -80,12 +80,11 @@ def cylinder_ribbon(p,mat,r0,r1,a0,a1,z0,z1):
        (r0*math.cos(a0),r0*math.sin(a0),z1))
 
 def ground_details(radius=34.0):
-    """Little REAL grass tufts over a seamless textured lawn.
+    """Denser, articulated short grass with no walkable-floor changes.
 
-    This has no raised ground collider. Every tuft is a small Blender triangle,
-    not a repeated billboard particle, so the exported GLB needs no extensions.
-    The main seamless grass PNG is applied to the flat radial floor in
-    build_training_arena.py. Absolutely no checkerboard or brown dirt tiles.
+    Different blade shapes catch light in the foreground. Heights stay below
+    14 cm, so there is no tall-field look or extra physics/collision cost.
+    The principal 768px turf texture carries detail farther from the camera.
     """
     rng=random.Random(SEED+333)
     dark=paint('GRASS | soft forest undersides',(.14,.31,.12),.99)
@@ -96,41 +95,42 @@ def ground_details(radius=34.0):
         paint('GRASS | blade shaded 04',(.17,.35,.16),.99),
     ]
     clover=paint('GRASS | low field clover',(.24,.43,.19),.99)
+    pale=paint('GRASS | bright sunlit blades',(.34,.52,.23),.99)
     p=Painter()
-    # Very subtle patches of close-spaced ground cover, especially near
-    # camera height; grass is short enough for feet to stay on level terrain.
-    tufts=14500
+    tufts=22500
     for k in range(tufts):
         a=rng.uniform(0,2*PI)
         r=math.sqrt(rng.random())*(radius-1.65)
-        # Don't bury important tree roots in grass near its central trunk.
         if r<3.7:continue
         x,y=r*math.cos(a),r*math.sin(a)
-        base_z=-.086
-        h=rng.uniform(.045,.12)
-        width=rng.uniform(.018,.052)
+        base_z=-.085
+        h=rng.uniform(.042,.132)
+        width=rng.uniform(.013,.038)
         heading=rng.uniform(0,2*PI)
-        m=mids[(k+rng.randrange(4))%len(mids)]
-        for b in range(3):
-            t=heading+b*2*PI/3
+        tint=mids[(k+rng.randrange(4))%len(mids)]
+        # Four gently bent blade ribbons per tuft, split into two triangles
+        # each: more natural tip and base shading than straight standing fins.
+        for b in range(4):
+            t=heading+b*PI/2+rng.uniform(-.17,.17)
             dx,dy=math.cos(t),math.sin(t)
-            tipx=x+dx*h*.29
-            tipy=y+dy*h*.29
+            bend=h*(.15+rng.random()*.23)
             left=(x-dy*width/2,y+dx*width/2,base_z)
             right=(x+dy*width/2,y-dx*width/2,base_z)
-            tip=(tipx,tipy,base_z+h*(.8+.13*b))
-            p.triangle(m if b<2 else dark,left,right,tip)
-        if k%26==0:
-            # Tiny low clover leaves for uneven meadow ground detail.
-            size=rng.uniform(.035,.082)
+            mid=(x+dx*bend*.44,y+dy*bend*.44,base_z+h*.56)
+            tip=(x+dx*bend,y+dy*bend,base_z+h*(.88+.09*rng.random()))
+            p.triangle(tint if b<3 else dark,left,right,mid)
+            p.triangle(pale if k%11==0 and b==0 else tint,left,mid,tip)
+        if k%21==0:
+            size=rng.uniform(.026,.067)
             for j in range(3):
                 t=heading+j*2*PI/3
-                p.triangle(clover,(x,y,base_z+.015),
-                    (x+math.cos(t-.37)*size,y+math.sin(t-.37)*size,base_z+.014),
-                    (x+math.cos(t+.37)*size,y+math.sin(t+.37)*size,base_z+.014))
-    out=p.finish('GRASS short natural turf')
-    print('GRASS_QA',tufts,'tufts',sum(len(o.data.polygons) for o in out),
-          'triangles',len(out),'materials')
+                p.triangle(clover,(x,y,base_z+.012),
+                    (x+math.cos(t-.38)*size,y+math.sin(t-.38)*size,base_z+.011),
+                    (x+math.cos(t+.38)*size,y+math.sin(t+.38)*size,base_z+.011))
+    output=p.finish('GRASS short natural turf')
+    print('GRASS_QA',tufts,'tufts',sum(len(o.data.polygons) for o in output),
+          'triangles',len(output),'materials')
+    print('HIGH_DETAIL_GRASS_QA','blade_ribbons',4,'tufts',tufts)
 
 def solid_stone_slab(p,material,inner,outer,a0,a1,z0,z1):
     """Six real faces with correct outward normals for both sides of arena.
