@@ -177,13 +177,35 @@ class Arena3D {
     });
     // Soft contact shadow stays on the arena floor during jump, instead of
     // being inherited by the character's airborne skeleton.
+    // Determine anatomical outward axes from the actual Blender skeleton.
+    // Some imported Quaternius rigs number their _l/_r joints opposite the
+    // local Three.js X convention: do NOT hardcode +/-X by bone name.
+    root.updateWorldMatrix(true,true);
+    const center=bones.get('spine_02')?.getWorldPosition(new THREE.Vector3())||new THREE.Vector3();
+    const pelvis=bones.get('hips')?.getWorldPosition(new THREE.Vector3())||
+      bones.get('pelvis')?.getWorldPosition(new THREE.Vector3())||center;
+    const naturalSide=(name,origin,fallback)=>{
+      const joint=bones.get(name);
+      if(!joint)return fallback;
+      const lateral=joint.getWorldPosition(new THREE.Vector3()).x-origin.x;
+      return Math.abs(lateral)<1e-5?fallback:Math.sign(lateral);
+    };
+    const armSides={
+      l:naturalSide('upperarm_l',center,-1),
+      r:naturalSide('upperarm_r',center,1)
+    };
+    const legSides={
+      l:naturalSide('thigh_l',pelvis,-1),
+      r:naturalSide('thigh_r',pelvis,1)
+    };
     const shadow=new THREE.Mesh(new THREE.PlaneGeometry(2.6,1.65),
       new THREE.MeshBasicMaterial({map:this.shadowMap,transparent:true,
         opacity:.78,depthWrite:false,side:THREE.DoubleSide}));
     shadow.rotation.x=-Math.PI/2;
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
-    return {actor,root,bones,rests,restPositions,key,shadow,walkWeight:0,dashWeight:0,lastStateTick:-1};
+    return {actor,root,bones,rests,restPositions,key,shadow,
+      armSides,legSides,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
     for(const o of this.views){
