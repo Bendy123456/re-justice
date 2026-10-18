@@ -499,6 +499,10 @@ function install(game){
   game.arena3d=new Arena3D(game);
   const start=game.startMatch.bind(game);
   game.startMatch=function(opts){
+    if(opts?.mode==='cpu'&&!this.arena3d.ready&&!this.arena3d.failure){
+      this.input?.toast?.('Building 3D arena — wait a moment, then press FIGHT');
+      return false;
+    }
     const result=start(opts);
     if(opts?.mode==='cpu'&&this.arena3d.ready){
       try{this.arena3d.start(opts);this.scene='arena3d';}
