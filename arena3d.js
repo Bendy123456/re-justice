@@ -131,6 +131,7 @@ class Arena3D {
       this.scene.background=new THREE.Color('#add3f0');
       this.scene.fog=new THREE.FogExp2('#afc9d3',.0036);
       this.camera=new THREE.PerspectiveCamera(58,1280/720,.08,200);
+      this.createSkySystem();
       this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,1.55));
       const sunlight=new THREE.DirectionalLight(0xffe7b5,2.15);
       sunlight.position.set(-28,48,-24);this.scene.add(sunlight);
@@ -148,6 +149,103 @@ class Arena3D {
       this.loader=new GLTFLoader();
       this.loadAssets();
     }catch(e){this.failure=String(e);console.warn('Arena WebGL unavailable',e);}
+  }
+  // Lightweight sky: a single gradient skydome plus two slow-moving
+  // layers of billboard clouds. One shared generated texture, no API calls.
+  createSkySystem(){
+    const dome=new THREE.Mesh(
+      new THREE.SphereGeometry(155,40,24),
+      new THREE.ShaderMaterial({
+        name:'RE-Justice bright daytime sky',
+        side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,
+        vertexShader:`
+          varying vec3 vSkyDirection;
+          void main(){
+            vSkyDirection=normalize(position);
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+          }
+        `,
+        fragmentShader:`
+          varying vec3 vSkyDirection;
+          void main(){
+            float elevation=clamp(vSkyDirection.y*0.80+0.22,0.0,1.0);
+            vec3 nearHorizon=vec3(0.80,0.91,0.99);
+            vec3 clearBlue=vec3(0.36,0.67,0.91);
+            vec3 zenithBlue=vec3(0.29,0.59,0.86);
+            vec3 color=mix(nearHorizon,clearBlue,smoothstep(0.0,0.70,elevation));
+            color=mix(color,zenithBlue,smoothstep(0.54,1.0,elevation)*0.43);
+            gl_FragColor=vec4(color,1.0);
+          }
+        `
+      })
+    );
+    dome.name='Daytime Sky Dome';
+    dome.renderOrder=-1000;
+    dome.frustumCulled=false;
+    this.skyDome=dome;
+    this.scene.add(dome);
+
+    const canvas=document.createElement('canvas');
+    canvas.width=256;canvas.height=128;
+    const ctx=canvas.getContext('2d');
+    // Deterministic puffy, feather-edged cloud (no opaque white rectangles).
+    const puffs=[
+      [57,80,36],[84,62,41],[115,63,48],[148,72,42],
+      [178,80,37],[102,88,36],[136,94,31],[73,92,26],
+      [160,91,26],[122,48,27],[98,54,29],[150,60,32]
+    ];
+    for(const [x,y,r] of puffs){
+      const g=ctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0,'rgba(255,255,255,.63)');
+      g.addColorStop(.44,'rgba(255,255,255,.42)');
+      g.addColorStop(.73,'rgba(255,255,255,.17)');
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle=g;ctx.fillRect(x-r,y-r,r*2,r*2);
+    }
+    this.cloudTexture=new THREE.CanvasTexture(canvas);
+    this.cloudTexture.colorSpace=THREE.SRGBColorSpace;
+    this.cloudTexture.minFilter=THREE.LinearFilter;
+    this.cloudTexture.magFilter=THREE.LinearFilter;
+    const configs=[
+      {count:13,radius:78,height:45,baseWidth:38,speed:.0035,opacity:.76},
+      {count:11,radius:104,height:68,baseWidth:48,speed:-.0022,opacity:.61}
+    ];
+    this.cloudLayers=[];
+    for(let layerIndex=0;layerIndex<configs.length;layerIndex++){
+      const cfg=configs[layerIndex],group=new THREE.Group();
+      group.name='Slow Cloud Layer '+(layerIndex+1);
+      group.userData.speed=cfg.speed;
+      for(let i=0;i<cfg.count;i++){
+        // Fixed positions keep cloud layouts stable between reloads.
+        const hash=(x)=>{const v=Math.sin(x*127.1+layerIndex*83.7)*43758.5453;
+          return v-Math.floor(v);};
+        const angle=2*Math.PI*(i+hash(i+2)*.28)/cfg.count;
+        const radius=cfg.radius+(hash(i+8)-.5)*17;
+        const cloud=new THREE.Sprite(new THREE.SpriteMaterial({
+          name:'Soft cloud billboard',map:this.cloudTexture,
+          transparent:true,depthWrite:false,depthTest:true,
+          opacity:cfg.opacity,blending:THREE.NormalBlending,fog:false
+        }));
+        const w=cfg.baseWidth*(.79+.52*hash(i+19));
+        cloud.scale.set(w,w*.48,1);
+        cloud.position.set(Math.cos(angle)*radius,
+          cfg.height+(hash(i+34)-.5)*15,Math.sin(angle)*radius);
+        group.add(cloud);
+      }
+      this.scene.add(group);
+      this.cloudLayers.push(group);
+    }
+  }
+  updateSky(alpha=0){
+    if(!this.skyDome)return;
+    // Make the background infinite so it cannot collide with the arena.
+    this.skyDome.position.copy(this.camera.position);
+    const seconds=((this.game?.frame||0)+alpha)/FPS;
+    for(let i=0;i<this.cloudLayers.length;i++){
+      const layer=this.cloudLayers[i];
+      layer.rotation.y=seconds*layer.userData.speed;
+      layer.position.y=Math.sin(seconds*.13+i*1.8)*.45;
+    }
   }
   async loadAssets(){
     try{
@@ -474,6 +572,7 @@ class Arena3D {
       this.cameraFocus.lerp(focus,CAM_LERP);
     }
     this.camera.lookAt(this.cameraFocus);
+    this.updateSky(alpha);
     this.renderer.render(this.scene,this.camera);
     this.drawSandboxHUD();
   }
@@ -529,6 +628,7 @@ class Arena3D {
       if(!this.initialCamera){this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;}
       else{this.camera.position.lerp(desired,CAM_LERP);this.cameraFocus.lerp(focus,CAM_LERP);}
       this.camera.lookAt(this.cameraFocus);
+      this.updateSky(alpha);
       this.renderer.render(this.scene,this.camera);
       this.drawHUD();
     }catch(e){
