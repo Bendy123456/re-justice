@@ -94,13 +94,13 @@ function walkStep(phase){
   const stance=.60;
   if(u<stance){
     const t=u/stance;
-    return {contact:true,travel:lerp(.28,-.28,t),lift:0,
+    return {contact:true,travel:lerp(.38,-.38,t),lift:0,
       roll:t<.18?lerp(.12,0,t/.18):t>.77?lerp(0,-.19,(t-.77)/.23):0,
       support:Math.sin(Math.PI*t)**2};
   }
   const t=(u-stance)/(1-stance);
-  return {contact:false,travel:lerp(-.28,.28,ease(t)),
-    lift:.17*Math.sin(Math.PI*t),roll:Math.sin(Math.PI*t)*.11,
+  return {contact:false,travel:lerp(-.38,.38,ease(t)),
+    lift:.205*Math.sin(Math.PI*t),roll:Math.sin(Math.PI*t)*.13,
     support:0};
 }
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
@@ -191,10 +191,18 @@ export function poseFighter(view,alpha){
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
   const lean=lerp(a.prevLean,a.lean,alpha)+(attack?.lean||0)-(hit?.21:0);
+  // Walk: the entire character leans into forward travel, and the pelvis
+  // shifts over the weight-bearing foot. The upper spine counterbalances so
+  // the head doesn't lurch around with every stride.
+  // Limit the engine's existing walk lean so we don't double the tilt.
+  const walkLean=naturalWalk?walkAmount*(.082+.012*abs(stride)):0;
+  const turnDelta=Math.atan2(sin(a.visualYaw-a.prevVisualYaw),
+    cos(a.visualYaw-a.prevVisualYaw));
+  const walkTurnBank=naturalWalk?clamp(-turnDelta*.26,-.07,.07):0;
   const bank=lerp(a.prevBank,a.bank,alpha)+
-    (naturalWalk?walkAmount*.019*step:drive*step*.047)+
-    (attack?.impact||0)*.02;
-  const pitch=lean+(naturalWalk?walkAmount*.022:0)+
+    (naturalWalk?-walkAmount*.045*step:drive*step*.047)+
+    walkTurnBank+(attack?.impact||0)*.02;
+  const pitch=(naturalWalk?lean*.48+walkLean:lean)+
     dash*.23+dashBurst*.12-dashIgnite*.06-
     dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
@@ -216,7 +224,7 @@ export function poseFighter(view,alpha){
   // but this lateral pelvis translation makes support actually visible.
   if(naturalWalk){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
-    if(hips)hips.position.x+=walkAmount*.029*step;
+    if(hips)hips.position.x+=walkAmount*.049*step;
     root.updateWorldMatrix(true,true);
   }
 
@@ -227,7 +235,7 @@ export function poseFighter(view,alpha){
     (attack?.hip||0)+dashKick*.055;
   const torsoTwist=-(naturalWalk?walkAmount*.14:drive*.16)*stride+
     (attack?.twist||0)-dashKick*.075;
-  const torsoBend=(naturalWalk?walkAmount*.018:drive*.047)*abs(step)+
+  const torsoBend=(naturalWalk?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
   rotate(view,'pelvis',Y,hipTwist,rootQ);
@@ -239,9 +247,9 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_03',X,torsoBend*.30+(hit?-.13:0),rootQ);
   rotate(view,'spine_03',Z,(naturalWalk?walkAmount*.017:drive*.046)*
     stride+(attack?.twist||0)*-.07,rootQ);
-  rotate(view,'neck_01',X,-pitch*.21,rootQ);
+  rotate(view,'neck_01',X,-pitch*(naturalWalk?.37:.21),rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
-  rotate(view,'head',X,-pitch*.25+breath*.012,rootQ);
+  rotate(view,'head',X,-pitch*(naturalWalk?.32:.25)+breath*.012,rootQ);
   rotate(view,'clavicle_l',Z,-.025+
     (naturalWalk?walkAmount*.025:drive*.04)*stride,rootQ);
   rotate(view,'clavicle_r',Z,.025-
@@ -413,8 +421,13 @@ export function poseFighter(view,alpha){
       const blend=walkAmount;
       // Foot planted ~60% of cycle. During swing, ankle rises and the
       // knee flexes naturally as the foot clears the ground.
+      // Longer reach needs a slightly flexed supporting leg instead of
+      // asking the two-bone solver to stretch past its anatomical limit.
+      const forward=.045+foot.travel;
+      const extensionY=Math.min(.946,
+        Math.sqrt(Math.max(.55,.985*.985-forward*forward))-.007);
       const walkTarget=[sign*length*.035,
-        -length*(.948-foot.lift),length*(.06+foot.travel)];
+        -length*(extensionY-foot.lift),length*forward];
       target=blendVec(target,walkTarget,blend);
     }
     if(airborne)target=[sign*length*.15,-length*.63,length*.24];
@@ -448,6 +461,10 @@ export function poseFighter(view,alpha){
     state:a.state,hipTwist,torsoTwist,lean:pitch,walk:drive,
     walkContactL:leftStep.contact,walkContactR:rightStep.contact,
     walkLiftL:leftStep.lift,walkLiftR:rightStep.lift,walkBob,
+    walkFootL:leftStep.travel,walkFootR:rightStep.travel,
+    walkForwardLean:walkLean,walkTurnBank,
+    walkHipShift:naturalWalk?walkAmount*.049*step:0,
+    rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
