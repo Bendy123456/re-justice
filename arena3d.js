@@ -348,9 +348,13 @@ class Arena3D {
     // Ground-contact calibration is taken from THIS character's actual
     // Blender rig, rather than guessing the ankle height from leg length.
     // The foot pivot is above the sole; toe bones reveal that offset.
-    const footSoleHeights={};
+    const footSoleHeights={},footRestWorldQuats={};
     for(const side of ['l','r']){
       const foot=bones.get('foot_'+side);
+      // Capture the sole's original rest orientation (flat to ground) so
+      // shin bend cannot accidentally make the toes point into the air.
+      footRestWorldQuats[side]=foot?.getWorldQuaternion(new THREE.Quaternion())||
+        new THREE.Quaternion();
       const footRestY=foot?.getWorldPosition(new THREE.Vector3()).y??.10;
       let toeRestY=Infinity;
       for(const [name,bone] of bones){
@@ -371,7 +375,7 @@ class Arena3D {
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
     return {actor,root,bones,rests,restPositions,key,shadow,
-      armSides,legSides,footSoleHeights,walkWeight:0,dashWeight:0,lastStateTick:-1};
+      armSides,legSides,footSoleHeights,footRestWorldQuats,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
     for(const o of this.views){
