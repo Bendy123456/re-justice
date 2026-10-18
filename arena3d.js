@@ -277,6 +277,7 @@ class Arena3D {
     if(a.health<=0||b.health<=0)this.finish(a.health<=0&&b.health<=0?0:a.health<=0?2:1);
   }
   move(a,b,control,keys,human){
+    const startMoveX=a.x,startMoveZ=a.z;
     const forward=unit(b.x-a.x,b.z-a.z),right={x:-forward.z,z:forward.x};
     // Keep combat targeting/strike cones on the opponent, but let the mesh
     // turn into actual travel, like a third-person arena fighter.
@@ -351,7 +352,7 @@ class Arena3D {
     // Feet cycle with the distance ACTUALLY traveled (not the clock), so
     // holding run against the arena wall does not make the character skate.
     if(a.state==='walk'||a.state==='dash'){
-      const distance=len(a.x-(a.prevX??a.x),a.z-(a.prevZ??a.z));
+      const distance=len(a.x-startMoveX,a.z-startMoveZ);
       a.gaitPhase+=Math.min(.5,distance)*2.16;
     }
     // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
