@@ -600,8 +600,8 @@
       this.titleBackdrop();this.topStatusBar();
       c.fillStyle='rgba(4,11,20,.74)';c.fillRect(0,60,104,660);
       line(c,103,60,103,720,'rgba(124,169,198,.23)',1);
-      this.sideTab(12,82,78,88,'FIGHT',g.menuCursor!==2);
-      this.sideTab(12,181,78,88,'SETTINGS',g.menuCursor===2);
+      this.sideTab(12,82,78,88,'FIGHT',g.menuItems[g.menuCursor]!=='settings');
+      this.sideTab(12,181,78,88,'SETTINGS',g.menuItems[g.menuCursor]==='settings');
       label(c,'GAME MODES   /   SELECT YOUR BATTLE',134,97,12,'#85cbe7','left','900');
       label(c,'ENTER THE ARENA',134,140,35,'#f6f9fc','left','900');
       label(c,'Choose how you want to fight.',135,172,16,'#a7c1d1','left','500');
