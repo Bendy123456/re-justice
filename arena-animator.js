@@ -84,6 +84,48 @@ function rotate(view,name,localAxis,amount,rootQ){
   bone.updateWorldMatrix(false,true);
 }
 const blendVec=(a,b,t)=>a.map((x,i)=>lerp(x,b[i],clamp(t)));
+// Solve an anatomical 2-bone chain from the actual GLB joint lengths.
+// Unlike directing both segments toward fixed angles, the elbow/knee is
+// placed geometrically between its shoulder/hip and the moving hand/foot.
+// pole is in model-root coordinates and keeps elbows outside the ribs and
+// knees facing forward even on rigs with reversed _l/_r bone naming.
+function solveLimb(view,upperName,jointName,endName,target,pole,rootQ){
+  const upper=view.bones.get(upperName),joint=view.bones.get(jointName),
+    end=view.bones.get(endName);
+  if(!upper||!joint||!end)return;
+  const shoulder=upper.getWorldPosition(vec());
+  const elbow=joint.getWorldPosition(vec());
+  const wrist=end.getWorldPosition(vec());
+  const a=elbow.distanceTo(shoulder),b=wrist.distanceTo(elbow);
+  if(a<.001||b<.001)return;
+  const endWorld=vec(...target).applyQuaternion(rootQ).add(shoulder);
+  const line=endWorld.clone().sub(shoulder);
+  const dist=Math.max(Math.abs(a-b)+.002,Math.min(a+b-.002,line.length()));
+  const axis=line.normalize();
+  const along=(a*a-b*b+dist*dist)/(2*dist);
+  const height=Math.sqrt(Math.max(0,a*a-along*along));
+  const poleWorld=vec(...pole).applyQuaternion(rootQ);
+  poleWorld.addScaledVector(axis,-poleWorld.dot(axis));
+  if(poleWorld.lengthSq()<1e-8)poleWorld.set(1,0,0).addScaledVector(axis,-axis.x);
+  poleWorld.normalize();
+  const jointTarget=shoulder.clone().addScaledVector(axis,along).
+    addScaledVector(poleWorld,height);
+  const inv=rootQ.clone().invert();
+  const upperDir=jointTarget.clone().sub(shoulder).applyQuaternion(inv);
+  aim(view,upperName,jointName,upperDir.toArray(),rootQ);
+  const actualJoint=joint.getWorldPosition(vec());
+  const lowerDir=endWorld.sub(actualJoint).applyQuaternion(inv);
+  aim(view,jointName,endName,lowerDir.toArray(),rootQ);
+}
+function bendAngle(view,upperName,jointName,endName){
+  const upper=view.bones.get(upperName),joint=view.bones.get(jointName),
+    end=view.bones.get(endName);
+  if(!upper||!joint||!end)return 0;
+  const start=upper.getWorldPosition(vec()),mid=joint.getWorldPosition(vec()),
+    tip=end.getWorldPosition(vec());
+  return Math.acos(clamp(mid.sub(start).normalize().dot(tip.sub(joint.getWorldPosition(vec())).normalize()),-1,1));
+}
+
 
 // Captures a neutral state once so the exported Blender rig stays intact.
 // Each frame rebuilds from bind/rest; no accumulation or wrist drift.
@@ -242,10 +284,46 @@ export function poseFighter(view,alpha){
   rightUpper[0]=armR*Math.abs(rightUpper[0]);
   leftFore[0]=armL*Math.abs(leftFore[0]);
   rightFore[0]=armR*Math.abs(rightFore[0]);
-  aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
-  aim(view,'upperarm_r','lowerarm_r',rightUpper,rootQ);
-  aim(view,'lowerarm_l','hand_l',leftFore,rootQ);
-  aim(view,'lowerarm_r','hand_r',rightFore,rootQ);
+  // Walking/dashing arms are now truly articulated at TWO joints. Fists
+  // accelerate ahead of the chest while the elbow folds and swings out.
+  // Attacks keep their separate authored windup/contact targets.
+  if(!attack&&!blocked&&!hit&&!airborne){
+    for(const [side,sgn,phase] of [
+      ['l',armL,-pump],['r',armR,pump]]){
+      const shoulder=view.bones.get('upperarm_'+side);
+      const elbow=view.bones.get('lowerarm_'+side),hand=view.bones.get('hand_'+side);
+      if(!shoulder||!elbow||!hand)continue;
+      const reach=shoulder.getWorldPosition(vec()).distanceTo(elbow.getWorldPosition(vec()))+
+        elbow.getWorldPosition(vec()).distanceTo(hand.getWorldPosition(vec()));
+      const travel=clamp(phase,-1,1);
+      // Forward-running hands rise while the elbow folds; rearward hands
+      // swing down/back with a straighter elbow, independently of shoulder.
+      let handX=.32,handY=-.68+travel*.16;
+      let handZ=.16+travel*.43;
+      if(dashing){
+        handX=.42;
+        handY=-.57+travel*.09;
+        handZ=.15+travel*.20-dashBurst*.53;
+      }else if(!locomoting){
+        handX=.37;handY=-.57;handZ=.51;
+      }
+      solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
+        [sgn*reach*handX,reach*handY,reach*handZ],
+        [sgn*.95,.12,-.32],rootQ);
+    }
+  }else{
+    aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
+    aim(view,'upperarm_r','lowerarm_r',rightUpper,rootQ);
+    aim(view,'lowerarm_l','hand_l',leftFore,rootQ);
+    aim(view,'lowerarm_r','hand_r',rightFore,rootQ);
+  }
+  // Subtle wrist/hand articulation makes the arm more than a rigid stick.
+  // Small separate adjustments preserve the two-bone elbow solve.
+  for(const [side,sign,phase] of [['l',armL,-pump],['r',armR,pump]]){
+    rotate(view,'hand_'+side,X,drive*phase*.17+
+      (attack?.impact||0)*-.06,rootQ);
+    rotate(view,'hand_'+side,Y,sign*(.045+drive*.045),rootQ);
+  }
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
@@ -258,19 +336,46 @@ export function poseFighter(view,alpha){
   const jumpCurl=airborne?.34:0;
   const brace=plant*.32+land*.28+dashIgnite*.34+dashBrake*.22;
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
-  aim(view,'thigh_l','calf_l',[legL*.10,-.98+leftKnee+brace*.32,
-    .04+leftLeg*strideDamp+(attack?.step||0)*.4],rootQ);
-  aim(view,'thigh_r','calf_r',[legR*.10,-.98+rightKnee+brace*.32,
-    .04+rightLeg*strideDamp-(attack?.step||0)*.4],rootQ);
-  aim(view,'calf_l','foot_l',[legL*.015,-1+leftKnee*.55+brace*.35+jumpCurl,
-    .11+leftKnee*.8+brace*.48],rootQ);
-  aim(view,'calf_r','foot_r',[legR*.015,-1+rightKnee*.55+brace*.35+jumpCurl,
-    .11+rightKnee*.8+brace*.48],rootQ);
+  // Two-bone leg IK: the ankle moves on a contact/lift path and the
+  // knee MUST fold in front of the thigh. Both male/female share this rig
+  // hierarchy, but side signs come from the actual mesh skeleton.
+  for(const [side,sign,swing] of [['l',legL,leftLeg],['r',legR,rightLeg]]){
+    const hip=view.bones.get('thigh_'+side),knee=view.bones.get('calf_'+side),
+      ankle=view.bones.get('foot_'+side);
+    if(!hip||!knee||!ankle)continue;
+    const length=hip.getWorldPosition(vec()).distanceTo(knee.getWorldPosition(vec()))+
+      knee.getWorldPosition(vec()).distanceTo(ankle.getWorldPosition(vec()));
+    const stepMotion=swing*strideDamp;
+    const lift=Math.max(0,stepMotion); // recovery foot leaves the ground
+    let target=[sign*length*.12,
+      -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
+      length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
+    if(airborne)target=[sign*length*.15,-length*.63,length*.24];
+    solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
+      target,[sign*.12,.15,1],rootQ);
+  }
   rotate(view,'foot_l',X,-leftLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
   rotate(view,'foot_r',X,-rightLeg*strideDamp*.39+land*.14+dashBrake*.11,rootQ);
 
+  // Individual articulated joint angles measured on the rendered bones.
+  // Exposing these makes regressions observable beyond visible root movement.
+  const jointBends={
+    elbowL:bendAngle(view,'upperarm_l','lowerarm_l','hand_l'),
+    elbowR:bendAngle(view,'upperarm_r','lowerarm_r','hand_r'),
+    kneeL:bendAngle(view,'thigh_l','calf_l','foot_l'),
+    kneeR:bendAngle(view,'thigh_r','calf_r','foot_r')
+  };
+  // The rigs also include finer hand/toe articulation. Respect whichever
+  // matching finger/toe joints are present, without changing their bind pose.
+  for(const [name,bone] of view.bones){
+    if(/^(?:thumb|index|middle|ring|pinky|finger|toe)/.test(name)){
+      const side=name.endsWith('_l')?-1:1;
+      rotate(view,name,X,breath*.025+
+        (attack?.wind||0)*.035+(attack?.reach||0)*-.06,rootQ);
+    }
+  }
   // Exposed for browser QA & animation inspection, never consumed by combat.
-  view.poseMetrics={
+  view.poseMetrics={...jointBends,
     state:a.state,hipTwist,torsoTwist,lean:pitch,walk:drive,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
