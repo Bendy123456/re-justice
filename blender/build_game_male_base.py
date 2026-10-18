@@ -47,7 +47,10 @@ bpy.ops.export_scene.gltf(
 assert len(rig.data.bones)>=60
 # Render preview using the actual glTF source geometry and approved material.
 c=bpy.context.scene
-c.render.engine='BLENDER_EEVEE_NEXT' if bpy.app.version[0]>=4 and bpy.app.version[1]>=2 else 'BLENDER_EEVEE'
+c.render.engine='CYCLES'
+c.cycles.samples=12
+c.cycles.use_denoising=False
+bpy.context.view_layer.cycles.use_denoising=False
 c.render.resolution_x=700;c.render.resolution_y=880;c.render.resolution_percentage=100
 c.world.use_nodes=True
 c.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.035,.05,.08,1)
