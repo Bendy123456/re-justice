@@ -1,0 +1,87 @@
+name: Build anatomically female Quaternius base
+on:
+  push:
+    branches: [female-anatomy-v2]
+    paths:
+      - 'blender/build_game_female_base.py'
+      - 'blender/bald_head_sculpt.py'
+      - '.github/workflows/female-v2-build.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: female-v2-anatomy-asset
+  cancel-in-progress: false
+jobs:
+  female:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: female-anatomy-v2
+      - name: Install headless Blender and NumPy
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-numpy python3-pil
+      - name: Download approved CC0 humanoid source
+        run: |
+          mkdir -p blender/resources assets/models
+          curl -fLsS --retry 3 --max-time 90 -o blender/resources/cc0_female.glb https://raw.githubusercontent.com/glanderness/BeefTV/main/web/public/canvas/models/quaternius-standard-female.glb
+          test -s blender/resources/cc0_female.glb
+      - name: Sculpt, rig, render and export female GLB
+        run: |
+          blender --background --factory-startup --python-exit-code 1 --python blender/build_game_female_base.py > /tmp/female-blender.log 2>&1 || (tail -100 /tmp/female-blender.log && exit 1)
+          tail -30 /tmp/female-blender.log
+      - name: Verify art output and game mappings
+        run: |
+          test -s assets/models/female-unarmored.glb
+          test -s assets/models/female-unarmored.blend
+          test -s assets/models/female-unarmored-preview.png
+          test -s assets/models/female-face-preview.png
+          test -s assets/models/female-front-preview.png
+          test -s assets/models/female-profile-preview.png
+          node --check glb-visuals.js
+          node --check model-assets.js
+          node model-tests.cjs
+          node smoke-tests.cjs
+      - name: Produce smaller JPEG QA previews
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64
+          folder=Path('assets/models')
+          for name in ('female-unarmored-preview','female-face-preview','female-front-preview','female-profile-preview'):
+            im=Image.open(folder/(name+'.png')).convert('RGB')
+            im.thumbnail((600,720))
+            dest=folder/(name+'-qa.jpg')
+            im.save(dest,quality=78,optimize=True)
+            (folder/(name+'-qa.base64.txt')).write_text(base64.b64encode(dest.read_bytes()).decode('ascii'))
+            print(dest.name, dest.stat().st_size)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: female-unarmored-blender-source-and-glb
+          path: |
+            assets/models/female-unarmored.blend
+            assets/models/female-unarmored.glb
+            assets/models/female-unarmored-preview.png
+            assets/models/female-face-preview.png
+            assets/models/female-front-preview.png
+            assets/models/female-profile-preview.png
+          retention-days: 30
+      - name: Save female Blender deliverables to review branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          sha256sum assets/models/female-unarmored.glb > /tmp/female-model-checksum.txt
+          mkdir -p /tmp/female-asset-results
+          cp -a assets/models/female-* /tmp/female-asset-results/
+          git fetch origin female-anatomy-v2
+          git reset --hard origin/female-anatomy-v2
+          mkdir -p assets/models
+          cp -a /tmp/female-asset-results/. assets/models/
+          git add assets/models/female-*
+          git diff --cached --quiet || git commit -m "Genuine Quaternius female sculpt for all eight female fighters [skip ci]"
+          git push origin HEAD:female-anatomy-v2
