@@ -596,6 +596,12 @@
       }
     }
     title(){
+      // Working replacement menu: mode art and all hover/focus animation
+      // live in menu-redesign.js, while settings/selection/fight remain here.
+      if(FG.MenuRedesign?.draw){
+        FG.MenuRedesign.draw(this.ctx,this.game);
+        return;
+      }
       const c=this.ctx,g=this.game;
       this.titleBackdrop();this.topStatusBar();
       c.fillStyle='rgba(4,11,20,.74)';c.fillRect(0,60,104,660);
