@@ -50,43 +50,49 @@ def mesh(name,vs,fs,m):
 # A seamless, embedded grass texture for the primary FLAT floor.
 # No online image assets or Blender-only shader features: the PNG is embedded
 # in the GLB so the browser renders exactly the same grass as Blender.
-TEX_SIZE=384
-TILE_METERS=10.0
+TEX_SIZE=768
+TILE_METERS=8.0
 def turf_image():
+    """Higher-frequency grass color without an expensive geometry multiplier.
+
+    Four layered periodic frequencies form gentle lawn color variation,
+    thousands of small blade-like marks, and occasional dry clippings.
+    Tiled UVs remain stable and the image is embedded in glTF.
+    """
     p=os.path.join(OUTPUT,"grass-turf.png")
     rng=random.Random(SEED+229)
-    img=bpy.data.images.new("Seamless short meadow grass",TEX_SIZE,TEX_SIZE,alpha=True)
+    img=bpy.data.images.new("Fine-grained natural meadow turf",
+                            TEX_SIZE,TEX_SIZE,alpha=True)
     pixels=[0.0]*(TEX_SIZE*TEX_SIZE*4)
-    def noise(x,y):
-        # Periodic modulation avoids obvious horizontal/vertical tiling edges.
-        u=2*pi*x/TEX_SIZE;v=2*pi*y/TEX_SIZE
-        return (.47*sin(3*u+1.5*cos(2*v))+
-                .32*sin(7*v-3*u)+.17*sin(12*u+9*v)+
-                .12*sin(19*u-12*v))
+    tau=2*pi
     for y in range(TEX_SIZE):
+        v=tau*y/TEX_SIZE
+        # Vary blade clusters using multiple scales, not a checker pattern.
         for x in range(TEX_SIZE):
-            n=noise(x,y)
-            scatter=rng.uniform(-.085,.085)
-            blade=sin((x*2.37+y*.91)%6.283)*.018
-            m=n*.078+scatter+blade
-            k=(y*TEX_SIZE+x)*4
-            pixels[k]=max(.045,min(.53,.205+m*.75))
-            pixels[k+1]=max(.095,min(.69,.36+m))
-            pixels[k+2]=max(.034,min(.45,.138+m*.60))
-            pixels[k+3]=1.0
+            u=tau*x/TEX_SIZE
+            broad=.52*sin(3*u+1.5*cos(2*v))+.28*sin(6*v-3*u)
+            middle=.21*sin(13*u+9*v)+.15*sin(24*u-18*v)
+            fine=.08*sin(57*u+42*v)+.065*sin(84*v-29*u)
+            fleck=rng.uniform(-.064,.064)
+            dry=1 if rng.random()<.005 else 0
+            spread=(broad+middle)*.067+fine*.35+fleck
+            i=(y*TEX_SIZE+x)*4
+            pixels[i]=max(.05,min(.49,.22+spread*.68+dry*.12))
+            pixels[i+1]=max(.12,min(.68,.392+spread-dry*.025))
+            pixels[i+2]=max(.025,min(.40,.147+spread*.51+dry*.045))
+            pixels[i+3]=1
     img.pixels.foreach_set(pixels)
-    img.filepath_raw=p
-    img.file_format='PNG'
-    img.save()
+    img.filepath_raw=p;img.file_format='PNG';img.save()
     texture=bpy.data.images.load(p,check_existing=False)
     texture.colorspace_settings.name='sRGB'
     bsdf=ground.node_tree.nodes.get('Principled BSDF')
     tex=ground.node_tree.nodes.new('ShaderNodeTexImage')
     tex.image=texture
-    tex.interpolation='Linear'
-    tex.extension='REPEAT'
+    tex.interpolation='Linear';tex.extension='REPEAT'
     ground.node_tree.links.new(tex.outputs['Color'],bsdf.inputs['Base Color'])
+    print('HIGH_DETAIL_TURF_QA',TEX_SIZE,'pixels','tile_m',TILE_METERS)
     return p
+
 turf_image()
 
 # Ground is a single concentric mesh, slightly displaced for visible natural
@@ -167,7 +173,7 @@ wall_details(RADIUS,WALL_HEIGHT)
 
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=12
+scene.cycles.samples=16
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=960;scene.render.resolution_y=540
@@ -197,6 +203,13 @@ cam.location=(10,-13,5.9)
 cam.rotation_euler=(Vector((0,0,4.5))-cam.location).to_track_quat("-Z","Y").to_euler()
 camd.ortho_scale=18
 scene.render.filepath=os.path.join(OUTPUT,"training-tree-trunk.png")
+bpy.ops.render.render(write_still=True)
+# Ground-level close-up to verify small blades and stone surface detail
+# at the viewing height of a moving player, not only distant aerial previews.
+cam.location=(-23,-19,4.4)
+cam.rotation_euler=(Vector((-21,-30,2.1))-cam.location).to_track_quat("-Z","Y").to_euler()
+camd.ortho_scale=22
+scene.render.filepath=os.path.join(OUTPUT,"training-wall-grass-detail.png")
 bpy.ops.render.render(write_still=True)
 # Export just 3D arena meshes (exclude preview lights and cameras).
 bpy.ops.object.select_all(action="DESELECT")
