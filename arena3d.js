@@ -110,15 +110,15 @@ class Arena3D {
       this.renderer.setSize(1280,720,false);
       this.renderer.outputColorSpace=THREE.SRGBColorSpace;
       this.renderer.toneMapping=THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure=1.20;
+      this.renderer.toneMappingExposure=.86;
       this.scene=new THREE.Scene();
       this.scene.background=new THREE.Color('#add3f0');
-      this.scene.fog=new THREE.FogExp2('#b8d6cf',.0055);
+      this.scene.fog=new THREE.FogExp2('#afc9d3',.0036);
       this.camera=new THREE.PerspectiveCamera(58,1280/720,.08,200);
-      this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,2.2));
-      const sunlight=new THREE.DirectionalLight(0xffebbf,3.2);
+      this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,1.55));
+      const sunlight=new THREE.DirectionalLight(0xffe7b5,2.15);
       sunlight.position.set(-28,48,-24);this.scene.add(sunlight);
-      const edge=new THREE.DirectionalLight(0xa7cfff,.75);
+      const edge=new THREE.DirectionalLight(0xa7cfff,.56);
       edge.position.set(23,15,16);this.scene.add(edge);
       const blob=document.createElement('canvas');
       blob.width=128;blob.height=128;
@@ -136,7 +136,7 @@ class Arena3D {
   async loadAssets(){
     try{
       const files=[
-        'assets/arena/training-ground.glb',
+        'assets/arena/training-ground.glb?v=2',
         'assets/models/male-unarmored.glb',
         'assets/models/female-unarmored.glb',
         'assets/models/batman-armored.glb'
