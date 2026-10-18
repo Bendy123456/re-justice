@@ -1,0 +1,103 @@
+name: Build stone slab walls and grassy Blender arena
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'blender/build_training_arena.py'
+      - 'blender/arena_polish.py'
+      - 'blender/tree_artist.py'
+      - '.github/workflows/stone-grass-arena-build.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rejustice-stone-grass-main-build
+  cancel-in-progress: false
+
+jobs:
+  blender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Blender and preview utilities
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends blender python3-pil
+      - name: Verify Python build scripts
+        run: |
+          python3 -m py_compile blender/build_training_arena.py blender/arena_polish.py blender/tree_artist.py
+      - name: Generate actual edit-ready Blender scene and embedded-texture GLB
+        run: |
+          mkdir -p assets/arena
+          blender --background --factory-startup --python-exit-code 1 --python blender/build_training_arena.py > /tmp/rejustice-blender.log 2>&1 || (tail -130 /tmp/rejustice-blender.log && exit 1)
+          tail -45 /tmp/rejustice-blender.log
+          grep 'GRASS_QA' /tmp/rejustice-blender.log
+          grep 'STONE_SLAB_WALL_QA' /tmp/rejustice-blender.log
+          grep 'TRAINING_GROUND_SUCCESS' /tmp/rejustice-blender.log
+          test -s assets/arena/training-ground.glb
+          test -s assets/arena/training-ground.blend
+          test -s assets/arena/training-ground-preview.png
+          test -s assets/arena/grass-turf.png
+      - name: Validate exported grass texture and actual stone materials
+        run: |
+          python3 - <<'PY'
+          import json,struct
+          from pathlib import Path
+          glb=Path('assets/arena/training-ground.glb').read_bytes()
+          assert glb[:4]==b'glTF' and len(glb)>100000
+          n=struct.unpack_from('<I',glb,12)[0]
+          assert glb[16:20]==b'JSON'
+          data=json.loads(glb[20:20+n].decode('utf-8'))
+          names=[m.get('name','') for m in data.get('materials',[])]
+          assert any('GRASS' in x for x in names),names
+          assert any('WALL SLAB' in x for x in names),names
+          assert data.get('textures') and data.get('images'), 'Embedded grass texture absent'
+          print('EXPORTED_GRASS_STONE_QA',len(glb),'bytes',
+              len(data.get('materials',[])),'materials',
+              len(data.get('textures',[])),'textures')
+          PY
+      - name: Create lightweight art-review image and source data
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import base64
+          p=Path('assets/arena')
+          im=Image.open(p/'training-ground-preview.png').convert('RGB')
+          im.thumbnail((900,600))
+          im.save(p/'training-ground-review.jpg',quality=78,optimize=True)
+          (p/'training-ground-review.base64.txt').write_text(
+            base64.b64encode((p/'training-ground-review.jpg').read_bytes()).decode('ascii'))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rejustice-stone-slab-grass-blender-source
+          path: |
+            assets/arena/training-ground.blend
+            assets/arena/training-ground.glb
+            assets/arena/training-ground-preview.png
+            assets/arena/training-ground-review.jpg
+            assets/arena/grass-turf.png
+          retention-days: 30
+      - name: Commit new Blender assets to live main branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/new-arena
+          cp assets/arena/training-ground.blend /tmp/new-arena/
+          cp assets/arena/training-ground.glb /tmp/new-arena/
+          cp assets/arena/training-ground-preview.png /tmp/new-arena/
+          cp assets/arena/training-ground-review.jpg /tmp/new-arena/
+          cp assets/arena/training-ground-review.base64.txt /tmp/new-arena/
+          cp assets/arena/grass-turf.png /tmp/new-arena/
+          git fetch origin main
+          git reset --hard origin/main
+          cp /tmp/new-arena/* assets/arena/
+          git add assets/arena/training-ground.blend assets/arena/training-ground.glb assets/arena/training-ground-preview.png assets/arena/training-ground-review.jpg assets/arena/training-ground-review.base64.txt assets/arena/grass-turf.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Export stone slab walls and meadow grass into live 3D arena [skip ci]"
+            git push origin HEAD:main
+          fi
