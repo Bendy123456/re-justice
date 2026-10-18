@@ -31,10 +31,10 @@ def mat(name,rgb,rough=.8):
     m.diffuse_color=(*rgb,1)
     return m
 ground=mat("Meadow turf | textured living grass",(.22,.40,.18),.99)
-earth=mat("Damp garden earth | perimeter",(.26,.25,.20))
-stone=[mat("Stone slab structural core "+str(i),col) for i,col in enumerate([
- (.28,.30,.28),(.30,.32,.30),(.33,.34,.32),(.29,.32,.32)])]
-wall_trim=mat("Stone slab cap | weathered limestone",(.54,.54,.50))
+earth=mat("Stone-edge shaded soil | perimeter",(.28,.29,.29))
+stone=[mat("Stone slab structural core "+str(i),(.36,.37,.38),.94)
+       for i in range(4)]
+wall_trim=mat("Stone slab cap | medium neutral gray",(.400,.409,.420),.93)
 bark=mat("Tree bark | warm walnut",(.245,.138,.079))
 bark_light=mat("Tree bark roots | copper",(.36,.212,.116))
 leaves=[mat("Leaf cluster "+str(i),col) for i,col in enumerate([
