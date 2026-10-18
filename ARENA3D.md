@@ -60,3 +60,18 @@ Striker recreation. The following still need dedicated tuning:
 
 Collision and browser smoke tests passing does not guarantee all devices
 are free of bugs. Leave the separate 2D fallback in place while testing.
+
+## Full-body fighter animations
+
+The arena uses the authored, frame-aware animation system in `arena-animator.js`.
+This animates the original Blender-exported 65-bone male, female, and Batman rigs
+without modifying frame data, hitbox timing, or Blender mesh assets.
+Movement is distance-driven (feet stop when blocked against arena geometry)
+with pelvis rotation, opposing rib/shoulder motion, leg recovery, foot tilt,
+and breath/idle transitions. Dashes have a forward sprint lean and arm drive.
+Light jabs, medium crosses, and heavy hooks have distinct windup/impact/recoil
+shapes, planted legs, hip drive, rib rotation, and a guarded opposite hand.
+
+These are runtime joint animations, not separate baked Blender Action clips.
+The real-browser movement test includes visual joint regression checks and
+records PNG screenshots as GitHub Actions artifacts.
