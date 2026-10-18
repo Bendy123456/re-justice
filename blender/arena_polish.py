@@ -82,105 +82,134 @@ def cylinder_ribbon(p,mat,r0,r1,a0,a1,z0,z1):
        (r0*math.cos(a0),r0*math.sin(a0),z1))
 
 def ground_details(radius=34.0):
-    rng=random.Random(SEED)
-    sands=[
-        paint('Packed earth ochre 01',(0.47,.36,.24)),
-        paint('Packed earth ochre 02',(0.53,.41,.28)),
-        paint('Packed earth warm sand',(0.58,.47,.34)),
-        paint('Packed earth cool clay',(0.44,.39,.32)),
-        paint('Packed earth pale straw',(0.61,.51,.37)),
-        paint('Packed earth moss undertone',(0.43,.44,.32)),
-        paint('Packed earth compact midtone',(0.50,.42,.31)),
+    """Little REAL grass tufts over a seamless textured lawn.
+
+    This has no raised ground collider. Every tuft is a small Blender triangle,
+    not a repeated billboard particle, so the exported GLB needs no extensions.
+    The main seamless grass PNG is applied to the flat radial floor in
+    build_training_arena.py. Absolutely no checkerboard or brown dirt tiles.
+    """
+    rng=random.Random(SEED+333)
+    dark=paint('GRASS | soft forest undersides',(.14,.31,.12),.99)
+    mids=[
+        paint('GRASS | blade spring 01',(.22,.41,.17),.99),
+        paint('GRASS | blade spring 02',(.27,.47,.19),.99),
+        paint('GRASS | blade meadow 03',(.31,.49,.22),.99),
+        paint('GRASS | blade shaded 04',(.17,.35,.16),.99),
     ]
-    accent=paint('Engraved training ring • sandstone',(0.37,.34,.25))
-    dust=paint('Scattered worn earth grains',(0.39,.33,.25))
-    moss=paint('Ground-edge moss wash',(0.31,.39,.26))
+    clover=paint('GRASS | low field clover',(.24,.43,.19),.99)
     p=Painter()
-    # One perfectly flush navigable ground plane rendered as tessellated earth
-    # bands, with variations too shallow to alter foot placement.
-    for k in range(GROUND_BANDS):
-        r0=1.05+(radius-1.95)*k/GROUND_BANDS
-        r1=1.05+(radius-1.95)*(k+1)/GROUND_BANDS
-        for i in range(GROUND_SECTORS):
-            a0=2*PI*i/GROUND_SECTORS
-            a1=2*PI*(i+1)/GROUND_SECTORS
-            v=math.sin(i*.63+k*3.79)+.7*math.sin(i*.17-k*.93)
-            variant=int(abs(v)*2.1+rng.randint(0,2))%len(sands)
-            ring_quad(p,sands[variant],r0,r1,a0,a1,-.057)
-    # Smooth center also visually detailed under the single tree.
-    ring_quad(p,sands[1],0,1.07,0,2*PI,-.057)
-    # Ancient rings mark a training court with no obstacle or raised step.
-    for radius_line in (4.1,6.1,11.9,22.2,29.4):
-        for i in range(160):
-            a=2*PI*i/160
-            b=2*PI*(i+1)/160
-            ring_quad(p,accent,radius_line-.06,radius_line+.06,a,b,-.047)
-    # Partial narrow cracks and worn scratch streaks break up the radial tiles.
-    for i in range(235):
-        r=rng.uniform(5.0,31)
+    # Very subtle patches of close-spaced ground cover, especially near
+    # camera height; grass is short enough for feet to stay on level terrain.
+    tufts=14500
+    for k in range(tufts):
         a=rng.uniform(0,2*PI)
-        leng=rng.uniform(.25,1.7)
-        a1=a+leng/max(r,4)
-        ring_quad(p,dust,r,r+rng.uniform(.016,.044),a,a1,-.045)
-    # Moss stays near the outer boundary (flush geometric decal only).
-    for i in range(100):
-        a=rng.uniform(0,2*PI)
-        width=rng.uniform(.012,.072)
-        r=rng.uniform(30,31.9)
-        ring_quad(p,moss,r,r+rng.uniform(.06,.35),a,a+width,-.044)
-    out=p.finish('FLOOR polished anime terrain')
-    print('FLOOR_QA',sum(len(o.data.polygons) for o in out),'faces',len(out),'materials')
+        r=math.sqrt(rng.random())*(radius-1.65)
+        # Don't bury important tree roots in grass near its central trunk.
+        if r<3.7:continue
+        x,y=r*math.cos(a),r*math.sin(a)
+        base_z=-.086
+        h=rng.uniform(.045,.12)
+        width=rng.uniform(.018,.052)
+        heading=rng.uniform(0,2*PI)
+        m=mids[(k+rng.randrange(4))%len(mids)]
+        for b in range(3):
+            t=heading+b*2*PI/3
+            dx,dy=math.cos(t),math.sin(t)
+            tipx=x+dx*h*.29
+            tipy=y+dy*h*.29
+            left=(x-dy*width/2,y+dx*width/2,base_z)
+            right=(x+dy*width/2,y-dx*width/2,base_z)
+            tip=(tipx,tipy,base_z+h*(.8+.13*b))
+            p.triangle(m if b<2 else dark,left,right,tip)
+        if k%26==0:
+            # Tiny low clover leaves for uneven meadow ground detail.
+            size=rng.uniform(.035,.082)
+            for j in range(3):
+                t=heading+j*2*PI/3
+                p.triangle(clover,(x,y,base_z+.015),
+                    (x+math.cos(t-.37)*size,y+math.sin(t-.37)*size,base_z+.014),
+                    (x+math.cos(t+.37)*size,y+math.sin(t+.37)*size,base_z+.014))
+    out=p.finish('GRASS short natural turf')
+    print('GRASS_QA',tufts,'tufts',sum(len(o.data.polygons) for o in out),
+          'triangles',len(out),'materials')
 
 def wall_details(radius=34.0,height=12.5):
+    """Big individual cut-stone slabs with deep recessed staggered joints.
+
+    Five roughly 2.3-meter-high courses; forty massive slabs around each ring,
+    rather than hundreds of tiny multicoloured bricks. The dark underlying
+    continuous wall closes all joints and keeps the playfield sealed.
+    """
     rng=random.Random(SEED+8)
-    mortar=paint('Deep masonry joints • slate taupe',(0.34,.38,.36))
-    brick=[
-      paint('Aged limestone face 01',(0.56,.55,.48)),
-      paint('Aged limestone face 02',(0.61,.59,.51)),
-      paint('Aged limestone face 03',(0.48,.51,.48)),
-      paint('Aged limestone face 04',(0.51,.52,.48)),
-      paint('Aged limestone face 05',(0.60,.61,.56)),
-      paint('Aged limestone face 06',(0.44,.49,.46)),
+    joint=paint('WALL SLAB | deep charcoal mortar',(.17,.20,.19),.99)
+    slab=[
+        paint('WALL SLAB | weathered limestone light',(.55,.56,.52)),
+        paint('WALL SLAB | pale cool granite',(.48,.52,.51)),
+        paint('WALL SLAB | warm buff sandstone',(.54,.50,.43)),
+        paint('WALL SLAB | grey ashlar stone',(.43,.46,.45)),
+        paint('WALL SLAB | old stone ochre',(.50,.48,.43)),
+        paint('WALL SLAB | moss stained rock',(.38,.44,.39)),
+        paint('WALL SLAB | chalk highlight',(.60,.60,.55)),
+        paint('WALL SLAB | storm worn grey',(.44,.48,.48)),
     ]
-    bevel=paint('Stone cut top highlights',(0.71,.70,.61))
-    dark=paint('Stone chiseled shadow',(0.36,.39,.37))
-    pillar=paint('Pillar sandstone face',(0.60,.61,.56))
+    bevel=paint('WALL SLAB | cut upper bevel',(.64,.65,.60))
+    shadow=paint('WALL SLAB | chipped underside',(.29,.33,.32))
+    moss=paint('WALL SLAB | dark seam moss',(.21,.30,.23))
+    pillar=paint('WALL SLAB | broad structural buttress',(.51,.52,.49))
     p=Painter()
-    # Each brick course is offset one half brick; all raised relief is OUTSIDE
-    # physical fighters' collision radius (inside wall face r >= 33.84).
-    for level in range(WALL_COURSES):
-        z0=.60 + (height-.86)*level/WALL_COURSES
-        z1=.60 + (height-.86)*(level+1)/WALL_COURSES
-        for i in range(WALL_BRICKS_PER_RING):
-            off=.5 if level%2 else 0
-            a0=2*PI*(i+off+.014)/WALL_BRICKS_PER_RING
-            a1=2*PI*(i+1+off-.014)/WALL_BRICKS_PER_RING
-            if a1>2*PI: a1-=2*PI  # trig periodic, seam remains watertight
-            inset=radius-(.066+rng.random()*.048)
-            c=brick[(i*7+level*13+rng.randrange(3))%len(brick)]
-            cylinder_ribbon(p,c,inset,radius+.035,a0,a1,z0+.035,z1-.035)
-            cylinder_ribbon(p,bevel,inset-.012,inset,a0+.003,a1-.003,z1-.10,z1-.034)
-    # Faint cut-stone lines break the original 12-meter-high flat vertical wall.
-    for z in (3.68,6.90,10.12):
-        for i in range(128):
-            a0=2*PI*i/128
-            a1=2*PI*(i+1)/128
-            cylinder_ribbon(p,dark,radius-.13,radius,a0,a1,z-.065,z+.035)
-            cylinder_ribbon(p,bevel,radius-.16,radius,a0,a1,z+.045,z+.11)
-    # Massive structural buttresses tie masonry courses together, spaced
-    # regularly like a dojo perimeter. They are just wall decoration, not props.
-    for i in range(COLUMN_COUNT):
-        center=2*PI*i/COLUMN_COUNT
-        half=.022
-        a0=center-half;a1=center+half
-        cylinder_ribbon(p,pillar,radius-.39,radius+.4,a0,a1,.12,height+.30)
-        cylinder_ribbon(p,bevel,radius-.49,radius+.46,a0-.006,a1+.006,3.2,3.55)
-        cylinder_ribbon(p,bevel,radius-.49,radius+.46,a0-.006,a1+.006,8.80,9.12)
-        cylinder_ribbon(p,dark,radius-.42,radius+.46,a0-.003,a1+.003,.45,.60)
-        # Pseudo-engraved vertical inset on each column centerline.
-        cylinder_ribbon(p,dark,radius-.415,radius-.385,center-.004,center+.004,4,8.3)
-    outputs=p.finish('WALL carved multi-course blocks')
-    print('WALL_QA',sum(len(o.data.polygons) for o in outputs),'faces',len(outputs),'materials')
+    n=40;courses=5
+    course_height=(height-.37)/courses
+    # One recessed charcoal mortar shadow ribbon across the whole wall.
+    for i in range(n):
+        a0=2*PI*i/n;a1=2*PI*(i+1)/n
+        cylinder_ribbon(p,joint,radius-.07,radius+.03,a0,a1,.10,height+.12)
+    for level in range(courses):
+        bottom=.12+level*course_height
+        top=.12+(level+1)*course_height
+        for i in range(n):
+            # Stagger each row by half of a 5-meter-long slab.
+            offset=.5 if level%2 else 0
+            a0=2*PI*(i+offset+.014)/n
+            a1=2*PI*(i+offset+1-.014)/n
+            face_r=radius-.21-rng.uniform(-.021,.023)
+            z0=bottom+.045+rng.uniform(0,.026)
+            z1=top-.052-rng.uniform(0,.026)
+            material=slab[(i*9+level*7+rng.randrange(len(slab)))%len(slab)]
+            cylinder_ribbon(p,material,face_r,radius+.11,a0,a1,z0,z1)
+            # Raised bevel on upper edge and dark undercut on lower edge.
+            cylinder_ribbon(p,bevel,face_r-.014,face_r,a0+.002,a1-.002,
+                            z1-.10,z1-.025)
+            cylinder_ribbon(p,shadow,face_r-.011,face_r+.018,a0+.002,a1-.002,
+                            z0+.015,z0+.064)
+            # A few moss patches in seams, not endless grid-like repetition.
+            if level<2 and (i*3+level)%7==0:
+                width=rng.uniform(.045,.11)
+                cylinder_ribbon(p,moss,face_r-.017,face_r,
+                   a0+width*.15,a0+width*.75,z0+.073,
+                   z0+rng.uniform(.23,.48))
+    # Heavy roofline capstones read as actual cut blocks from below.
+    for i in range(n):
+        a0=2*PI*(i+.012)/n;a1=2*PI*(i+.988)/n
+        cylinder_ribbon(p,slab[(i+3)%len(slab)],radius-.35,radius+.31,
+                        a0,a1,height-.05,height+.44)
+        cylinder_ribbon(p,bevel,radius-.40,radius+.32,
+                        a0+.005,a1-.005,height+.35,height+.49)
+    # Twelve giant buttresses tie the slabs together (subtle rather than
+    # the previous constant thin, tiny brick-column geometry).
+    for i in range(12):
+        center=2*PI*i/12
+        a0=center-.023;a1=center+.023
+        cylinder_ribbon(p,pillar,radius-.35,radius+.48,a0,a1,.05,height+.39)
+        cylinder_ribbon(p,bevel,radius-.43,radius+.52,
+                        a0-.002,a1+.002,3.02,3.14)
+        cylinder_ribbon(p,bevel,radius-.43,radius+.52,
+                        a0-.002,a1+.002,8.45,8.58)
+        cylinder_ribbon(p,shadow,radius-.37,radius+.49,
+                        a0-.001,a1+.001,.18,.32)
+    outputs=p.finish('WALL massive staggered stone slabs')
+    print('STONE_SLAB_WALL_QA',n,'slabs per course',courses,'courses',
+          sum(len(o.data.polygons) for o in outputs),'faces',len(outputs),'materials')
 
 def tree_details(tubular,leaf_ball,canopy_center=(.12,.18)):
     rng=random.Random(SEED+43)
