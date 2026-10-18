@@ -290,8 +290,9 @@ def add_leaf(batch,pos,direction,width,length,tilt,seed):
     ]
     faces=[(0,5,2),(5,1,2),(0,2,6),(6,2,3),
            (1,4,2),(2,4,3)]
-    # Double-sided triangles so foliage remains visible when orbiting arena.
-    faces=faces+[tuple(reversed(f)) for f in faces]
+    # The foliage material already exports as double-sided in glTF.
+    # Adding reversed duplicate polygons would waste ~half the leaf geometry
+    # while providing no visible benefit in the browser.
     batch.patch(v,faces)
 
 def make_leaves(wood_tips):
