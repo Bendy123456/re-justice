@@ -11,6 +11,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: write
+concurrency:
+  group: arena-polish-webgl-qa
+  cancel-in-progress: true
 jobs:
   browser:
     runs-on: ubuntu-latest
