@@ -94,12 +94,12 @@ function walkStep(phase){
   const stance=.60;
   if(u<stance){
     const t=u/stance;
-    return {contact:true,travel:lerp(.38,-.38,t),lift:0,
+    return {contact:true,travel:lerp(.495,-.495,t),lift:0,
       roll:t<.18?lerp(.12,0,t/.18):t>.77?lerp(0,-.19,(t-.77)/.23):0,
       support:Math.sin(Math.PI*t)**2};
   }
   const t=(u-stance)/(1-stance);
-  return {contact:false,travel:lerp(-.38,.38,ease(t)),
+  return {contact:false,travel:lerp(-.495,.495,ease(t)),
     lift:.157*Math.sin(Math.PI*t),roll:Math.sin(Math.PI*t)*.13,
     support:0};
 }
@@ -245,8 +245,16 @@ export function poseFighter(view,alpha){
   // Hips initiate the stride and strike; shoulders counter-rotate.
   const hipTwist=(walkingMotion?walkAmount*.16:drive*.19)*stride+
     (attack?.hip||0)+dashKick*.055;
-  const torsoTwist=-(walkingMotion?walkAmount*.14:drive*.16)*stride+
+  // The chest follows the pelvis with a slight delay, then counter-rotates:
+  // ribcage and shoulders should visibly move rather than stay rigid while
+  // arms/legs take longer steps. Preserve combat poses by gating to walk.
+  const torsoTwist=-(walkingMotion?walkAmount*.205:drive*.16)*stride+
     (attack?.twist||0)-dashKick*.075;
+  const chestLead=walkingMotion?walkAmount*sin(strideClock-.42):0;
+  const chestRoll=walkingMotion?
+    (-supportShift*.31+walkAmount*.047*sin(strideClock-.42)):0;
+  const chestPitch=walkingMotion?
+    walkAmount*(.031+.022*cos(2*strideClock+.48)):0;
   const torsoBend=(walkingMotion?walkAmount*(.045+.012*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
   rotate(view,'hips',Y,hipTwist,rootQ);
@@ -254,18 +262,23 @@ export function poseFighter(view,alpha){
   rotate(view,'spine_01',Y,torsoTwist*.31,rootQ);
   rotate(view,'spine_02',Y,torsoTwist*.36,rootQ);
   rotate(view,'spine_03',Y,torsoTwist*.33,rootQ);
-  rotate(view,'spine_01',X,torsoBend*.25,rootQ);
-  rotate(view,'spine_02',X,torsoBend*.45+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',X,torsoBend*.30+(hit?-.13:0),rootQ);
-  rotate(view,'spine_03',Z,(walkingMotion?-supportShift*.26:drive*.046*stride)+
+  rotate(view,'spine_01',X,torsoBend*.25+chestPitch*.15,rootQ);
+  rotate(view,'spine_02',X,torsoBend*.45+chestPitch*.45+(hit?-.13:0),rootQ);
+  rotate(view,'spine_03',X,torsoBend*.30+chestPitch*.40+(hit?-.13:0),rootQ);
+  rotate(view,'spine_01',Z,chestRoll*.20,rootQ);
+  rotate(view,'spine_02',Z,chestRoll*.49,rootQ);
+  rotate(view,'spine_03',Z,chestRoll*.31+
+    (walkingMotion?chestLead*.022:drive*.046*stride)+
     (attack?.twist||0)*-.07,rootQ);
   rotate(view,'neck_01',X,-pitch*(walkingMotion?.37:.21),rootQ);
   rotate(view,'head',Y,-torsoTwist*.16,rootQ);
   rotate(view,'head',X,-pitch*(walkingMotion?.32:.25)+breath*.012,rootQ);
   rotate(view,'clavicle_l',Z,-.025+
-    (walkingMotion?walkAmount*.025:drive*.04)*stride,rootQ);
+    (walkingMotion?walkAmount*.045:drive*.04)*stride,rootQ);
   rotate(view,'clavicle_r',Z,.025-
-    (walkingMotion?walkAmount*.025:drive*.04)*stride,rootQ);
+    (walkingMotion?walkAmount*.045:drive*.04)*stride,rootQ);
+  rotate(view,'clavicle_l',Y,walkingMotion?chestLead*.032:0,rootQ);
+  rotate(view,'clavicle_r',Y,walkingMotion?-chestLead*.032:0,rootQ);
 
   // Neutral idle: arms hang at the sides, never return to boxing guard
   // when movement stops. Guard remains exclusive to blocking/attacks.
@@ -492,7 +505,8 @@ export function poseFighter(view,alpha){
   }
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
-    state:a.state,hipTwist,torsoTwist,lean:pitch,walk:drive,
+    state:a.state,hipTwist,torsoTwist,chestRoll,chestPitch,chestLead,
+    lean:pitch,walk:drive,
     walkContactL:leftStep.contact,walkContactR:rightStep.contact,
     walkLiftL:leftStep.lift,walkLiftR:rightStep.lift,walkBob,
     walkFootL:leftStep.travel,walkFootR:rightStep.travel,
