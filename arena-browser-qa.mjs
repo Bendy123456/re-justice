@@ -12,8 +12,19 @@ page.on('response',r=>{if(r.status()>=400)errors.push('HTTP '+r.status()+' '+r.u
 fs.mkdirSync('arena-qa-images',{recursive:true});
 try{
   await page.goto(process.env.PREVIEW_URL||'http://127.0.0.1:8765/',{waitUntil:'domcontentloaded',timeout:90000});
-  await page.waitForFunction(()=>window.game?.arena3d,{timeout:60000});
-  await page.waitForFunction(()=>window.game?.arena3d?.ready,{timeout:120000});
+  await page.waitForTimeout(4500);
+  console.log('ARENA_BOOT_DIAGNOSTICS',JSON.stringify(await page.evaluate(()=>({
+    documentReady:document.readyState,
+    gamePresent:!!window.game,
+    arenaClass:!!window.FG?.Arena3D,
+    arenaObject:!!window.game?.arena3d,
+    arenaReady:window.game?.arena3d?.ready,
+    arenaError:window.game?.arena3d?.failure,
+    scripts:[...document.scripts].map(x=>x.src).filter(x=>x.includes('arena3d')||x.includes('glb-visuals'))
+  }))));
+  console.log('ARENA_INITIAL_ERRORS',JSON.stringify(errors));
+  await page.waitForFunction(()=>Boolean(window.game?.arena3d),null,{timeout:80000});
+  await page.waitForFunction(()=>Boolean(window.game?.arena3d?.ready),null,{timeout:120000});
   const start=await page.evaluate(()=>{
     const g=window.game;
     g.startMatch({p1:'wonder-woman',p2:'batman',mode:'cpu',stage:'neon-rooftop'});
