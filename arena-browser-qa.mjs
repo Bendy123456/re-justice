@@ -486,6 +486,68 @@ try{
     arena.renderer.render(arena.scene,arena.camera);
   });
   await page.screenshot({path:'arena-qa-images/articulated-male-stride.png'});
+  // Walk arms: measure real wrist travel and elbow flex on BOTH GLB rigs.
+  // This catches the "hands hang still" problem even when the shoulder bone
+  // technically rotates by a tiny amount. Run a complete gait revolution.
+  const armWalkReview=await page.evaluate(()=>{
+    const arena=window.game.arena3d,report=[];
+    const V=()=>arena.views;
+    for(let i=0;i<2;i++){
+      const a=arena.fighters[i],v=V()[i];
+      a.reset(i?-11:11,-7);
+      v.walkWeight=1;v.dashWeight=0;
+      const entries=[];
+      const pos=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+      for(let n=0;n<40;n++){
+        const phase=n*2*Math.PI/40;
+        a.state='walk';a.grounded=true;
+        a.gaitPhase=a.prevGaitPhase=phase;a.animClock++;
+        arena.pose(v,1);
+        const matrix=v.root.matrixWorld.elements;
+        const front=new THREE.Vector3(matrix[8],matrix[9],matrix[10]);
+        const right=new THREE.Vector3(matrix[0],matrix[1],matrix[2]);
+        const chest=pos('spine_02');
+        const arms=['l','r'].map(side=>{
+          const hand=pos('hand_'+side),shoulder=pos('upperarm_'+side);
+          const s=v.armSides[side];
+          const elbow=pos('lowerarm_'+side);
+          return {side,
+            travel:hand.clone().sub(shoulder).dot(front),
+            handOutside:s*hand.clone().sub(chest).dot(right),
+            elbowOutside:s*elbow.clone().sub(chest).dot(right),
+            bend:v.poseMetrics['elbow'+side.toUpperCase()],
+            wrist:v.bones.get('hand_'+side).quaternion.toArray(),
+            shoulder:v.bones.get('upperarm_'+side).quaternion.toArray()};
+        });
+        entries.push({phase,arms});
+      }
+      const stats=['l','r'].map((side,j)=>{
+        const a=entries.map(x=>x.arms[j]);
+        const range=key=>Math.max(...a.map(x=>x[key]))-Math.min(...a.map(x=>x[key]));
+        const qdistance=(x,y)=>Math.hypot(...x.map((v,i)=>v-y[i]));
+        return {side,travelRange:range('travel'),
+          elbowRange:range('bend'),
+          minOutside:Math.min(...a.map(x=>x.handOutside)),
+          minElbowOutside:Math.min(...a.map(x=>x.elbowOutside)),
+          wristTravel:qdistance(a[10].wrist,a[30].wrist),
+          shoulderTravel:qdistance(a[10].shoulder,a[30].shoulder),
+          atForwardStep:a[10].travel,atRearStep:a[30].travel};
+      });
+      report.push({model:v.key,stats});
+    }
+    return report;
+  });
+  console.log('REAL_WALK_ARM_SWING_QA',JSON.stringify(armWalkReview));
+  if(armWalkReview.some(v=>v.stats.some(a=>
+    a.travelRange<.28||a.elbowRange<.27||
+    a.wristTravel<.07||a.shoulderTravel<.09||
+    a.minOutside<.17||a.minElbowOutside<.16||
+    // Opposite-leg timing: left arm back when left leg reaches forward,
+    // right arm forward at that same instant.
+    (a.side==='l' && a.atForwardStep>=a.atRearStep)||
+    (a.side==='r' && a.atForwardStep<=a.atRearStep))))
+      throw Error('Male/female walk hands must swing and elbows must visibly bend without chest clipping');
+
   // Walk-specific biomechanics checks: planted foot has no clearance lift,
   // the opposite foot lifts; knees bend independently and the pelvis transfers
   // weight twice per stride. These are actual rendered-GLB measurements.
