@@ -656,7 +656,10 @@
       label(c,`P1  ${g.selectLocked[1]?'LOCKED':'SELECT'}    ·    P2  ${g.mode==='cpu'?'CPU':g.selectLocked[2]?'LOCKED':'SELECT'}`,640,659,15,'#e0e3e9','center','700');
       const button=g.input?.glyph(1,'light')||'J',confirm=g.input?.glyph(1,'power')||'H';
       label(c,`MOVE  WASD / ARROWS / D-PAD     •     PICK  ${button} / ${confirm}     •     FIGHT  ENTER / START`,640,680,13,'#aeb9c7','center','700');
-      label(c,`STAGE: ${map.name.toUpperCase()}  [T / TAB]       ${g.mode==='cpu'?'1 PLAYER · VS CPU':'2 PLAYERS · LOCAL VERSUS'}       ESC · BACK`,640,700,12,'#929daa','center','700');
+      const threeReady=g.mode==='cpu'&&g.arena3d?.ready;
+      const stageLabel=threeReady?'STAGE: ANCIENT TRAINING GROUNDS · 3D LOCK-ON ARENA  ·  1V1 VS CPU':
+        'STAGE: '+map.name.toUpperCase()+' [T / TAB] · '+(g.mode==='cpu'?'1 PLAYER · VS CPU':'LOCAL VERSUS');
+      label(c,stageLabel+'       ESC · BACK',640,700,12,'#929daa','center','700');
       if(g.mode!=='cpu'&&!(g.input?.keyboardJoined[2]||g.input?.padSlots[2]!==null)){
         label(c,'P2 · PRESS A KEY OR CONTROLLER BUTTON TO JOIN',640,34,15,'#b5d2e8','center','700');
       }
