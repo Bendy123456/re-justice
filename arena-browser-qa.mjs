@@ -504,8 +504,8 @@ try{
         a.gaitPhase=a.prevGaitPhase=phase;a.animClock++;
         arena.pose(v,1);
         const matrix=v.root.matrixWorld.elements;
-        const front=new THREE.Vector3(matrix[8],matrix[9],matrix[10]);
-        const right=new THREE.Vector3(matrix[0],matrix[1],matrix[2]);
+        const front=v.root.position.clone().set(matrix[8],matrix[9],matrix[10]);
+        const right=v.root.position.clone().set(matrix[0],matrix[1],matrix[2]);
         const chest=pos('spine_02');
         const arms=['l','r'].map(side=>{
           const hand=pos('hand_'+side),shoulder=pos('upperarm_'+side);
