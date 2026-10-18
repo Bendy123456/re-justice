@@ -4,7 +4,7 @@ No imported IP assets, no props, no physical dependencies.
 Exports real, reusable GLB (visuals only; gameplay has simple analytic colliders).
 Blender coordinate system Z-up -> glTF and Three.js Y-up automatically.
 """
-import bpy, math, os, random
+import bpy, math, os, random, sys
 from mathutils import Vector
 from math import sin,cos,pi
 SEED=20261017
@@ -15,7 +15,7 @@ TREE_TRUNK_RADIUS=1.68
 GROUND_RINGS=9
 WALL_SECTIONS=64
 BRANCH_COUNT=11
-FOLIAGE_COUNT=84
+FOLIAGE_COUNT=105
 OUTPUT=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","assets","arena"))
 os.makedirs(OUTPUT,exist_ok=True)
 random.seed(SEED)
@@ -29,10 +29,10 @@ def mat(name,rgb,rough=.8):
     bsdf.inputs["Roughness"].default_value=rough
     m.diffuse_color=(*rgb,1)
     return m
-ground=mat("Training clay | sunlit ochre",(.50,.385,.245))
+ground=mat("Training clay | sunlit ochre",(.51,.405,.292))
 earth=mat("Earth edge | deeper cinnamon",(.31,.238,.155))
 stone=[mat("Wall sandstone "+str(i),col) for i,col in enumerate([
- (.48,.51,.48),(.53,.55,.51),(.45,.49,.46),(.57,.55,.48)])]
+ (.35,.39,.37),(.36,.40,.38),(.35,.40,.37),(.37,.41,.38)])]
 wall_trim=mat("Wall top | pale stone",(.69,.69,.59))
 bark=mat("Tree bark | warm walnut",(.245,.138,.079))
 bark_light=mat("Tree bark roots | copper",(.36,.212,.116))
@@ -173,17 +173,21 @@ for i in range(FOLIAGE_COUNT):
     leaf_ball("CANOPY | faceted green foliage %02d"%i,x,y,z,
               size*1.4,size*1.15,size*.82,leaves[i%len(leaves)])
 
-# Sparse fitted ground radial detail is painted into the disc shader rather
-# than building extra obstacles that can catch the player.
+# Add high-quality sculpted masonry, carved bark and earthy training-circle
+# designs. Everything is visibly flush: the unchanged 3D fighter collision
+# remains analytic, with no raycasts into rendered decoration.
+sys.path.insert(0,os.path.dirname(__file__))
+from arena_polish import apply as apply_polish
+apply_polish(mesh,tubular,leaf_ball,RADIUS,WALL_HEIGHT)
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
-scene.cycles.samples=12
+scene.cycles.samples=18
 scene.cycles.use_denoising=False
 bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=960;scene.render.resolution_y=540
 scene.render.resolution_percentage=100
 scene.world.use_nodes=True
-scene.world.node_tree.nodes["Background"].inputs["Color"].default_value=(.56,.74,.98,1)
+scene.world.node_tree.nodes["Background"].inputs["Color"].default_value=(.63,.77,.91,1)
 scene.world.node_tree.nodes["Background"].inputs["Strength"].default_value=.82
 sun=bpy.data.lights.new("Sunny anime afternoon","AREA")
 sun.energy=3600;sun.size=28
