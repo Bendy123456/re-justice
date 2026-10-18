@@ -311,7 +311,7 @@ def make_leaves(wood_tips):
     # undersides. Small voids separate independent sprays.
     for p,d,a in wood_tips:
         sprays.append((p+Vector((0,0,.4)),1.0+_rng.uniform(-.1,.5)))
-    for i in range(34):
+    for i in range(30):
         angle=_rng.random()*TAU
         r=math.sqrt(_rng.random())*10.2
         center=Vector((r*math.cos(angle),r*math.sin(angle),
