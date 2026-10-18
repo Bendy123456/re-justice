@@ -1,7 +1,7 @@
 """RE-Justice: Blender-generated grassy hero training grounds.
 
 Continuous textured short grass with tiny tuft meshes and heavy, staggered
-stone-slab perimeter walls. Keeps the existing training tree, scene dimensions,
+full-height light-gray vertical stone-slab perimeter walls. Keeps the existing training tree, scene dimensions,
 analytic combat collisions, Blender source and embedded-texture GLB export.
 Blender Z-up is transformed into Three.js Y-up by glTF.
 """
@@ -32,9 +32,8 @@ def mat(name,rgb,rough=.8):
     return m
 ground=mat("Meadow turf | textured living grass",(.22,.40,.18),.99)
 earth=mat("Stone-edge shaded soil | perimeter",(.28,.29,.29))
-stone=[mat("Stone slab structural core "+str(i),(.36,.37,.38),.94)
-       for i in range(4)]
-wall_trim=mat("Stone slab cap | medium neutral gray",(.400,.409,.420),.93)
+stone=[mat("Stone wall | uniform light-gray backing",(.60,.62,.64),.95)]
+wall_trim=mat("Stone wall | light-gray top trim",(.64,.66,.67),.93)
 bark=mat("Tree bark | warm walnut",(.245,.138,.079))
 bark_light=mat("Tree bark roots | copper",(.36,.212,.116))
 leaves=[mat("Leaf cluster "+str(i),col) for i,col in enumerate([
@@ -143,10 +142,11 @@ for i in range(WALL_SECTIONS):
     b=(i+1)*2*pi/WALL_SECTIONS
     inner=RADIUS
     outer=RADIUS+WALL_THICKNESS
+    # Uniform structural backing only. Vertical face slabs and individual
+    # light gray caps are created in arena_polish.py. No horizontal base
+    # bands or stacks of 64 tiny capstones across the outer wall.
     for part,z0,z1,r0,r1,ma in [
-        (0,-.1,WALL_HEIGHT,inner,outer,stone[i%len(stone)]),
-        (1,WALL_HEIGHT-.16,WALL_HEIGHT+.50,inner-.36,outer+.32,wall_trim),
-        (2,-.10,.54,inner-.42,outer+.24,earth),
+        (0,-.15,WALL_HEIGHT,inner,outer,stone[0]),
     ]:
         vertices=[]
         for z in (z0,z1):
