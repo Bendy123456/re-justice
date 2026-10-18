@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
-import {poseFighter} from './arena-animator.js?v=long-stride-chest-sway-3';
+import {poseFighter} from './arena-animator.js?v=directional-locomotion-4';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
@@ -550,13 +550,16 @@ class Arena3D {
       if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;a.landingFrames=7;}
     }
     constrain(a);
-    // Real travel controls the gait. Longer 0.99m planted-foot sweep means
-    // one cycle now covers substantially more ground than the old 0.76m.
-    // Lower phase-per-meter = fewer, longer leg steps at the SAME run speed.
-    // Keep the separate fast dash rhythm, physics, collisions and controls.
+    // Advance gait by actual displacement, independent of rendering frame rate.
+    // Slow walk: 1.61m/cycle, 62% contact. Full run: 3.05m/cycle, 43%
+    // contact. Keeping the travel/foot-contact distances matched prevents
+    // short choppy legs at sprint speeds and foot sliding at normal speeds.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
-      const stepRate=a.state==='walk'?(2*Math.PI*.60/.99):3.0;
+      const groundSpeed=distance/STEP;
+      const runBlend=clamp((groundSpeed-3.6)/2.7,0,1);
+      const cycleMeters=lerp(1.61,3.05,runBlend);
+      const stepRate=a.state==='dash'?3.0:2*Math.PI/cycleMeters;
       a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
     // Preserve the last travel-facing direction in solo Sandbox when input
@@ -564,7 +567,10 @@ class Arena3D {
     // axis, which made the character snap/turn back to the arena front.
     // In combat, keep the established opponent-facing behavior unchanged.
     const running=a.state==='walk'||a.state==='dash';
-    const desired=running?a.travel:b?forward:null;
+    // Against an opponent keep the fighter facing the rival while stepping
+    // backward/sideways; solo free-roam continues to face travel and keeps
+    // the last heading on release.
+    const desired=b?forward:running?a.travel:null;
     if(desired){
       const desiredYaw=Math.atan2(desired.x,desired.z);
       a.visualYaw=turnTowards(a.visualYaw,desiredYaw,a.attack?.68:running?.25:.20);
