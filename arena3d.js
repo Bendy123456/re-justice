@@ -47,6 +47,7 @@ class Combatant {
     this.health=def.maxHealth;this.meter=0;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
+    this.gaitPhase=this.prevGaitPhase=0;
     this.combo=0;this.comboTicks=0;this.dash=0;this.dashCooldown=0;
     this.dashDirection={x:1,z:0};this.knock={x:0,z:0};this.backpedal=false;
     // Simulation always targets the rival; these are VISUAL locomotion state.
@@ -60,6 +61,7 @@ class Combatant {
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.combo=0;this.comboTicks=0;
     this.dash=0;this.dashCooldown=0;this.dashElapsed=0;this.landingFrames=0;this.backpedal=false;
+    this.gaitPhase=this.prevGaitPhase=0;
     this.facing={x:this.slot===1?1:-1,z:0};
     this.travel={x:0,z:0};
     this.visualYaw=this.prevVisualYaw=Math.PI/2*(this.slot===1?1:-1);
@@ -263,6 +265,7 @@ class Arena3D {
     for(const f of [a,b]){
       f.prevX=f.x;f.prevZ=f.z;f.prevY=f.y;f.animClock++;
       f.prevVisualYaw=f.visualYaw;f.prevLean=f.lean;f.prevBank=f.bank;
+      f.prevGaitPhase=f.gaitPhase;
     }
     this.move(a,b,c1,keys,true);
     this.move(b,a,c2,keys,this.mode!=='cpu');
@@ -345,6 +348,12 @@ class Arena3D {
       if(a.y<=0){a.y=0;a.vy=0;a.grounded=true;a.landingFrames=7;}
     }
     constrain(a);
+    // Feet cycle with the distance ACTUALLY traveled (not the clock), so
+    // holding run against the arena wall does not make the character skate.
+    if(a.state==='walk'||a.state==='dash'){
+      const distance=len(a.x-(a.prevX??a.x),a.z-(a.prevZ??a.z));
+      a.gaitPhase+=Math.min(.5,distance)*2.16;
+    }
     // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
     // and ensures backward/sideways locomotion faces the actual path.
     const running=a.state==='walk'||a.state==='dash';
