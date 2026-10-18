@@ -15,7 +15,7 @@ try{
   await page.waitForFunction(()=>Boolean(window.game?.renderer?.model3d),{timeout:45000});
   await page.waitForFunction(()=>{
     const p=window.game?.renderer?.model3d;
-    return p?.loaded?.has('male')&&p?.loaded?.has('batman');
+    return p?.loaded?.has('male')&&p?.loaded?.has('batman')&&p?.loaded?.has('female');
   },{timeout:85000});
   const state=await page.evaluate(()=>{
     const g=window.game;
@@ -40,7 +40,19 @@ try{
   await page.screenshot({path:'ci-images/base-male-select.png'});
   await page.evaluate(()=>{window.game.p1Id='wonder-woman';});
   await page.waitForTimeout(250);
-  await page.screenshot({path:'ci-images/female-fallback.png'});
+  await page.screenshot({path:'ci-images/female-base-select.png'});
+  const femaleSelect=await page.evaluate(()=>{
+    const p=window.game?.renderer?.model3d;
+    const slot=window.FG.MODEL_ROSTER.FEMALE;
+    const g=window.game;
+    return {femaleLoaded:p.loaded.has('female'),
+      mapped:slot.every(id=>p.modelKey(id)==='female'),
+      selectKind:p.instances.get('select')?.kind,
+      femaleIds:slot};
+  });
+  console.log('Female selection:',JSON.stringify(femaleSelect));
+  if(!femaleSelect.femaleLoaded||!femaleSelect.mapped||femaleSelect.selectKind!=='female')
+    throw Error('Female roster did not use the shared 3D base');
   await page.evaluate(()=>{
     const g=window.game;
     g.startMatch({p1:'batman',p2:'superman',stage:'neon-rooftop',mode:'cpu'});
@@ -108,6 +120,34 @@ try{
   });
   if(!mirror)throw Error('Mirror match shares a bone instance');
   await page.screenshot({path:'ci-images/batman-mirror.png'});
+  // Mixed match: one original armored male, one shared female base.
+  await page.evaluate(()=>window.game.startMatch({p1:'wonder-woman',p2:'batman',stage:'neon-rooftop',mode:'cpu'}));
+  await page.waitForTimeout(350);
+  const mixed=await page.evaluate(()=>{
+    const game=window.game;
+    game.render();
+    const v=game.renderer.model3d;
+    return {slots:[...v.instances].filter(([name])=>name.startsWith('fighter:')).map(([name,x])=>[name,x.kind]),
+      supported:game.fighters.map(x=>v.supported(x,game.assets)),health:game.fighters.map(x=>x.health)};
+  });
+  console.log('Female vs Batman:',JSON.stringify(mixed));
+  if(mixed.slots.find(x=>x[0]==='fighter:1')?.[1]!=='female' ||
+     mixed.slots.find(x=>x[0]==='fighter:2')?.[1]!=='batman' ||
+     mixed.supported.some(x=>!x))
+    throw Error('Female versus armored Batman did not show independent GLB models');
+  await page.screenshot({path:'ci-images/female-versus-batman.png'});
+  // Mirror female model test: two skeleton clones and no shared bone objects.
+  await page.evaluate(()=>window.game.startMatch({p1:'wonder-woman',p2:'wonder-woman',stage:'neon-rooftop',mode:'cpu'}));
+  await page.waitForTimeout(350);
+  const femaleMirror=await page.evaluate(()=>{
+    const g=window.game;g.render();
+    const p=g.renderer.model3d;
+    return p.instances.get('fighter:1')?.kind==='female' &&
+      p.instances.get('fighter:2')?.kind==='female' &&
+      p.instances.get('fighter:1')?.bones.get('head')!==p.instances.get('fighter:2')?.bones.get('head');
+  });
+  if(!femaleMirror)throw Error('Female mirror characters reused bones or did not load');
+  await page.screenshot({path:'ci-images/female-mirror.png'});
   if(errors.length)throw Error('Browser errors:\n'+errors.join('\n'));
   console.log('VISUAL_QA_SUCCESS');
 }catch(err){console.error(err);process.exitCode=1;}finally{await browser.close();}
