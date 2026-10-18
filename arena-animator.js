@@ -157,17 +157,30 @@ export function poseFighter(view,alpha){
   rotate(view,'clavicle_l',Z,-.025+drive*stride*.04,rootQ);
   rotate(view,'clavicle_r',Z,.025-drive*stride*.04,rootQ);
 
-  // Running arms oppose their legs, dash uses compact sprinter arm drive.
+  // A relaxed walk keeps the hands OUTSIDE the ribs and down beside
+  // the hips. The old perpetual high boxing guard sent wrists through the
+  // abdomen whenever the torso counter-rotated. Blend in the guard only when
+  // stopping or engaging in combat; arms pump opposite the corresponding leg.
   const pump=drive*stride;
-  let leftUpper=[-.35,-.62,.49-pump*.34];
-  let rightUpper=[.35,-.62,.49+pump*.34];
-  let leftFore=[-.14,.62,.75+drive*.05];
-  let rightFore=[.14,.62,.75+drive*.05];
+  const idleL=[-.43,-.57,.59],idleR=[.43,-.57,.59];
+  const idleForeL=[-.25,.39,.88],idleForeR=[.25,.39,.88];
+  const walkL=[-.58,-.85,.19-pump*.62];
+  const walkR=[.58,-.85,.19+pump*.62];
+  const walkForeL=[-.25,-.69,.30-pump*.16];
+  const walkForeR=[.25,-.69,.30+pump*.16];
+  const walkBlend=ease(clamp(walk));
+  let leftUpper=blendVec(idleL,walkL,walkBlend);
+  let rightUpper=blendVec(idleR,walkR,walkBlend);
+  let leftFore=blendVec(idleForeL,walkForeL,walkBlend);
+  let rightFore=blendVec(idleForeR,walkForeR,walkBlend);
 
   if(dashing){
-    leftUpper=[-.32,-.58,.28-pump*.60-dashKick*.10];
-    rightUpper=[.32,-.58,.30+pump*.60-dashKick*.10];
-    leftFore=[-.1,.48,.85];rightFore=[.1,.48,.85];
+    // Athletic sprint stance: elbows out, hands beside the flanks, no
+    // bent-up forearms running through the torso on diagonal dashes.
+    leftUpper=blendVec(leftUpper,[-.61,-.78,.23-pump*.62-dashKick*.08],dash);
+    rightUpper=blendVec(rightUpper,[.61,-.78,.23+pump*.62-dashKick*.08],dash);
+    leftFore=blendVec(leftFore,[-.26,-.53,.55-pump*.18],dash);
+    rightFore=blendVec(rightFore,[.26,-.53,.55+pump*.18],dash);
   }else if(blocked){
     leftUpper=[-.25,-.35,.68];
     rightUpper=[.25,-.35,.68];
@@ -215,7 +228,7 @@ export function poseFighter(view,alpha){
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
-  const strideSize=walk*.57+dash*.77;
+  const strideSize=drive*(.59+dash*.25);
   const leftLeg=sin(strideClock)*strideSize,rightLeg=-leftLeg;
   const plant=attack?.plant||0;
   const strideDamp=1-plant*.96;
