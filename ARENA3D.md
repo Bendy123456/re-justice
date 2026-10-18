@@ -122,3 +122,14 @@ and avatar. There is no bot AI, opponent, lock-on target, KO sequence or timer.
 Walking, dashing, jumping, camera follow and the grass/stone-slab arena remain.
 Press R to reset to spawn, Esc/Start to pause, then Q to return to the menu.
 The regular 1V1 VS BOT mode remains a separate two-fighter match.
+
+## Daytime skybox with moving clouds
+
+The actual Three.js arena in `arena3d.js` now contains an infinite-follow
+blue-gradient skydome and soft white clouds. A seamless generated panorama
+moves slowly across the dome, with two additional gently rotating layers of
+cloud sprites. The clouds share their texture, and all colors/cloud shapes are
+generated in the browser: no third-party assets, network fetches, or static
+background screenshot. Both Sandbox and 1V1 VS BOT render the same sky.
+The sky system is visual only and does not change fighters, collisions,
+controls, existing Blender terrain, or the combat simulation.
