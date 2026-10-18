@@ -158,6 +158,7 @@ class Arena3D {
       new THREE.ShaderMaterial({
         name:'RE-Justice bright daytime sky',
         side:THREE.BackSide,depthWrite:false,depthTest:false,fog:false,
+        uniforms:{uTime:{value:0},uCloudMap:{value:null}},
         vertexShader:`
           varying vec3 vSkyDirection;
           void main(){
@@ -167,6 +168,8 @@ class Arena3D {
         `,
         fragmentShader:`
           varying vec3 vSkyDirection;
+          uniform sampler2D uCloudMap;
+          uniform float uTime;
           void main(){
             float elevation=clamp(vSkyDirection.y*0.80+0.22,0.0,1.0);
             vec3 nearHorizon=vec3(0.80,0.91,0.99);
@@ -174,6 +177,17 @@ class Arena3D {
             vec3 zenithBlue=vec3(0.29,0.59,0.86);
             vec3 color=mix(nearHorizon,clearBlue,smoothstep(0.0,0.70,elevation));
             color=mix(color,zenithBlue,smoothstep(0.54,1.0,elevation)*0.43);
+            // The panorama cloud texture guarantees visible white clouds
+            // above arena walls, even when billboards are behind the tree.
+            float around=atan(vSkyDirection.z,vSkyDirection.x)/6.2831853+0.5;
+            float high=clamp(.16+vSkyDirection.y*.67,0.0,1.0);
+            float c1=texture2D(uCloudMap,vec2(
+              fract(around+uTime*.00040),high)).a;
+            float c2=texture2D(uCloudMap,vec2(
+              fract(around+.37-uTime*.00022),high*.96+.02)).a;
+            float haze=smoothstep(.08,.28,vSkyDirection.y);
+            float cover=clamp(max(c1*.96,c2*.61)*haze,0.0,.88);
+            color=mix(color,vec3(.98,.988,1.0),pow(cover,.88));
             gl_FragColor=vec4(color,1.0);
           }
         `
@@ -206,6 +220,37 @@ class Arena3D {
     this.cloudTexture.colorSpace=THREE.SRGBColorSpace;
     this.cloudTexture.minFilter=THREE.LinearFilter;
     this.cloudTexture.magFilter=THREE.LinearFilter;
+    // A seamless cloud panorama is blended directly into the skydome.
+    // Unlike distant sprites, these clouds remain visible over the tall wall
+    // from ANY facing direction. Shared CanvasTexture: no external files.
+    const panorama=document.createElement('canvas');
+    panorama.width=1024;panorama.height=512;
+    const cp=panorama.getContext('2d');
+    for(let i=0;i<17;i++){
+      const h=(n)=>{const t=Math.sin(n*91.371+31.5)*43758.5453;
+        return t-Math.floor(t);};
+      const x=(i+.35)*1024/17;
+      const y=160+h(i+34)*182;
+      const r=26+h(i+8)*17;
+      for(const offset of [-1024,0,1024]){
+        for(const [dx,dy,size] of [[-1.1,.21,.82],[-.48,-.20,1.06],
+          [.1,-.30,1.12],[.78,-.1,.91],[1.31,.27,.72],[0,.31,.85]]){
+          const cx=x+offset+dx*r,cy=y+dy*r,rad=r*size;
+          const grad=cp.createRadialGradient(cx,cy,0,cx,cy,rad);
+          grad.addColorStop(0,'rgba(255,255,255,.87)');
+          grad.addColorStop(.42,'rgba(255,255,255,.73)');
+          grad.addColorStop(.76,'rgba(255,255,255,.24)');
+          grad.addColorStop(1,'rgba(255,255,255,0)');
+          cp.fillStyle=grad;
+          cp.fillRect(cx-rad,cy-rad,rad*2,rad*2);
+        }
+      }
+    }
+    this.skyCloudPanorama=new THREE.CanvasTexture(panorama);
+    this.skyCloudPanorama.wrapS=THREE.RepeatWrapping;
+    this.skyCloudPanorama.colorSpace=THREE.SRGBColorSpace;
+    this.skyCloudPanorama.minFilter=THREE.LinearFilter;
+    dome.material.uniforms.uCloudMap.value=this.skyCloudPanorama;
     const configs=[
       {count:13,radius:78,height:45,baseWidth:38,speed:.0035,opacity:.76},
       {count:11,radius:104,height:68,baseWidth:48,speed:-.0022,opacity:.61}
@@ -241,6 +286,7 @@ class Arena3D {
     // Make the background infinite so it cannot collide with the arena.
     this.skyDome.position.copy(this.camera.position);
     const seconds=((this.game?.frame||0)+alpha)/FPS;
+    this.skyDome.material.uniforms.uTime.value=seconds;
     for(let i=0;i<this.cloudLayers.length;i++){
       const layer=this.cloudLayers[i];
       layer.rotation.y=seconds*layer.userData.speed;
