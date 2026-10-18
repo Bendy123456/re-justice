@@ -7,7 +7,7 @@ on:
       - 'glb-visuals.js'
       - 'visual-smoke.mjs'
       - 'model-assets.js'
-      - 'nonexistent-intentional-trigger-marker'
+      - '.github/workflows/female-medium-browser-qa.yml'
   workflow_dispatch:
 permissions:
   contents: write
