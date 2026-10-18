@@ -77,8 +77,8 @@ def turf_image():
             dry=1 if rng.random()<.005 else 0
             spread=(broad+middle)*.067+fine*.35+fleck
             i=(y*TEX_SIZE+x)*4
-            pixels[i]=max(.05,min(.49,.22+spread*.68+dry*.12))
-            pixels[i+1]=max(.12,min(.68,.392+spread-dry*.025))
+            pixels[i]=max(.06,min(.54,.245+spread*.68+dry*.12))
+            pixels[i+1]=max(.13,min(.73,.435+spread-dry*.025))
             pixels[i+2]=max(.025,min(.40,.147+spread*.51+dry*.045))
             pixels[i+3]=1
     img.pixels.foreach_set(pixels)
@@ -174,8 +174,8 @@ wall_details(RADIUS,WALL_HEIGHT)
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
 scene.cycles.samples=16
-scene.cycles.use_denoising=False
-bpy.context.view_layer.cycles.use_denoising=False
+scene.cycles.use_denoising=True
+bpy.context.view_layer.cycles.use_denoising=True
 scene.render.resolution_x=960;scene.render.resolution_y=540
 scene.render.resolution_percentage=100
 scene.world.use_nodes=True
@@ -206,9 +206,9 @@ scene.render.filepath=os.path.join(OUTPUT,"training-tree-trunk.png")
 bpy.ops.render.render(write_still=True)
 # Ground-level close-up to verify small blades and stone surface detail
 # at the viewing height of a moving player, not only distant aerial previews.
-cam.location=(-23,-19,4.4)
-cam.rotation_euler=(Vector((-21,-30,2.1))-cam.location).to_track_quat("-Z","Y").to_euler()
-camd.ortho_scale=22
+cam.location=(-18,-22,3.8)
+cam.rotation_euler=(Vector((-27,-16,2.7))-cam.location).to_track_quat("-Z","Y").to_euler()
+camd.ortho_scale=19
 scene.render.filepath=os.path.join(OUTPUT,"training-wall-grass-detail.png")
 bpy.ops.render.render(write_still=True)
 # Export just 3D arena meshes (exclude preview lights and cameras).
