@@ -145,3 +145,26 @@ Transition blending occurs over simulation frames rather than snapping when
 movement input stops. Fighting guard, blocking, walking arm swing, dashing,
 and attacks keep their separate intended animations. A 3D-browser regression
 test measures real arm/leg positions on both rigs and captures a front view.
+
+## Higher-detail environment sculpt and textures (October 2026)
+
+The same circular training ground, central tree, light-gray tall stone panels,
+sky, and walkable terrain are preserved. A Blender build now creates:
+
+- A 768 × 768 embedded meadow color texture instead of 384 × 384, finer
+  layered ground variation, 22,500 short grass tufts with bent blade tips,
+  and restrained small clover growth
+- A baked, UV-mapped 768 × 768 pale-gray porous stone surface shared across
+  the full-height slabs, plus subtle hand-tooled vertical scoring and
+  small mineral flecks; wall layout, seams and palette remain consistent
+- A 512 × 768 UV-mapped tree-bark surface, more trunk rings/ridges,
+  additional thin secondary/tertiary branches and fuller individual leaf
+  sprays on the original tree silhouette
+
+These are visual-only features; they do not add colliders, change arena
+radius, tree protection radius, fighter mechanics or physics surfaces.
+The build checks that 3 embedded textures exist, the exported GLB stays
+within a browser file/triangle budget, and produces separate close-up
+wall/grass, tree-trunk and tree-canopy previews for manual inspection.
+The goal is substantially richer detail at gameplay distance, not literally
+quintupling every polygon, which would harm browser FPS.
