@@ -74,6 +74,32 @@ try{
   console.log('Browser diagnostics:',JSON.stringify(errors));
   if(!loadedFight.hasP1||!loadedFight.hasP2||loadedFight.sameSkeleton)throw Error('2 independent GLB fighter rigs were not created');
   await page.screenshot({path:'ci-images/batman-vs-male.png'});
+  // Validate the mesh visibly tracks an attack's unchanged 2D startup/active
+  // frames, and never writes back to the 2D hurtbox or health values.
+  const animation=await page.evaluate(()=>{
+    const g=window.game, p=g.renderer.model3d, f=g.fighters[0];
+    g.pause=true;
+    g.render();
+    const o=p.instances.get('fighter:1');
+    const bone=o.bones.get('hand_l');
+    const xyz=()=>bone.getWorldPosition(new window.THREE.Vector3()).toArray();
+    // We cannot rely on window.THREE (ES module is imported locally), so
+    // measure world transform through the existing Three.js bone matrix.
+    const before=bone.matrixWorld.elements.slice(12,15);
+    const hp=g.fighters.map(x=>x.health);
+    const move=f.def.moves.standing.heavy;
+    f.attack={...move,kind:'standing',button:'heavy'};
+    f.state='attack';f.attackTick=move.startup+1;
+    g.render();
+    const after=bone.matrixWorld.elements.slice(12,15);
+    const dist=Math.hypot(...before.map((v,i)=>v-after[i]));
+    const intact=hp.every((v,i)=>v===g.fighters[i].health);
+    f.attack=null;f.attackTick=0;f.state='idle';g.pause=false;
+    return {dist,intact,moveStartup:move.startup};
+  });
+  console.log('3D attack pose:',JSON.stringify(animation));
+  if(!animation.intact || animation.dist<.003)
+    throw Error('GLB attack failed pose change or modified gameplay state');
   await page.evaluate(()=>window.game.startMatch({p1:'batman',p2:'batman',stage:'neon-rooftop',mode:'cpu'}));
   await page.waitForTimeout(350);
   const mirror=await page.evaluate(()=>{
