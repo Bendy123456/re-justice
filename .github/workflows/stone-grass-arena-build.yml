@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: rejustice-stone-grass-main-build
+  group: rejustice-high-detail-v2-main
   cancel-in-progress: true
 
 jobs:
