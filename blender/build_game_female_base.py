@@ -36,11 +36,12 @@ FEMALE_PROPORTIONS = {
     "lower_face_reduction": .073,
     "temple_reduction": .036,
     "cheek_contour": .026,
-    "bust_volume": .032,
-    "bust_width": .083,
-    "bust_height": .068,
-    "bust_position_x": .112,
-    "bust_position_z": 1.407,
+    # Medium, natural chest increase — shared across all eight female slots.
+    "bust_volume": .052,
+    "bust_width": .094,
+    "bust_height": .078,
+    "bust_position_x": .118,
+    "bust_position_z": 1.412,
     "bust_blend_center_y": -.110,
     "glute_contour": .015,
 }
