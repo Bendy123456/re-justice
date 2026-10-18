@@ -556,12 +556,16 @@ class Arena3D {
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
       a.gaitPhase+=Math.min(.5,distance)*3.0;
     }
-    // Fixed-timestep heading and inertia: avoids frame-rate-dependent turning
-    // and ensures backward/sideways locomotion faces the actual path.
+    // Preserve the last travel-facing direction in solo Sandbox when input
+    // is released. Previously idle always targeted the fixed +Z "forward"
+    // axis, which made the character snap/turn back to the arena front.
+    // In combat, keep the established opponent-facing behavior unchanged.
     const running=a.state==='walk'||a.state==='dash';
-    const desired=running?a.travel:forward;
-    const desiredYaw=Math.atan2(desired.x,desired.z);
-    a.visualYaw=turnTowards(a.visualYaw,desiredYaw,a.attack?.68:running?.25:.20);
+    const desired=running?a.travel:b?forward:null;
+    if(desired){
+      const desiredYaw=Math.atan2(desired.x,desired.z);
+      a.visualYaw=turnTowards(a.visualYaw,desiredYaw,a.attack?.68:running?.25:.20);
+    }
     // Pitch into acceleration; bank gently while the feet catch up to turns.
     const side=a.travel.x*Math.cos(a.visualYaw)-a.travel.z*Math.sin(a.visualYaw);
     a.lean=lerp(a.lean,running?(a.state==='dash'?.17:.105):0,.22);
