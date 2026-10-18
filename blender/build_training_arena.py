@@ -178,6 +178,8 @@ for i in range(FOLIAGE_COUNT):
 scene=bpy.context.scene
 scene.render.engine="CYCLES"
 scene.cycles.samples=12
+scene.cycles.use_denoising=False
+bpy.context.view_layer.cycles.use_denoising=False
 scene.render.resolution_x=960;scene.render.resolution_y=540
 scene.render.resolution_percentage=100
 scene.world.use_nodes=True
