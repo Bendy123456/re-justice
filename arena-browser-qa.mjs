@@ -212,7 +212,7 @@ try{
         const handInfo=['l','r'].map((side,i)=>{
           const hand=get('hand_'+side);
           const elbow=get('lowerarm_'+side);
-          const sign=i?1:-1;
+          const sign=i?v.armSides.r:v.armSides.l;
           const coord=p=>({side:sign*((p.x-chest.x)*right.x+(p.y-chest.y)*right.y+(p.z-chest.z)*right.z),
             front:(p.x-chest.x)*front.x+(p.y-chest.y)*front.y+(p.z-chest.z)*front.z});
           return {hand:coord(hand),elbow:coord(elbow)};
@@ -225,7 +225,8 @@ try{
       const minElbow=Math.min(...elbowSides);
       const behindAtCenter=measurements.flatMap(f=>f.handInfo).filter(x=>
         x.hand.side<.17&&x.hand.front<.22).length;
-      result.push({model:names[index],minSide,minElbow,behindAtCenter,
+      result.push({model:names[index],armSides:v.armSides,legSides:v.legSides,
+        minSide,minElbow,behindAtCenter,
         minHandFront:Math.min(...measurements.flatMap(f=>f.handInfo.map(h=>h.hand.front))),
         extrema:measurements.filter(f=>f.phase%6===0)});
     }
