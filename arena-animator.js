@@ -344,10 +344,11 @@ export function poseFighter(view,alpha){
         // Opposite the same-side leg: a loose elbow, relaxed wrist and
         // a visible but restrained shoulder swing around the rib cage.
         const contra=side==='l'?-Math.cos(strideClock):Math.cos(strideClock);
-        handX=.36;
-        // Elbow remains slightly flexed, not a permanently raised guard.
-        handY=-.81+.065*contra;
-        handZ=.08+.30*contra;
+        // Natural relaxed hand drops past the hip. Modest shoulder swing
+        // and independent forearm flex without elbows sticking outward.
+        handX=.23;
+        handY=-.85+.045*contra;
+        handZ=.035+.26*contra;
       }
       if(dashing){
         handX=.42;
@@ -404,7 +405,7 @@ export function poseFighter(view,alpha){
       const blend=walkAmount;
       // Foot planted ~60% of cycle. During swing, ankle rises and the
       // knee flexes naturally as the foot clears the ground.
-      const walkTarget=[sign*length*.13,
+      const walkTarget=[sign*length*.035,
         -length*(.948-foot.lift),length*(.06+foot.travel)];
       target=blendVec(target,walkTarget,blend);
     }
