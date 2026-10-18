@@ -177,7 +177,8 @@ try{
      animationQA.dashLean<animationQA.idle.lean+.18||
      animationQA.light.left<animationQA.idle.left+.07||
      animationQA.medium.right<animationQA.idle.right+.07||
-     animationQA.heavy.right<animationQA.idle.right+.07||
+     // Hooks travel around the guard, so check a shorter forward extension.
+     animationQA.heavy.right<animationQA.idle.right+.055||
      animationQA.light.twist>-.12||
      animationQA.medium.twist<.14||
      animationQA.heavy.twist<animationQA.medium.twist+.12||
