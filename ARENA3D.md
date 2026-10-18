@@ -111,3 +111,14 @@ The editable `assets/arena/training-ground.blend` and the in-game
 
 Grass tufts and slabs are visual meshes only. The deterministic ground and
 wall collision rules continue to use the same analytic surfaces and radii.
+
+## Solo Sandbox (October 2026)
+
+The main menu's former READY panel is now a large selectable **SANDBOX** card.
+Click it or select it with controller/keyboard to enter the character roster.
+Any roster model—including preview-only characters without a moveset—can be
+selected; press Enter/Start to begin. The 3D arena creates exactly **one** fighter
+and avatar. There is no bot AI, opponent, lock-on target, KO sequence or timer.
+Walking, dashing, jumping, camera follow and the grass/stone-slab arena remain.
+Press R to reset to spawn, Esc/Start to pause, then Q to return to the menu.
+The regular 1V1 VS BOT mode remains a separate two-fighter match.
