@@ -41,7 +41,7 @@ try{
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
   // Diagnostic: independently render the CURRENT pose at full idle weight,
   // from the fighter's front, and report measured wrists vs guard targets.
-  const guardQA=await page.evaluate(async ()=>{
+  const guardQA=await page.evaluate(()=>{
     const ar=window.game.arena3d,v=ar.views[0],a=v.actor;
     a.state='idle';a.attack=null;a.blocking=false;a.grounded=true;
     a.visualYaw=a.prevVisualYaw=0;a.animClock++;
@@ -82,44 +82,6 @@ try{
         fingerQA[side][digit]={rest,posed,closure:rest-posed};
       }
     }
-    // Test which direction and strength actually CLOSE a finger on this
-    // mesh. Merely setting grip=1 is not proof of a clenched hand.
-    const THREE=await import('three');
-    const fingerProbe={};
-    for(const side of ['l','r']){
-      fingerProbe[side]={};
-      const hand=v.bones.get('hand_'+side);
-      const axis=new THREE.Vector3(0,0,1).
-        applyQuaternion(hand.getWorldQuaternion(new THREE.Quaternion()));
-      for(const digit of ['index','pinky']){
-        const names=[digit+'_01_'+side,digit+'_02_'+side,
-          digit+'_03_'+side,digit+'_04_leaf_'+side];
-        const fingers=names.map(n=>v.bones.get(n));
-        if(fingers.some(b=>!b))continue;
-        const saved=fingers.map(b=>b.quaternion.clone());
-        fingerProbe[side][digit]=[];
-        for(const strength of [-2,-1.5,-1,-.5,0,.5,1,1.5,2,2.5]){
-          for(let k=0;k<4;k++)fingers[k].quaternion.copy(v.rests.get(names[k]));
-          v.root.updateWorldMatrix(true,true);
-          const fractions=[.60,.64,.42,.20];
-          for(let k=0;k<4;k++){
-            const b=fingers[k];
-            const dq=new THREE.Quaternion().setFromAxisAngle(
-              axis,1.24*strength*fractions[k]);
-            const parent=b.parent.getWorldQuaternion(new THREE.Quaternion());
-            b.quaternion.premultiply(parent.clone().invert().
-              multiply(dq).multiply(parent)).normalize();
-            b.updateWorldMatrix(false,true);
-          }
-          v.root.updateWorldMatrix(true,true);
-          const dist=fingers[3].getWorldPosition(new THREE.Vector3()).
-            distanceTo(fingers[0].getWorldPosition(new THREE.Vector3()));
-          fingerProbe[side][digit].push([strength,Number(dist.toFixed(4))]);
-        }
-        for(let k=0;k<4;k++)fingers[k].quaternion.copy(saved[k]);
-        v.root.updateWorldMatrix(true,true);
-      }
-    }
     const boneHierarchy=Object.fromEntries(
       ['hips','pelvis','thigh_l','thigh_r','spine_01'].map(name=>{
         const b=v.bones.get(name);return [name,{parent:b?.parent?.name,
@@ -127,25 +89,31 @@ try{
           localY:b?.position.y}];
       }));
     const camera=ar.camera,origin=v.root.position;
-    camera.position.set(origin.x+2.15,2.10,origin.z+4.45);
-    camera.lookAt(origin.x,.89,origin.z);
-    // Hide the game HUD while capturing the REAL rendered character.
-    ar.hud.style.display='none';
+    const cameraBefore={position:camera.position.clone(),
+      quaternion:camera.quaternion.clone()};
+    camera.position.set(origin.x+.60,1.72,origin.z+3.30);
+    camera.lookAt(origin.x,.65,origin.z);
     ar.renderer.render(ar.scene,camera);
+    ar.renderer.getContext().finish();
+    // Capture the WebGL backing canvas synchronously, BEFORE the next
+    // animation tick resets camera. This excludes overlaid HUD entirely.
+    const previewJpeg=ar.webgl.toDataURL('image/jpeg',.72).split(',')[1];
+    camera.position.copy(cameraBefore.position);
+    camera.quaternion.copy(cameraBefore.quaternion);
     return {root:[origin.x,origin.y,origin.z],head,measured,
-      metrics:v.poseMetrics,fingerQA,fingerProbe,boneHierarchy,
+      metrics:v.poseMetrics,fingerQA,boneHierarchy,previewJpeg,
       model:v.key,rootRotation:v.root.rotation.y};
   });
+  const previewJpeg=guardQA.previewJpeg;
+  delete guardQA.previewJpeg;
   console.log('SCULPTED_GUARD_DIAGNOSTIC',JSON.stringify(guardQA));
-  const guardFrame=await page.locator('#arena3d-webgl').screenshot({
-    type:'jpeg',quality:62});
-  const guardChunks=guardFrame.toString('base64').match(/.{1,5000}/g)||[];
+  const guardChunks=(previewJpeg||'').match(/.{1,5000}/g)||[];
   guardChunks.forEach((chunk,i)=>console.log('SCULPTED_GUARD_JPG:'+i+'/'+guardChunks.length+':'+chunk));
   console.log('SCULPTED_GUARD_JPG_END:'+guardChunks.length);
-  await page.evaluate(()=>{
-    const ar=window.game.arena3d;
-    ar.hud.style.display='block';
-  });
+  if(guardChunks.length<4)
+    throw Error('Sculpted idle: cannot capture WebGL render for visual QA');
+  if(['l','r'].some(side=>guardQA.fingerQA?.[side]?.index?.closure<.03))
+    throw Error('Sculpted idle: index fingers are not tightly curled');
   if(guardQA.measured.l.wristVsHead[1]<-.25||
      guardQA.measured.r.wristVsHead[1]<-.25||
      guardQA.metrics.kneeL<.55||guardQA.metrics.kneeR<.55||
