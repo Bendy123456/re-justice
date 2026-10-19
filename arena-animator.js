@@ -13,7 +13,7 @@ import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
-  from './arena-rotation-retarget.js?v=bind-calibrated-1';
+  from './arena-rotation-retarget.js?v=grounded-turns-2';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -34,7 +34,7 @@ const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 // Blender bone transforms are reconstructed each frame from their bind poses.
 // These targets affect VISUAL idle only, not gameplay movement or hitboxes.
 const COMBAT_IDLE=Object.freeze({
-  fadeIn:.19,fadeOut:.29,
+  fadeIn:.135,fadeOut:.245,
   hipsOffset:[-.052,-.103,-.006],
   pelvisYaw:-.032,
   spine01:[.105,-.018,.014],
@@ -769,8 +769,9 @@ export function poseFighter(view,alpha){
     if(view.walkStopStart===null||view.walkStopStart===undefined)
       view.walkStopStart=a.animClock;
     const stopAge=Math.max(0,a.animClock-view.walkStopStart);
-    // 14 fixed ticks (0.23sec), eased, gives a graceful planted stop.
-    const carry=1-ease(stopAge/14);
+    // 18 fixed ticks (0.3 sec): let the grounded running pose settle
+    // into the guard rather than snapping both wrists toward the face.
+    const carry=1-ease(stopAge/18);
     if(carry>.0001){
       for(const [name,snapshot] of view.lastWalkPose){
         const joint=view.bones.get(name);
@@ -820,6 +821,7 @@ export function poseFighter(view,alpha){
     mocapWalkWeight:recorded.weight,mocapSource:recorded.capture||null,
     mocapRetargetJoints:recorded.joints||0,
     mocapContactL:!!recorded.plantedLeft,mocapContactR:!!recorded.plantedRight,
+    mocapTurnFollow:recorded.turnLag||0,
     // World-space ankle errors measured AFTER the new Shinobi pose solve.
     floorErrorL:(
       view.bones.get('foot_l')?.getWorldPosition(vec()).y??
