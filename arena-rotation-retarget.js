@@ -16,6 +16,8 @@ import {MOTION_JOINTS,getHeroRunRotations}
 import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
 import {stepGroundDrive,resetGroundDrive}
   from './arena-ground-contact.js?v=push-off-2';
+import {capturedArmDrive}
+  from './arena-running-arms.js?v=forward-drive-1';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smoother=n=>{n=clamp(n);return n*n*(3-2*n);};
@@ -47,6 +49,36 @@ function turnFollowThrough(view,strength){
    bone.updateWorldMatrix(false,true);
  }
  return turn;
+}
+// Retarget every arm from mocap first. AFTER that, move the WHOLE
+// upper-arm chain forward from its shoulder (never drag a wrist target
+// and force a sideways elbow). The chest and shoulder blade contribute
+// a small counter-motion so it reads as a run, not a robot arm.
+function followCapturedArmDrive(view,samples,rootQ,runMix,strength){
+ const motion=capturedArmDrive(samples,runMix,strength);
+ if(motion.active<.0001)return motion;
+ const xAxis=new THREE.Vector3(1,0,0).applyQuaternion(rootQ);
+ const yAxis=new THREE.Vector3(0,1,0).applyQuaternion(rootQ);
+ function applyWorldTurn(name,axis,angle){
+   if(Math.abs(angle)<.00001)return;
+   const bone=view.bones.get(name);
+   if(!bone?.parent)return;
+   const parentQ=bone.parent.getWorldQuaternion(q());
+   const worldDelta=q().setFromAxisAngle(axis,angle);
+   const localDelta=parentQ.clone().invert().multiply(worldDelta)
+     .multiply(parentQ).normalize();
+   bone.quaternion.premultiply(localDelta).normalize();
+   bone.updateWorldMatrix(false,true);
+ }
+ // Gentle alternating ribcage rotation, neck/head remain stabilized.
+ applyWorldTurn('spine_03',yAxis,motion.chestYaw);
+ for(const side of ['l','r']){
+   const arm=motion[side==='l'?'left':'right'];
+   applyWorldTurn('clavicle_'+side,xAxis,arm.collarAngle);
+   applyWorldTurn('upperarm_'+side,xAxis,arm.shoulderAngle);
+ }
+ view.root.updateWorldMatrix(true,true);
+ return motion;
 }
 function blendFootGround(view,drive,rootQ,actorYaw,strength,runMix,solveLimb){
  const footState=view.captureContacts||(view.captureContacts={l:null,r:null});
@@ -198,6 +230,7 @@ export function retargetCapturedHuman(view,{
   }
   view.root.updateWorldMatrix(true,true);
   const turnLag=turnFollowThrough(view,blend);
+  const armDrive=followCapturedArmDrive(view,src,rootQ,runMix,blend);
   const ground=blendFootGround(view,drive,rootQ,actorYaw,blend,
     runMix,solveLimb);
   return {
@@ -208,6 +241,11 @@ export function retargetCapturedHuman(view,{
     groundCompression:drive.impact,groundPush:drive.propulsion,
     groundPelvisY:drive.pelvisY,groundPelvisX:drive.pelvisX,
     leftToeOff:drive.feet.l.toeOff,rightToeOff:drive.feet.r.toeOff,
-    groundSupportFeet:drive.supportCount
+    groundSupportFeet:drive.supportCount,
+    leftArmFrontReach:armDrive.left?.forward||0,
+    rightArmFrontReach:armDrive.right?.forward||0,
+    leftArmExtraSwing:armDrive.left?.shoulderAngle||0,
+    rightArmExtraSwing:armDrive.right?.shoulderAngle||0,
+    armChestCounterYaw:armDrive.chestYaw||0
   };
 }
