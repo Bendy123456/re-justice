@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
-import {poseFighter} from './arena-animator.js?v=natural-footwork-14';
+import {poseFighter} from './arena-animator.js?v=authored-natural-gait-15';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
@@ -604,7 +604,7 @@ class Arena3D {
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
       const groundSpeed=distance/STEP;
       const runBlend=clamp((groundSpeed-3.6)/2.7,0,1);
-      const cycleMeters=lerp(1.90,2.56,runBlend);
+      const cycleMeters=lerp(2.05,3.05,runBlend);
       const stepRate=a.state==='dash'?3.0:2*Math.PI/cycleMeters;
       a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
