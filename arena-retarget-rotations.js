@@ -41,4 +41,47 @@ export function getCapturedRotations(phase,runMix=0){
    b=frame(RUN,phase+RUN_PHASE_OFFSET*Math.PI*2);
  return w<=0?a:w>=1?b:a.map((q,i)=>slerpQuat(q,b[i],w));
 }
+
+/* HERO RUN: the real captured run remains the foundation; exaggerate
+ * ROTATIONAL EXCURSION around each limb's measured average running pose,
+ * not around a T-pose. A T-pose exaggeration breaks elbow direction and
+ * turns hands into chicken wings. These are animation-direction gains
+ * rather than fabricated sine-wave joint angles.
+ */
+const HERO_RUN_GAIN=Object.freeze({
+ pelvis:1.22,spine_01:1.31,spine_02:1.35,spine_03:1.30,
+ neck_01:.79,head:.65,
+ clavicle_l:1.24,upperarm_l:1.48,lowerarm_l:1.22,hand_l:1.05,
+ clavicle_r:1.24,upperarm_r:1.48,lowerarm_r:1.22,hand_r:1.05,
+ thigh_l:1.36,calf_l:1.18,foot_l:1.02,
+ thigh_r:1.36,calf_r:1.18,foot_r:1.02
+});
+// Average each running quaternion in the same hemisphere; avoids
+// antipodal cancellation and leaves the natural sprint guard intact.
+const RUN_CENTER=MOTION_JOINTS.map((_,j)=>{
+ const ref=RUN[0][j],sum=[0,0,0,0];
+ for(const frame of RUN){
+   const p=frame[j];
+   const dot=ref.reduce((acc,v,k)=>acc+v*p[k],0);
+   const sign=dot<0?-1:1;
+   for(let k=0;k<4;k++)sum[k]+=p[k]*sign;
+ }
+ return normalize(sum);
+});
+export function getHeroRunRotations(phase,runMix=0,intensity=1){
+ const base=getCapturedRotations(phase,runMix);
+ // The locomotion animation system ramps this with actual displacement;
+ // keep calm walking behaviour at low speeds and vivid running at speed.
+ const strength=clamp(runMix)*clamp(intensity);
+ if(strength<.0001)return base;
+ return base.map((captured,j)=>{
+   const style=HERO_RUN_GAIN[MOTION_JOINTS[j]]??1;
+   const factor=1+(style-1)*strength;
+   // Extrapolate swing FROM recorded mean, preserving the real-world
+   // anatomical center of each joint, not the T-pose skeleton.
+   return slerpQuat(RUN_CENTER[j],captured,factor);
+ });
+}
+export const HERO_STYLE_GAIN=HERO_RUN_GAIN;
+
 export const CAPTURE_INFO=Object.freeze({walk:"CMU 02_01",run:"CMU 02_03",sourceFPS:120, jointCount:20});
