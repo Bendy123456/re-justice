@@ -12,22 +12,49 @@
  */
 import * as THREE from 'three';
 import {MOTION_JOINTS,getCapturedRotations}
-  from './arena-retarget-rotations.js?v=cmu-rot-quats-2';
-import {sampleHumanMotion} from './arena-mocap-data.js?v=cmu-walk-run-1';
+  from './arena-retarget-rotations.js?v=heel-synced-3';
+import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smoother=n=>{n=clamp(n);return n*n*(3-2*n);};
 const vec=()=>new THREE.Vector3();
 const q=()=>new THREE.Quaternion();
-const Qd=()=>new THREE.Quaternion();
 const Y=new THREE.Vector3(0,1,0);
-const sizes={};
+// Measured heading change adds tiny ribcage/neck follow-through during turns.
+// Bones are rebuilt each frame, avoiding accumulated twist.
+function turnFollowThrough(view,strength){
+ const a=view.actor;
+ if(view.turnFollowTick!==a.animClock){
+   const delta=Math.atan2(Math.sin(a.visualYaw-a.prevVisualYaw),
+     Math.cos(a.visualYaw-a.prevVisualYaw));
+   const target=clamp(-delta*.70,-.125,.125);
+   view.turnFollowValue=(view.turnFollowValue||0)*.78+target*.22;
+   view.turnFollowTick=a.animClock;
+ }
+ const turn=(view.turnFollowValue||0)*strength;
+ if(Math.abs(turn)<.0002)return 0;
+ for(const [name,fraction] of [
+   ['spine_02',.44],['spine_03',.62],['neck_01',-.22]
+ ]){
+   const bone=view.bones.get(name);
+   if(!bone?.parent)continue;
+   const delta=new THREE.Quaternion().setFromAxisAngle(Y,turn*fraction);
+   const parent=bone.parent.getWorldQuaternion(new THREE.Quaternion());
+   bone.quaternion.premultiply(
+     parent.clone().invert().multiply(delta).multiply(parent)).normalize();
+   bone.updateWorldMatrix(false,true);
+ }
+ return turn;
+}
 function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
  const footState=view.captureContacts||(view.captureContacts={l:null,r:null});
  const out={l:false,r:false};
  for(const side of ['l','r']){
    const isLeft=side==='l',value=sourceHeights[isLeft?25:26];
-   const contact=Number.isFinite(value)&&value<.030&&strength>.68;
+   // Separate entry/exit thresholds eliminate brief planted-to-air flicker.
+ const wasGrounded=!!footState[side];
+ const contact=Number.isFinite(value)&&
+   value<(wasGrounded?.061:.035)&&strength>.63;
    const hip=view.bones.get('thigh_'+side),knee=view.bones.get('calf_'+side),
      ankle=view.bones.get('foot_'+side);
    if(!hip||!knee||!ankle){footState[side]=null;continue;}
@@ -35,9 +62,17 @@ function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
    const current=ankle.getWorldPosition(vec());
    const soleY=view.footSoleHeights?.[side]??.084;
    if(!footState[side]){
-     footState[side]={point:current.clone().setY(soleY+.004),heading:actorYaw};
+     footState[side]={
+       point:current.clone().setY(soleY+.004),
+       heading:actorYaw,fade:0,lastTick:-1
+     };
    }
    const anchor=footState[side];
+   // Fade over physics ticks so pose is the same at 60Hz and 144Hz renders.
+   if(anchor.lastTick!==view.actor.animClock){
+     anchor.fade=Math.min(1,anchor.fade+.34);
+     anchor.lastTick=view.actor.animClock;
+   }
    const desired=anchor.point.clone();
    const hipWorld=hip.getWorldPosition(vec());
    const upper=hipWorld.distanceTo(knee.getWorldPosition(vec()));
@@ -58,7 +93,7 @@ function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
    const distance=correction.length();
    if(distance>.012&&solveLimb){
      const limited=current.clone().addScaledVector(
-       correction,Math.min(1,.18/distance));
+       correction,Math.min(anchor.fade,.16/distance));
      limited.y=Math.max(soleY+.004,limited.y);
      const target=limited.sub(hipWorld)
        .applyQuaternion(rootQ.clone().invert()).toArray();
@@ -93,6 +128,7 @@ export function retargetCapturedHuman(view,{
   const blend=smoother(weight);
   if(blend<.0001){
     view.captureContacts=null;
+    view.turnFollowValue=0;
     return {active:false,weight:0,joints:0};
   }
   if(!view.restWorldQuats?.size){
@@ -132,10 +168,11 @@ export function retargetCapturedHuman(view,{
     applied++;
   }
   view.root.updateWorldMatrix(true,true);
+  const turnLag=turnFollowThrough(view,blend);
   const ground=blendFootGround(view,src,rootQ,actorYaw,blend,solveLimb);
   return {
     active:true,weight:blend,joints:applied,
     capture:'CMU world delta -> avatar bind axes',
-    plantedLeft:ground.l,plantedRight:ground.r
+    plantedLeft:ground.l,plantedRight:ground.r,turnLag
   };
 }
