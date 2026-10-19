@@ -23,7 +23,14 @@ function slerpQuat(a,b,t){
 function frame(clip,phase){
  const u=((phase/(Math.PI*2))%1+1)%1,pos=u*(clip.length-1),i=Math.floor(pos),t=pos-i;
  const from=clip[i],to=clip[Math.min(i+1,clip.length-1)];
- return from.map((q,j)=>slerpQuat(q,to[j],t));
+ const captured=from.map((q,j)=>slerpQuat(q,to[j],t));
+ // CMU source clips were cropped at similar poses, not mathematically
+ // identical endpoints. Blend only the final 9% into the first frame to
+ // remove 10-15deg head/elbow seam pops without warping the rest of
+ // the recorded motion.
+ if(u<=.91)return captured;
+ const v=(u-.91)/.09,blend=v*v*(3-2*v);
+ return captured.map((q,j)=>slerpQuat(q,clip[0][j],blend));
 }
 export function getCapturedRotations(phase,runMix=0){
  const w=clamp(runMix);
