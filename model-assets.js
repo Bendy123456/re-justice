@@ -16,7 +16,7 @@
   const MODEL_PATHS=Object.freeze({
     male:BASE+'male-unarmored.glb',
     female:BASE+'female-unarmored.glb',
-    batman:BASE+'batman-armored.glb'
+    batman:BASE+'batman-armored.glb?v=without-cape-1'
   });
   const MALE_SET=new Set(MALE),FEMALE_SET=new Set(FEMALE);
   const heroModel=id=>FEMALE_SET.has(id)?'female':id==='batman'?'batman':MALE_SET.has(id)?'male':null;

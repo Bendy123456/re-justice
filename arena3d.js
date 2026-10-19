@@ -299,7 +299,7 @@ class Arena3D {
         'assets/arena/training-ground.glb?v=high-detail-environment-5',
         'assets/models/male-unarmored.glb',
         'assets/models/female-unarmored.glb',
-        'assets/models/batman-armored.glb'
+        'assets/models/batman-armored.glb?v=without-cape-1'
       ];
       const all=await Promise.all(files.map(f=>this.loader.loadAsync(f)));
       this.arena=all[0].scene;
