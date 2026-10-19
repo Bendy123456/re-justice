@@ -41,7 +41,7 @@ try{
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
   // Diagnostic: independently render the CURRENT pose at full idle weight,
   // from the fighter's front, and report measured wrists vs guard targets.
-  const guardQA=await page.evaluate(()=>{
+  const guardQA=await page.evaluate(async ()=>{
     const ar=window.game.arena3d,v=ar.views[0],a=v.actor;
     a.state='idle';a.attack=null;a.blocking=false;a.grounded=true;
     a.visualYaw=a.prevVisualYaw=0;a.animClock++;
@@ -82,6 +82,44 @@ try{
         fingerQA[side][digit]={rest,posed,closure:rest-posed};
       }
     }
+    // Test which direction and strength actually CLOSE a finger on this
+    // mesh. Merely setting grip=1 is not proof of a clenched hand.
+    const THREE=await import('three');
+    const fingerProbe={};
+    for(const side of ['l','r']){
+      fingerProbe[side]={};
+      const hand=v.bones.get('hand_'+side);
+      const axis=new THREE.Vector3(0,0,1).
+        applyQuaternion(hand.getWorldQuaternion(new THREE.Quaternion()));
+      for(const digit of ['index','pinky']){
+        const names=[digit+'_01_'+side,digit+'_02_'+side,
+          digit+'_03_'+side,digit+'_04_leaf_'+side];
+        const fingers=names.map(n=>v.bones.get(n));
+        if(fingers.some(b=>!b))continue;
+        const saved=fingers.map(b=>b.quaternion.clone());
+        fingerProbe[side][digit]=[];
+        for(const strength of [-2,-1.5,-1,-.5,0,.5,1,1.5,2,2.5]){
+          for(let k=0;k<4;k++)fingers[k].quaternion.copy(v.rests.get(names[k]));
+          v.root.updateWorldMatrix(true,true);
+          const fractions=[.60,.64,.42,.20];
+          for(let k=0;k<4;k++){
+            const b=fingers[k];
+            const dq=new THREE.Quaternion().setFromAxisAngle(
+              axis,1.24*strength*fractions[k]);
+            const parent=b.parent.getWorldQuaternion(new THREE.Quaternion());
+            b.quaternion.premultiply(parent.clone().invert().
+              multiply(dq).multiply(parent)).normalize();
+            b.updateWorldMatrix(false,true);
+          }
+          v.root.updateWorldMatrix(true,true);
+          const dist=fingers[3].getWorldPosition(new THREE.Vector3()).
+            distanceTo(fingers[0].getWorldPosition(new THREE.Vector3()));
+          fingerProbe[side][digit].push([strength,Number(dist.toFixed(4))]);
+        }
+        for(let k=0;k<4;k++)fingers[k].quaternion.copy(saved[k]);
+        v.root.updateWorldMatrix(true,true);
+      }
+    }
     const boneHierarchy=Object.fromEntries(
       ['hips','pelvis','thigh_l','thigh_r','spine_01'].map(name=>{
         const b=v.bones.get(name);return [name,{parent:b?.parent?.name,
@@ -95,7 +133,7 @@ try{
     ar.hud.style.display='none';
     ar.renderer.render(ar.scene,camera);
     return {root:[origin.x,origin.y,origin.z],head,measured,
-      metrics:v.poseMetrics,fingerQA,boneHierarchy,
+      metrics:v.poseMetrics,fingerQA,fingerProbe,boneHierarchy,
       model:v.key,rootRotation:v.root.rotation.y};
   });
   console.log('SCULPTED_GUARD_DIAGNOSTIC',JSON.stringify(guardQA));
