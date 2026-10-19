@@ -7,7 +7,7 @@
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone as cloneSkeleton} from 'three/addons/utils/SkeletonUtils.js';
-import {poseFighter} from './arena-animator.js?v=upright-fist-guard-13';
+import {poseFighter} from './arena-animator.js?v=natural-footwork-14';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
@@ -597,14 +597,14 @@ class Arena3D {
     }
     constrain(a);
     // Advance gait by actual displacement, independent of rendering frame rate.
-    // Slow walk: 1.61m/cycle, 62% contact. Full run: 3.05m/cycle, 43%
-    // contact. Keeping the travel/foot-contact distances matched prevents
-    // short choppy legs at sprint speeds and foot sliding at normal speeds.
+    // Updated distance-driven gait: shorter run cycles and controlled
+    // heel-to-toe contact. Only the animation clock changes; game-world
+    // travel speed and collisions remain untouched.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
       const groundSpeed=distance/STEP;
       const runBlend=clamp((groundSpeed-3.6)/2.7,0,1);
-      const cycleMeters=lerp(1.61,3.05,runBlend);
+      const cycleMeters=lerp(1.90,2.56,runBlend);
       const stepRate=a.state==='dash'?3.0:2*Math.PI/cycleMeters;
       a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
