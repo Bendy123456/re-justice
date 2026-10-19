@@ -13,7 +13,7 @@ import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
-  from './arena-rotation-retarget.js?v=grounded-turns-2';
+  from './arena-rotation-retarget.js?v=expressive-sprint-3';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -250,7 +250,10 @@ export function poseFighter(view,alpha){
     clamp(walk):0;
   const walkingMotion=walkAmount>.0005;
   const walkFade=ease(walkAmount);
-  const runMix=clamp((motion.speed-3.6)/2.7)*walkFade;
+  // W/S/A/D is a full anime combat RUN, including retreat and strafe.
+  // The old 3.6→6.3m/s threshold gave the side/backward movements a
+  // half-walk, half-run pose. Blend into the run after the first strides.
+  const runMix=clamp((motion.speed-1.90)/1.50)*walkFade;
   const leftStep=groundedStep(strideClock,runMix);
   const rightStep=groundedStep(strideClock+Math.PI,runMix);
   const body=bodyCycle(strideClock,runMix);
@@ -268,16 +271,21 @@ export function poseFighter(view,alpha){
   // Gravity-like weight absorption on contact, directional lean and
   // counter-balance rather than spinning a motionless torso on top of legs.
   // Restrained vertical bob: shoulders must not pogo with each knee lift.
-  const walkBob=walkAmount*(.0025+body.rise*.84);
+  // Heel strike + flight: visible weight transfer but no rapid pogo
+  // bouncing that would make the camera/rig appear unstable.
+  const walkBob=walkAmount*(.0035+body.rise*(.86+runMix*.34));
   const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
   const rawLean=lerp(a.prevLean,a.lean,alpha);
   const lean=(walkingMotion?rawLean*.11:rawLean)+
     (attack?.lean||0)-(hit?.21:0);
-  // A subtle athletic forward inclination (not the old running hunch).
-  const walkLean=walkAmount*((.014+runMix*.025)*localForward-
-    .007*abs(localSide));
+  // Distinct heroic sprint silhouette ONLY while moving: the torso
+  // reaches forward into acceleration, then fully straightens at rest.
+  // Backpedals lean far less, never folding the model at the waist.
+  const leanDirection=localForward>=0?localForward:localForward*.40;
+  const walkLean=walkAmount*((.035+runMix*.115)*leanDirection-
+    .005*abs(localSide));
   const walkTurnBank=walkingMotion?
     clamp(-motion.turn*.31,-.075,.075)*walkAmount:0;
   const bank=lerp(a.prevBank,a.bank,alpha)*(!walkingMotion?1:.33)+
@@ -536,9 +544,12 @@ export function poseFighter(view,alpha){
   // Fade the fist naturally into locomotion, never override punches or guard.
   const neutralFist=(!attack&&!blocked&&!hit&&!airborne&&!dashing)?
     .99*ease(stanceWeight):0;
+  // Closed athletic fists reinforce the sharp, powerful hero run. The
+  // idle grip and all attack/block hand logic remain independently authored.
+  const sprintFist=naturalWalk?.82*runMix*walkFade:0;
   const digitPose=animateFingers(view,{idlePose:stanceWeight,walkAmount,runMix,
     strideClock,breath,attack,blocked,hit,airborne,
-    manualGrip:neutralFist});
+    manualGrip:Math.max(neutralFist,sprintFist)});
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
@@ -820,6 +831,7 @@ export function poseFighter(view,alpha){
     shinobiIdleWeight:stance.weight,shinobiIdleFloorErrors:stance.floorErrors,
     mocapWalkWeight:recorded.weight,mocapSource:recorded.capture||null,
     mocapRetargetJoints:recorded.joints||0,
+    heroRunIntensity:runMix,heroRunGrip:sprintFist,
     mocapContactL:!!recorded.plantedLeft,mocapContactR:!!recorded.plantedRight,
     mocapTurnFollow:recorded.turnLag||0,
     // World-space ankle errors measured AFTER the new Shinobi pose solve.
