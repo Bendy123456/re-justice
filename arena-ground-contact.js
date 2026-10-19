@@ -42,9 +42,15 @@ export function stepGroundDrive(state,heights,runMix=0,tick=0,strength=1){
     // Soft knee compression immediately AFTER heel strike, then a
     // propulsive rise as the support leg extends toward toe-off.
     // Both overlap smoothly; the body never teleports or pogo-bounces.
-    const impact=foot.contact?bell(seconds,.043,.125):0;
+    // At 7.1m/s a foot is planted for only ~8 game ticks.
+    // The earlier ~0.15-second push peak often happened AFTER toe-off.
+    // These envelopes compress with run speed: land -> load -> extend.
+    const tempo=1-.24*run;
+    const impact=foot.contact?
+      bell(seconds,.035*tempo,.110*tempo):0;
     const drive=foot.contact?
-      Math.max(foot.toeOff*.70,bell(seconds,.145,.245)*.80):0;
+      Math.max(foot.toeOff*.72,
+        bell(seconds,.099*tempo,.185*tempo)*.83):0;
     foot.compression=impact;
     foot.propulsion=drive;
     if(foot.contact){
