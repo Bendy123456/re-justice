@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-ninja-fists-2';
-import {applyShinobiIdle} from './arena-shinobi-idle.js?v=aggressive-guard-2';
+import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
