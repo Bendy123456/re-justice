@@ -15,7 +15,7 @@ import {MOTION_JOINTS,getHeroRunRotations}
   from './arena-retarget-rotations.js?v=expressive-sprint-5';
 import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
 import {stepGroundDrive,resetGroundDrive}
-  from './arena-ground-contact.js?v=push-off-1';
+  from './arena-ground-contact.js?v=push-off-2';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smoother=n=>{n=clamp(n);return n*n*(3-2*n);};
