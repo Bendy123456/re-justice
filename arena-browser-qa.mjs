@@ -59,14 +59,44 @@ try{
         wristVsHead:head&&wrist?wrist.map((n,i)=>n-head[i]):null,
         armSide:v.armSides[side],legSide:v.legSides[side]};
     }
+    // Measure whether skinned finger tips really curl toward knuckles.
+    // A grip scalar of 1 does NOT prove visually closed fists.
+    const fingerQA={};
+    for(const side of ['l','r']){
+      fingerQA[side]={};
+      for(const digit of ['index','middle','ring','pinky','thumb']){
+        const names=[digit+'_01_'+side,digit+'_02_'+side,
+          digit+'_03_'+side,digit+'_04_leaf_'+side];
+        const bones=names.map(n=>v.bones.get(n));
+        if(bones.some(b=>!b))continue;
+        const originals=bones.map(b=>b.quaternion.clone());
+        v.root.updateWorldMatrix(true,true);
+        const posed=bones[3].getWorldPosition(v.root.position.clone()).
+          distanceTo(bones[0].getWorldPosition(v.root.position.clone()));
+        for(let k=0;k<4;k++)bones[k].quaternion.copy(v.rests.get(names[k]));
+        v.root.updateWorldMatrix(true,true);
+        const rest=bones[3].getWorldPosition(v.root.position.clone()).
+          distanceTo(bones[0].getWorldPosition(v.root.position.clone()));
+        for(let k=0;k<4;k++)bones[k].quaternion.copy(originals[k]);
+        v.root.updateWorldMatrix(true,true);
+        fingerQA[side][digit]={rest,posed,closure:rest-posed};
+      }
+    }
+    const boneHierarchy=Object.fromEntries(
+      ['hips','pelvis','thigh_l','thigh_r','spine_01'].map(name=>{
+        const b=v.bones.get(name);return [name,{parent:b?.parent?.name,
+          worldY:b?.getWorldPosition(v.root.position.clone()).y,
+          localY:b?.position.y}];
+      }));
     const camera=ar.camera,origin=v.root.position;
-    camera.position.set(origin.x+2.60,1.75,origin.z+1.60);
-    camera.lookAt(origin.x,.98,origin.z);
+    camera.position.set(origin.x+2.15,2.10,origin.z+4.45);
+    camera.lookAt(origin.x,.89,origin.z);
     // Hide the game HUD while capturing the REAL rendered character.
     ar.hud.style.display='none';
     ar.renderer.render(ar.scene,camera);
     return {root:[origin.x,origin.y,origin.z],head,measured,
-      metrics:v.poseMetrics,model:v.key,rootRotation:v.root.rotation.y};
+      metrics:v.poseMetrics,fingerQA,boneHierarchy,
+      model:v.key,rootRotation:v.root.rotation.y};
   });
   console.log('SCULPTED_GUARD_DIAGNOSTIC',JSON.stringify(guardQA));
   const guardFrame=await page.locator('#arena3d-webgl').screenshot({
