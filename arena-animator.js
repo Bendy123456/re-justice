@@ -13,7 +13,7 @@ import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
-  from './arena-rotation-retarget.js?v=expressive-sprint-4';
+  from './arena-rotation-retarget.js?v=ground-push-off-5';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -744,6 +744,19 @@ export function poseFighter(view,alpha){
     weight:naturalWalk?walkFade:0,phase:strideClock,runMix,rootQ,actorYaw:yaw,
     solveLimb
   });
+  // A planted running step presses the hero visibly into the floor.
+  // Contact shadow tightens/darkens on impact and relaxes at toe-off.
+  // Cosmetic only — world-position physics/colliders are unchanged.
+  if(view.shadow&&recorded.active){
+    const stamp=recorded.groundCompression||0;
+    const push=recorded.groundPush||0;
+    view.shadow.material.opacity=Math.min(.86,
+      view.shadow.material.opacity*(1+.12*stamp-.045*push));
+    const scale=1-.036*stamp+.018*push;
+    view.shadow.scale.set(scale,scale,1);
+  }else if(view.shadow){
+    view.shadow.scale.set(1,1,1);
+  }
   // Transition director: freeze the LAST actual walk pose briefly when
   // movement stops. Previously the neutral stance instantly aimed both
   // legs toward a straight bind pose before the Shinobi idle faded in,
@@ -834,6 +847,13 @@ export function poseFighter(view,alpha){
     heroRunIntensity:runMix,heroRunGrip:sprintFist,
     mocapContactL:!!recorded.plantedLeft,mocapContactR:!!recorded.plantedRight,
     mocapTurnFollow:recorded.turnLag||0,
+    strideImpact:recorded.groundCompression||0,
+    stridePushOff:recorded.groundPush||0,
+    stridePelvisDriveY:recorded.groundPelvisY||0,
+    stridePelvisLoadX:recorded.groundPelvisX||0,
+    strideToeOffL:recorded.leftToeOff||0,
+    strideToeOffR:recorded.rightToeOff||0,
+    groundSupportFeet:recorded.groundSupportFeet||0,
     // World-space ankle errors measured AFTER the new Shinobi pose solve.
     floorErrorL:(
       view.bones.get('foot_l')?.getWorldPosition(vec()).y??
