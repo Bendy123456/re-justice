@@ -26,7 +26,7 @@ function rotate(view,name,axis,angle,rootQ){
   const worldAxis=axis.clone().applyQuaternion(rootQ);
   const change=new THREE.Quaternion().setFromAxisAngle(worldAxis,angle);
   const q=b.parent.getWorldQuaternion(new THREE.Quaternion());
-  b.quaternion.premultiply(q.invert().multiply(change).multiply(q)).normalize();
+  b.quaternion.premultiply(q.clone().invert().multiply(change).multiply(q)).normalize();
   b.updateWorldMatrix(false,true);
 }
 function aim(b,child,worldDirection){
@@ -37,7 +37,7 @@ function aim(b,child,worldDirection){
   const rot=new THREE.Quaternion().setFromUnitVectors(
     current.normalize(),worldDirection.clone().normalize());
   const parent=b.parent.getWorldQuaternion(new THREE.Quaternion());
-  b.quaternion.premultiply(parent.invert().multiply(rot).multiply(parent)).normalize();
+  b.quaternion.premultiply(parent.clone().invert().multiply(rot).multiply(parent)).normalize();
   b.updateWorldMatrix(false,true);
 }
 function solveTwoBone(view,upperName,lowerName,endName,goalWorld,poleWorld){
@@ -191,9 +191,15 @@ export function applyShinobiIdle(view,{
   // preceding pose; transition uses Slerp so no elbow/knee snapping.
   for(const name of ids){
     const b=bone(view,name),base=prior.get(name);
-    if(base)b.quaternion.copy(base).slerp(b.quaternion,w).normalize();
+    if(base){
+      const authored=b.quaternion.clone();
+      b.quaternion.copy(base).slerp(authored,w).normalize();
+    }
   }
-  if(pelvis&&priorPos)pelvis.position.copy(priorPos).lerp(pelvis.position,w);
+  if(pelvis&&priorPos){
+    const authoredPosition=pelvis.position.clone();
+    pelvis.position.copy(priorPos).lerp(authoredPosition,w);
+  }
   root.updateWorldMatrix(true,true);
   return {active:true,weight:w,floorErrors,
     leadExtension:'left',rearCompression:'right'};
