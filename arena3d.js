@@ -322,6 +322,15 @@ class Arena3D {
       if(node.isBone){bones.set(node.name.toLowerCase(),node);rests.set(node.name.toLowerCase(),node.quaternion.clone());restPositions.set(node.name.toLowerCase(),node.position.clone());}
       if(node.isMesh){node.frustumCulled=false;}
     });
+    // Calibration at authentic GLB bind-rest, BEFORE any animation is posed.
+    // Needed for rotational motion-capture retargeting: imported Blender
+    // bones use nonstandard local axes, so never transfer raw BVH Euler
+    // angles or aim elbows with positional IK.
+    root.updateWorldMatrix(true,true);
+    const restWorldQuats=new Map();
+    for(const [name,bone] of bones){
+      restWorldQuats.set(name,bone.getWorldQuaternion(new THREE.Quaternion()));
+    }
     // Soft contact shadow stays on the arena floor during jump, instead of
     // being inherited by the character's airborne skeleton.
     // Determine anatomical outward axes from the actual Blender skeleton.
@@ -397,7 +406,7 @@ class Arena3D {
     shadow.rotation.x=-Math.PI/2;
     shadow.position.set(actor.x,.015,actor.z);
     this.scene.add(shadow);
-    return {actor,root,bones,rests,restPositions,key,shadow,
+    return {actor,root,bones,rests,restPositions,restWorldQuats,key,shadow,
       armSides,legSides,footSoleHeights,footRestWorldQuats,soleSamples,walkWeight:0,dashWeight:0,lastStateTick:-1};
   }
   clearAvatars(){
