@@ -27,7 +27,8 @@ try{
   await page.waitForFunction(()=>Boolean(window.game?.arena3d?.ready),null,{timeout:120000});
   const start=await page.evaluate(()=>{
     const g=window.game;
-    g.startMatch({p1:'wonder-woman',p2:'batman',mode:'cpu',stage:'neon-rooftop'});
+    // Inspect the same unarmored MALE GLB as the user's visible fighter.
+    g.startMatch({p1:'flash',p2:'batman',mode:'cpu',stage:'neon-rooftop'});
     g.render();
     return {scene:g.scene,ready:g.arena3d.ready,
       avatars:g.arena3d.views.map(v=>({slot:v.actor.slot,rigBones:v.bones.size,key:v.key})),
@@ -120,6 +121,13 @@ try{
      guardQA.metrics.elbowL<.55||guardQA.metrics.elbowR<.55)
     throw Error('Sculpted idle: fist below guard or knee/elbow insufficiently flexed');
   
+  // Continue the legacy suite with its original female/Batman matchup.
+  // The pose screenshot and measured fist/knee checks above use male GLB.
+  await page.evaluate(()=>{
+    const game=window.game;
+    game.startMatch({p1:'wonder-woman',p2:'batman',mode:'cpu',stage:'neon-rooftop'});
+    game.render();
+  });
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
   // The sky is game geometry, not a static image. Verify both layers
