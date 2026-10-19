@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-ninja-fists-2';
-import {applyShinobiIdle} from './arena-shinobi-idle.js?v=boxer-reference-neutral-5';
+import {applyShinobiIdle} from './arena-shinobi-idle.js?v=sculpted-boxer-guard-7';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
