@@ -11,7 +11,9 @@ import {poseFighter} from './arena-animator.js?v=grounded-push-off-21';
 
 const FG=window.FG;
 const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52;
-const RUN=7.1,BACK=4.8,STRAFE=5.7,DASH=16.4,DASH_FRAMES=11,DASH_COOLDOWN=44;
+// Faster traversal to match the expressive Shinobi run. Keep the dash and
+// combat action timing unchanged so the new locomotion remains controllable.
+const RUN=8.6,BACK=5.9,STRAFE=7.0,DASH=16.4,DASH_FRAMES=11,DASH_COOLDOWN=44;
 const JUMP=11.0,GRAVITY=25,ROUND_FRAMES=99*60,INTRO_FRAMES=78,KO_FRAMES=110;
 const CAM_DIST=4.75,CAM_HEIGHT=2.85,CAM_SIDE=1.15,CAM_LERP=.13;
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
@@ -606,16 +608,16 @@ class Arena3D {
     }
     constrain(a);
     // Advance gait by actual displacement, independent of rendering frame rate.
-    // Updated distance-driven gait: shorter run cycles and controlled
-    // heel-to-toe contact. Only the animation clock changes; game-world
-    // travel speed and collisions remain untouched.
+    // Gait cycles are proportional to actual world distance. Faster
+    // traversal has a slightly longer stride and ~10% faster cadence,
+    // NOT 20% faster flailing legs; each support foot can push off cleanly.
     if(a.state==='walk'||a.state==='dash'){
       const distance=len(a.x-startMoveX,a.z-startMoveZ);
       const groundSpeed=distance/STEP;
       // Keep the simulation's distance-driven cadence in sync with the
       // animator's run activation, even for W/S/A/D retreat and strafe.
       const runBlend=clamp((groundSpeed-1.90)/1.50,0,1);
-      const cycleMeters=lerp(2.05,3.05,runBlend);
+      const cycleMeters=lerp(2.35,3.35,runBlend);
       const stepRate=a.state==='dash'?3.0:2*Math.PI/cycleMeters;
       a.gaitPhase+=Math.min(.5,distance)*stepRate;
     }
