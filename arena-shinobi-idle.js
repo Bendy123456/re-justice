@@ -201,6 +201,35 @@ export function applyShinobiIdle(view,{
     pelvis.position.copy(priorPos).lerp(authoredPosition,w);
   }
   root.updateWorldMatrix(true,true);
+  // The slerp between two valid poses can itself arc a toe/ankle below
+  // the surface. Keep an exact floor constraint throughout the 0.2-second
+  // stop/start crossfade rather than checking contact only at weight=1.
+  for(const side of ['l','r']){
+    const foot=bone(view,'foot_'+side);
+    if(!foot)continue;
+    const footPos=foot.getWorldPosition(V());
+    const floor=groundY+(view.footSoleHeights?.[side]??.065)+.005;
+    if(footPos.y<floor-.0008){
+      const sign=view.legSides?.[side]??(side==='l'?1:-1);
+      const corrected=footPos.clone();
+      corrected.y=floor;
+      solveTwoBone(view,'thigh_'+side,'calf_'+side,'foot_'+side,
+        corrected,V(sign*.16,-.12,1).applyQuaternion(rootQ));
+    }
+    // Blend toe yaw and keep the sole level while settling into stance.
+    if(w>.15) {
+      const qNow=foot.getWorldQuaternion(new THREE.Quaternion());
+      const yaw=actorYaw+(side==='l'?.012:-.17)*w;
+      flatFoot(view,side,yaw);
+      if(w<1){
+        const flatLocal=foot.quaternion.clone();
+        const parent=foot.parent.getWorldQuaternion(new THREE.Quaternion());
+        const priorLocal=parent.clone().invert().multiply(qNow);
+        foot.quaternion.copy(priorLocal).slerp(flatLocal,w).normalize();
+      }
+    }
+  }
+  root.updateWorldMatrix(true,true);
   return {active:true,weight:w,floorErrors,
     leadExtension:'left',rearCompression:'right'};
 }
