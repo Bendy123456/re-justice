@@ -74,6 +74,17 @@ function followCapturedArmDrive(view,samples,rootQ,runMix,strength){
  applyWorldTurn('spine_03',yAxis,motion.chestYaw);
  for(const side of ['l','r']){
    const arm=motion[side==='l'?'left':'right'];
+   const collar=view.bones.get('clavicle_'+side);
+   if(collar?.parent&&arm.shoulderReach>.00001){
+     // Scapular glide is a LOCAL joint translation corresponding to the
+     // avatar's root-forward direction; rotation and parent transforms
+     // make it work consistently for male/female and facing any yaw.
+     const parentWorld=collar.parent.getWorldQuaternion(q());
+     const forward=new THREE.Vector3(0,0,1).applyQuaternion(rootQ)
+       .multiplyScalar(arm.shoulderReach);
+     collar.position.add(forward.applyQuaternion(parentWorld.invert()));
+     collar.updateWorldMatrix(false,true);
+   }
    applyWorldTurn('clavicle_'+side,xAxis,arm.collarAngle);
    applyWorldTurn('upperarm_'+side,xAxis,arm.shoulderAngle);
  }
@@ -246,6 +257,8 @@ export function retargetCapturedHuman(view,{
     rightArmFrontReach:armDrive.right?.forward||0,
     leftArmExtraSwing:armDrive.left?.shoulderAngle||0,
     rightArmExtraSwing:armDrive.right?.shoulderAngle||0,
+    leftScapularReach:armDrive.left?.shoulderReach||0,
+    rightScapularReach:armDrive.right?.shoulderReach||0,
     armChestCounterYaw:armDrive.chestYaw||0
   };
 }
