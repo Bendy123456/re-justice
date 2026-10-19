@@ -14,6 +14,8 @@ import * as THREE from 'three';
 import {MOTION_JOINTS,getHeroRunRotations}
   from './arena-retarget-rotations.js?v=expressive-sprint-5';
 import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
+import {stepGroundDrive,resetGroundDrive}
+  from './arena-ground-contact.js?v=push-off-1';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
 const smoother=n=>{n=clamp(n);return n*n*(3-2*n);};
@@ -46,15 +48,14 @@ function turnFollowThrough(view,strength){
  }
  return turn;
 }
-function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
+function blendFootGround(view,drive,rootQ,actorYaw,strength,runMix,solveLimb){
  const footState=view.captureContacts||(view.captureContacts={l:null,r:null});
  const out={l:false,r:false};
  for(const side of ['l','r']){
-   const isLeft=side==='l',value=sourceHeights[isLeft?25:26];
-   // Separate entry/exit thresholds eliminate brief planted-to-air flicker.
- const wasGrounded=!!footState[side];
- const contact=Number.isFinite(value)&&
-   value<(wasGrounded?.061:.035)&&strength>.63;
+   const isLeft=side==='l';
+   // Same captured heel contact drives the body's weight AND foot locking.
+   // Never let one part of the gait say "landed" while another says "flying".
+   const ground=drive.feet[side],contact=ground.contact;
    const hip=view.bones.get('thigh_'+side),knee=view.bones.get('calf_'+side),
      ankle=view.bones.get('foot_'+side);
    if(!hip||!knee||!ankle){footState[side]=null;continue;}
@@ -68,12 +69,17 @@ function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
      };
    }
    const anchor=footState[side];
-   // Fade over physics ticks so pose is the same at 60Hz and 144Hz renders.
+   // Catch a planted foot quickly: with the actor moving 0.12m per
+   // physics tick, a slow 4-frame anchor fade causes visible skating.
    if(anchor.lastTick!==view.actor.animClock){
-     anchor.fade=Math.min(1,anchor.fade+.34);
+     anchor.fade=Math.min(1,anchor.fade+.68);
      anchor.lastTick=view.actor.animClock;
    }
+   const toePush=ground.toeOff*ground.push*strength;
    const desired=anchor.point.clone();
+   // Roll up onto the ball of the planted foot just BEFORE it leaves
+   // the ground. Slight heel rise, while the toes remain near the floor.
+   desired.y+=toePush*.019;
    const hipWorld=hip.getWorldPosition(vec());
    const upper=hipWorld.distanceTo(knee.getWorldPosition(vec()));
    const lower=knee.getWorldPosition(vec()).distanceTo(current);
@@ -93,7 +99,7 @@ function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
    const distance=correction.length();
    if(distance>.012&&solveLimb){
      const limited=current.clone().addScaledVector(
-       correction,Math.min(anchor.fade,.16/distance));
+       correction,Math.min(anchor.fade,.15/distance));
      limited.y=Math.max(soleY+.004,limited.y);
      const target=limited.sub(hipWorld)
        .applyQuaternion(rootQ.clone().invert()).toArray();
@@ -112,10 +118,24 @@ function blendFootGround(view,sourceHeights,rootQ,actorYaw,strength,solveLimb){
      const heading=q().setFromAxisAngle(Y,anchor.heading);
      const desiredWorld=heading.multiply(rest);
      const now=ankle.getWorldQuaternion(q());
-     now.slerp(desiredWorld,.54*strength);
+     // Sole is flat during landing/load; release toward the mocap ankle
+     // rotation while rising onto the toes for push-off.
+     now.slerp(desiredWorld,clamp((.73-.49*toePush)*strength,0,1));
      const parent=ankle.parent.getWorldQuaternion(q());
      ankle.quaternion.copy(parent.invert().multiply(now)).normalize();
      ankle.updateWorldMatrix(false,true);
+   }
+   // Forefoot bends as the heel releases. Do not aim wrists or disturb the
+   // capture-driven leg; only the independent Blender ball/toe joint rolls.
+   const ball=view.bones.get('ball_'+side);
+   if(ball?.parent&&toePush>.004){
+     const footAxis=new THREE.Vector3(1,0,0).applyQuaternion(rootQ);
+     const delta=q().setFromAxisAngle(footAxis,
+       toePush*(.15+.055*runMix));
+     const parentQ=ball.parent.getWorldQuaternion(q());
+     ball.quaternion.premultiply(
+       parentQ.clone().invert().multiply(delta).multiply(parentQ)).normalize();
+     ball.updateWorldMatrix(false,true);
    }
    out[side]=true;
  }
@@ -128,6 +148,7 @@ export function retargetCapturedHuman(view,{
   const blend=smoother(weight);
   if(blend<.0001){
     view.captureContacts=null;
+    view.footDrive=resetGroundDrive(view.footDrive);
     view.turnFollowValue=0;
     return {active:false,weight:0,joints:0};
   }
@@ -139,6 +160,10 @@ export function retargetCapturedHuman(view,{
   // pose, maintaining bent elbows, balanced knees and natural shoulder arcs.
   const captured=getHeroRunRotations(phase,runMix);
   const src=sampleHumanMotion(phase,runMix);
+  const drive=stepGroundDrive(view.footDrive,{
+    l:src[25],r:src[26]
+  },runMix,view.actor.animClock,blend);
+  view.footDrive=drive.state;
   const pelvis=view.bones.get('pelvis')||view.bones.get('hips');
   if(pelvis){
     const original=view.restPositions.get(pelvis.name.toLowerCase());
@@ -146,6 +171,8 @@ export function retargetCapturedHuman(view,{
     // Low-frequency human hip rise/sink; never apply source root travel
     // or change gameplay move speed.
     desired.y-=.091+clamp(src[0]*.58,-.031,.031);
+    desired.y+=drive.pelvisY;
+    desired.x+=drive.pelvisX;
     pelvis.position.lerp(desired,blend);
   }
   view.root.updateWorldMatrix(true,true);
@@ -171,11 +198,16 @@ export function retargetCapturedHuman(view,{
   }
   view.root.updateWorldMatrix(true,true);
   const turnLag=turnFollowThrough(view,blend);
-  const ground=blendFootGround(view,src,rootQ,actorYaw,blend,solveLimb);
+  const ground=blendFootGround(view,drive,rootQ,actorYaw,blend,
+    runMix,solveLimb);
   return {
     active:true,weight:blend,joints:applied,
     capture:'CMU hero sprint -> rig rotations',
     expressiveRun:runMix,
-    plantedLeft:ground.l,plantedRight:ground.r,turnLag
+    plantedLeft:ground.l,plantedRight:ground.r,turnLag,
+    groundCompression:drive.impact,groundPush:drive.propulsion,
+    groundPelvisY:drive.pelvisY,groundPelvisX:drive.pelvisX,
+    leftToeOff:drive.feet.l.toeOff,rightToeOff:drive.feet.r.toeOff,
+    groundSupportFeet:drive.supportCount
   };
 }
