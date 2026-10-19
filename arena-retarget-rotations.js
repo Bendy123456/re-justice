@@ -51,10 +51,10 @@ export function getCapturedRotations(phase,runMix=0){
 const HERO_RUN_GAIN=Object.freeze({
  pelvis:1.22,spine_01:1.31,spine_02:1.35,spine_03:1.30,
  neck_01:.79,head:.65,
- clavicle_l:1.24,upperarm_l:1.48,lowerarm_l:1.22,hand_l:1.05,
- clavicle_r:1.24,upperarm_r:1.48,lowerarm_r:1.22,hand_r:1.05,
- thigh_l:1.36,calf_l:1.18,foot_l:1.02,
- thigh_r:1.36,calf_r:1.18,foot_r:1.02
+ clavicle_l:1.30,upperarm_l:1.65,lowerarm_l:1.27,hand_l:1.04,
+ clavicle_r:1.30,upperarm_r:1.65,lowerarm_r:1.27,hand_r:1.04,
+ thigh_l:1.52,calf_l:1.24,foot_l:1.01,
+ thigh_r:1.52,calf_r:1.24,foot_r:1.01
 });
 // Average each running quaternion in the same hemisphere; avoids
 // antipodal cancellation and leaves the natural sprint guard intact.
