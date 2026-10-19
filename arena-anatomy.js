@@ -66,9 +66,12 @@ export function animateShoulders(view,{rootQ,walkAmount=0,runMix=0,
 // rotated everything minutely, leaving the silhouettes stuck together.
 export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
     strideClock=0,breath=0,attack=null,blocked=false,hit=false,
-    airborne=false}={}){
-  const grip=attack?clamp(attack.wind*.65+attack.reach*1.22+.30):
+    airborne=false,manualGrip=0}={}){
+  // A real closed-fist resting guard uses each finger's skinned knuckles,
+  // never a glove-shaped substitute. Attacks/block/jumps still take priority.
+  const actionGrip=attack?clamp(attack.wind*.65+attack.reach*1.22+.30):
     blocked?.82:hit?.04:airborne?.27:0;
+  const grip=clamp(Math.max(actionGrip,manualGrip));
   const walkGrip=walkAmount*(.12+runMix*.28);
   const relaxed=clamp(1-grip);
   let posed=0;
@@ -79,11 +82,11 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
     const phase=Math.sin(strideClock+(side==='l'?0:Math.PI));
     for(const f of FINGERS){
       const id=f.name+'_',suffix='_'+side;
-      // Resting guard has separated, gently curled fingers. Attacks close
-      // into progressively stronger fists; the back of the hand stays still.
-      const spread=f.spread*(.45+.55*idlePose)*relaxed;
+      // In idle, retract finger splay and fold all three knuckles into
+      // a distinct closed fist; their individual curl differences remain.
+      const spread=f.spread*(.45+.55*idlePose)*relaxed*.85;
       const bend=f.curl*(.55+.45*idlePose)+walkGrip+
-        grip*(1.16-f.curl);
+        grip*(1.24-f.curl);
       const wave=.016*breath*(.25+idlePose)+.025*walkAmount*phase;
       handRotate(view,id+'01'+suffix,X,spread,handQ);
       handRotate(view,id+'01'+suffix,Z,bend*.60+wave,handQ);
@@ -99,9 +102,11 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
       (side==='l'?-1:1)*(.16*idlePose+.24*grip),handQ);
     handRotate(view,'thumb_01_'+side,Y,
       (side==='l'?-1:1)*(.13+.08*idlePose),handQ);
-    handRotate(view,'thumb_01_'+side,Z,.13+.31*grip,handQ);
-    handRotate(view,'thumb_02_'+side,Z,.20+.39*grip,handQ);
-    handRotate(view,'thumb_03_'+side,Z,.14+.29*grip,handQ);
+    // Thumb folds ACROSS the index/middle fingers rather than extending
+    // beside them, completing the fist silhouette.
+    handRotate(view,'thumb_01_'+side,Z,.13+.39*grip,handQ);
+    handRotate(view,'thumb_02_'+side,Z,.20+.49*grip,handQ);
+    handRotate(view,'thumb_03_'+side,Z,.14+.34*grip,handQ);
     handRotate(view,'thumb_04_leaf_'+side,Z,.10*grip,handQ);
     posed++;
   }
