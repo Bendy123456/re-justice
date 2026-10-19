@@ -39,6 +39,40 @@ try{
   if(start.scene!=='arena3d'||!start.ready||start.avatars.length!==2||
       start.avatars.some(v=>v.rigBones<60)||start.arenaCanvas!=='block')
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
+  // Diagnostic: independently render the CURRENT pose at full idle weight,
+  // from the fighter's front, and report measured wrists vs guard targets.
+  const guardQA=await page.evaluate(()=>{
+    const ar=window.game.arena3d,v=ar.views[0],a=v.actor;
+    a.state='idle';a.attack=null;a.blocking=false;a.grounded=true;
+    a.visualYaw=a.prevVisualYaw=0;a.animClock++;
+    v.combatIdleWeight=1;v.lastStateTick=-1;v.lastWalkPose=null;
+    ar.pose(v,1);
+    const xyz=name=>v.bones.get(name)?.getWorldPosition(
+      v.root.position.clone()).toArray();
+    const head=xyz('head');
+    const measured={};
+    for(const side of ['l','r']){
+      const shoulder=xyz('upperarm_'+side),elbow=xyz('lowerarm_'+side),
+        wrist=xyz('hand_'+side),hip=xyz('thigh_'+side),
+        knee=xyz('calf_'+side),foot=xyz('foot_'+side);
+      measured[side]={shoulder,elbow,wrist,hip,knee,foot,
+        wristVsHead:head&&wrist?wrist.map((n,i)=>n-head[i]):null,
+        armSide:v.armSides[side],legSide:v.legSides[side]};
+    }
+    const camera=ar.camera,origin=v.root.position;
+    camera.position.set(origin.x,2.05,origin.z+3.45);
+    camera.lookAt(origin.x,1.02,origin.z);
+    ar.renderer.render(ar.scene,camera);
+    return {root:[origin.x,origin.y,origin.z],head,measured,
+      metrics:v.poseMetrics,model:v.key,rootRotation:v.root.rotation.y};
+  });
+  console.log('SCULPTED_GUARD_DIAGNOSTIC',JSON.stringify(guardQA));
+  const guardFrame=await page.locator('#arena3d-webgl').screenshot({
+    type:'jpeg',quality:62});
+  const guardChunks=guardFrame.toString('base64').match(/.{1,5000}/g)||[];
+  guardChunks.forEach((chunk,i)=>console.log('SCULPTED_GUARD_JPG:'+i+'/'+guardChunks.length+':'+chunk));
+  console.log('SCULPTED_GUARD_JPG_END:'+guardChunks.length);
+  
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
   // The sky is game geometry, not a static image. Verify both layers
