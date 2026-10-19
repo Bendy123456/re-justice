@@ -60,8 +60,10 @@ try{
         armSide:v.armSides[side],legSide:v.legSides[side]};
     }
     const camera=ar.camera,origin=v.root.position;
-    camera.position.set(origin.x,2.05,origin.z+3.45);
-    camera.lookAt(origin.x,1.02,origin.z);
+    camera.position.set(origin.x+2.60,1.75,origin.z+1.60);
+    camera.lookAt(origin.x,.98,origin.z);
+    // Hide the game HUD while capturing the REAL rendered character.
+    ar.hud.style.display='none';
     ar.renderer.render(ar.scene,camera);
     return {root:[origin.x,origin.y,origin.z],head,measured,
       metrics:v.poseMetrics,model:v.key,rootRotation:v.root.rotation.y};
@@ -72,6 +74,15 @@ try{
   const guardChunks=guardFrame.toString('base64').match(/.{1,5000}/g)||[];
   guardChunks.forEach((chunk,i)=>console.log('SCULPTED_GUARD_JPG:'+i+'/'+guardChunks.length+':'+chunk));
   console.log('SCULPTED_GUARD_JPG_END:'+guardChunks.length);
+  await page.evaluate(()=>{
+    const ar=window.game.arena3d;
+    ar.hud.style.display='block';
+  });
+  if(guardQA.measured.l.wristVsHead[1]<-.25||
+     guardQA.measured.r.wristVsHead[1]<-.25||
+     guardQA.metrics.kneeL<.55||guardQA.metrics.kneeR<.55||
+     guardQA.metrics.elbowL<.55||guardQA.metrics.elbowR<.55)
+    throw Error('Sculpted idle: fist below guard or knee/elbow insufficiently flexed');
   
   await page.waitForTimeout(600);
   await page.screenshot({path:'arena-qa-images/arena-intro.png'});
