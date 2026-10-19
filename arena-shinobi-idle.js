@@ -82,25 +82,23 @@ function worldAtRoot(root,rootQ,point){
 // fist positions use the head joint so the guard scales with each fighter.
 // Both ankles are solved to the real arena ground; no visual root translation.
 const POSE=Object.freeze({
-  // Stronger squat than the old nearly-standing guard. Weight settles back
-  // onto the rear hip without sinking the actor's physics root or shadow.
-  pelvisDrop:.285,pelvisSide:.125,pelvisBack:.025,
-  pelvisYaw:-.205,pelvisPitch:.052,pelvisRoll:-.027,
-  // Chest leans slightly into the opponent while the head stays upright.
-  chestCurl:[.057,.071,.029],
-  chestYaw:[-.030,-.048,-.037],
-  chestRoll:[-.010,.018,-.013],
-  headCounterPitch:-.110,headCounterYaw:.228,
-  // Distinct planted footprints: front foot forward and outward, rear foot
-  // back and outward. Flexed knees and a low pelvis create the silhouette.
-  leadX:.480,leadZ:.445,trailingX:.460,trailingZ:-.318,
-  leadFootYaw:.100,rearFootYaw:-.245,
-  // Fist one at the cheekbone, fist two ahead of the nose at chin height.
-  // Offsets measured from HEAD bone: (outward, vertical, forward) in meters.
-  leadGuard:[.175,-.116,.245],
-  rearGuard:[.272,-.215,.488],
-  // Elbows stay BELOW fists, outside ribs: no horizontal chicken wings.
-  leadPole:[.69,-.83,.45],rearPole:[.83,-.76,.63]
+  // Crouched boxer's stance: hips genuinely DOWN so both knees articulate,
+  // rather than stretching two nearly straight legs toward distant ankles.
+  pelvisDrop:.545,pelvisSide:.100,pelvisBack:.015,
+  pelvisYaw:-.067,pelvisPitch:.018,pelvisRoll:-.010,
+  chestCurl:[.056,.068,.021],
+  chestYaw:[-.010,-.015,-.011],
+  chestRoll:[-.006,.010,-.006],
+  headCounterPitch:-.083,headCounterYaw:.095,
+  // More than a meter of foot separation on an adult male GLB: width is
+  // emphasized over depth to maintain solvability in a deep squat.
+  leadX:.610,leadZ:.185,trailingX:.585,trailingZ:-.115,
+  leadFootYaw:.075,rearFootYaw:-.165,
+  // Cheek-high fist targets are REACHABLE from both shoulders. Previous
+  // rearGuard forward=.488 made an entire arm lock out and point at ground.
+  leadGuard:[.140,-.092,.195],
+  rearGuard:[.160,-.108,.215],
+  leadPole:[.57,-.86,.31],rearPole:[.62,-.85,.35]
 });
 export function applyShinobiIdle(view,{
   weight=0,rootQ,actorYaw=0,breath=0,groundY=0
@@ -144,18 +142,18 @@ export function applyShinobiIdle(view,{
     rotate(view,name,Y,POSE.chestYaw[i],rootQ);
     rotate(view,name,Z,POSE.chestRoll[i],rootQ);
   }
-  rotate(view,'neck_01',X,-.047,rootQ);
+  rotate(view,'neck_01',X,-.032,rootQ);
   rotate(view,'head',X,POSE.headCounterPitch-.006*breath,rootQ);
   rotate(view,'head',Y,POSE.headCounterYaw,rootQ);
   // The shoulder girdle protracts, but hands are placed from the HEAD,
   // rather than blindly raising both fists beside the ears.
   // Shoulders roll forward/up into a visibly combative guard.
-  rotate(view,'clavicle_l',X,-.082,rootQ);
-  rotate(view,'clavicle_r',X,-.034,rootQ);
-  rotate(view,'clavicle_l',Y,-.068,rootQ);
-  rotate(view,'clavicle_r',Y,.056,rootQ);
-  rotate(view,'clavicle_l',Z,-.048,rootQ);
-  rotate(view,'clavicle_r',Z,.060,rootQ);
+  rotate(view,'clavicle_l',X,-.052,rootQ);
+  rotate(view,'clavicle_r',X,-.039,rootQ);
+  rotate(view,'clavicle_l',Y,-.028,rootQ);
+  rotate(view,'clavicle_r',Y,.031,rootQ);
+  rotate(view,'clavicle_l',Z,-.035,rootQ);
+  rotate(view,'clavicle_r',Z,.040,rootQ);
   root.updateWorldMatrix(true,true);
   const head=bone(view,'head');
   if(head){
@@ -172,8 +170,8 @@ export function applyShinobiIdle(view,{
       solveTwoBone(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,goal,pole);
       // The fists have opposed wrist rolls, not dangling straight palms.
       // Their skinned fingers are closed separately by animateFingers().
-      rotate(view,'hand_'+side,X,side==='l'?.135:.082,rootQ);
-      rotate(view,'hand_'+side,Z,handSign*(side==='l'?.056:-.070),rootQ);
+      rotate(view,'hand_'+side,X,side==='l'?.092:.078,rootQ);
+      rotate(view,'hand_'+side,Z,handSign*(side==='l'?.034:-.040),rootQ);
     }
   }
   root.updateWorldMatrix(true,true);
@@ -207,8 +205,8 @@ export function applyShinobiIdle(view,{
     }
     // Higher forward knee-pole on the REAR side deepens its visible
     // compression without requiring the ankle to leave the arena floor.
-    const pole=V(sign*(side==='l'?.17:.24),-.12,
-      side==='l'?1.04:1.24).applyQuaternion(rootQ);
+    const pole=V(sign*(side==='l'?.19:.23),-.17,
+      side==='l'?1.09:1.19).applyQuaternion(rootQ);
     solveTwoBone(view,'thigh_'+side,'calf_'+side,'foot_'+side,ankleGoal,pole);
     flatFoot(view,side,actorYaw+
       (side==='l'?POSE.leadFootYaw:POSE.rearFootYaw));
@@ -260,6 +258,6 @@ export function applyShinobiIdle(view,{
   }
   root.updateWorldMatrix(true,true);
   return {active:true,weight:w,floorErrors,
-    stance:'reference-boxing-guard',closedGuard:true,
+    stance:'deep-reference-boxing-guard',closedGuard:true,
     leadExtension:'left',rearCompression:'right'};
 }
