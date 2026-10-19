@@ -12,7 +12,7 @@
  */
 import * as THREE from 'three';
 import {MOTION_JOINTS,getHeroRunRotations}
-  from './arena-retarget-rotations.js?v=expressive-sprint-4';
+  from './arena-retarget-rotations.js?v=expressive-sprint-5';
 import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
