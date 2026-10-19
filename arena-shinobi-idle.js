@@ -84,7 +84,7 @@ function worldAtRoot(root,rootQ,point){
 const POSE=Object.freeze({
   // Crouched boxer's stance: hips genuinely DOWN so both knees articulate,
   // rather than stretching two nearly straight legs toward distant ankles.
-  pelvisDrop:.545,pelvisSide:.100,pelvisBack:.015,
+  hipHeightAboveSole:.595,pelvisSide:.100,pelvisBack:.015,
   pelvisYaw:-.067,pelvisPitch:.018,pelvisRoll:-.010,
   chestCurl:[.056,.068,.021],
   chestYaw:[-.010,-.015,-.011],
@@ -107,9 +107,10 @@ export function applyShinobiIdle(view,{
   if(w<.0001)return {active:false,weight:0};
   const root=view.root,ids=targetBones.filter(name=>view.bones.has(name));
   const prior=new Map(ids.map(name=>[name,view.bones.get(name).quaternion.clone()]));
-  // The imported GLB uses HIPS as the top of the leg/torso hierarchy.
-  // Translating the auxiliary pelvis alone leaves both knees near-straight.
-  const pelvis=bone(view,'hips')||bone(view,'pelvis');
+  // The real Quaternius skeleton has a PELVIS child of the root bone;
+  // 'hips' doesn't exist in several loaded GLBs. Both thighs and spine
+  // inherit from pelvis, so this is the shared anatomical body control.
+  const pelvis=bone(view,'pelvis')||bone(view,'hips');
   const priorPos=pelvis?.position.clone();
   // Construct a WHOLE pose from the exported bind rig, then blend with
   // the current walk/dash pose. No historical idle tweaks can accumulate.
@@ -129,12 +130,27 @@ export function applyShinobiIdle(view,{
   const rightSign=view.legSides?.r??-1;
   if(pelvis){
     pelvis.position.x+=POSE.pelvisSide*legLen*rightSign;
-    pelvis.position.y-=(POSE.pelvisDrop+Math.sin(breath)*.002)*legLen;
     pelvis.position.z-=POSE.pelvisBack*legLen;
     root.updateWorldMatrix(true,true);
-    rotate(view,'hips',Y,POSE.pelvisYaw,rootQ);
-    rotate(view,'hips',X,POSE.pelvisPitch,rootQ);
-    rotate(view,'hips',Z,POSE.pelvisRoll,rootQ);
+    // WORLD-HEIGHT calibration: the old incremental "drop" was not enough
+    // because the rig pelvis starts unusually high above the foot bones.
+    // Match a proportion of each model's measured leg length to achieve
+    // genuine knee flexion on male, female and armored rigs alike.
+    const leftHipY=lThigh?.getWorldPosition(V()).y;
+    const rightHipY=rThigh?.getWorldPosition(V()).y;
+    const hipWorldY=(Number.isFinite(leftHipY)&&Number.isFinite(rightHipY))?
+      .5*(leftHipY+rightHipY):(leftHipY??rightHipY??0);
+    const sole=Math.max(view.footSoleHeights?.l??.07,
+      view.footSoleHeights?.r??.07);
+    const desiredHipY=groundY+sole+
+      (POSE.hipHeightAboveSole+.002*breath)*legLen;
+    const worldShift=V(0,desiredHipY-hipWorldY,0);
+    const parentQ=pelvis.parent.getWorldQuaternion(new THREE.Quaternion());
+    pelvis.position.add(worldShift.applyQuaternion(parentQ.invert()));
+    root.updateWorldMatrix(true,true);
+    rotate(view,'pelvis',Y,POSE.pelvisYaw,rootQ);
+    rotate(view,'pelvis',X,POSE.pelvisPitch,rootQ);
+    rotate(view,'pelvis',Z,POSE.pelvisRoll,rootQ);
   }
   // Pelvis anchors the planted stance and the chest pitches slightly toward
   // the opponent. Neck/head counter-bend to keep the guard at eye level.
