@@ -10,8 +10,8 @@ import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-ninja-fists-2';
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
-import {groundedStep,walkArm,clampAnkleReach}
-  from './arena-natural-gait.js?v=grounded-rebuild-1';
+import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
+  from './arena-natural-gait.js?v=authored-gait-3';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -243,8 +243,9 @@ export function poseFighter(view,alpha){
   const runMix=clamp((motion.speed-3.6)/2.7)*walkFade;
   const leftStep=groundedStep(strideClock,runMix);
   const rightStep=groundedStep(strideClock+Math.PI,runMix);
+  const body=bodyCycle(strideClock,runMix);
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
-  const supportShift=walkAmount*.055*
+  const supportShift=walkAmount*.032*
     (leftStep.support*legL+rightStep.support*legR);
   if(!naturalWalk&&view.footPlants)view.footPlants={l:null,r:null};
   const dashFrames=Math.max(0,Number(a.dashElapsed||0));
@@ -257,8 +258,7 @@ export function poseFighter(view,alpha){
   // Gravity-like weight absorption on contact, directional lean and
   // counter-balance rather than spinning a motionless torso on top of legs.
   // Restrained vertical bob: shoulders must not pogo with each knee lift.
-  const walkBob=walkAmount*(.004+.006*(1-cos(2*strideClock))*.5+
-    runMix*.008*(.5-.5*cos(2*strideClock)));
+  const walkBob=walkAmount*(.0025+body.rise*.84);
   const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
@@ -298,12 +298,13 @@ export function poseFighter(view,alpha){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
     if(hips){
       if(walkingMotion){
-        hips.position.x+=supportShift*.70;
-        // Lower the centre of gravity just enough for each leg to reach
-        // its planted ankle without stretching the shin or raising the foot.
-        // Imported skeletons are nearly straight in their neutral pose.
-        hips.position.y-=walkFade*(.078+runMix*.082);
-        hips.position.y-=walkAmount*.006*(1-abs(step));
+        // Controlled hip weight-shift over the supporting foot, with
+        // balanced chest compensation. Prevents the hips moving as a
+        // stiff block while the knees cycle.
+        hips.position.x+=supportShift*.72+body.lateral*walkFade;
+        // Calibrated to near-straight imported GLB legs.
+        hips.position.y-=walkFade*(.072+runMix*.080);
+        hips.position.y-=body.compression*walkFade;
       }
       if(idlePose>.0001){
         const offset=COMBAT_IDLE.hipsOffset;
@@ -319,15 +320,15 @@ export function poseFighter(view,alpha){
   // Spine chain makes a strike originate at the feet, not from a disembodied arm.
   // Hips initiate the stride and strike; shoulders counter-rotate.
   const stepDrive=localForward+localSide*.26;
-  const hipTwist=(walkingMotion?walkAmount*.135*stepDrive:drive*.19)*stride+
+  const hipTwist=(walkingMotion?walkFade*body.pelvisYaw:drive*.19*stride)+
     (attack?.hip||0)+dashKick*.055;
-  const torsoTwist=-(walkingMotion?walkAmount*.195*stepDrive:drive*.16)*stride+
+  const torsoTwist=(walkingMotion?walkFade*body.chestCounterYaw:drive*-.16*stride)+
     (attack?.twist||0)-dashKick*.075;
   // Chest pitch, counter-rotation and shoulder roll use distinct curves.
   const chestLead=walkingMotion?walkAmount*sin(strideClock-.48):0;
   const chestRoll=walkingMotion?
-    (-supportShift*.42+walkAmount*.048*sin(strideClock-.48)-
-      localSide*.023*walkAmount):0;
+    (body.shoulderRoll*walkFade-supportShift*.35-
+      localSide*.012*walkFade):0;
   const chestPitch=walkingMotion?
     walkAmount*(.006+.009*cos(2*strideClock+.35)):0;
   const torsoBend=(walkingMotion?walkAmount*(.018+.007*abs(step)):drive*.047)*abs(step)+
@@ -561,9 +562,9 @@ export function poseFighter(view,alpha){
       const foot=side==='l'?leftStep:rightStep;
       const hipWorld=hip.getWorldPosition(vec());
       const sole=view.footSoleHeights?.[side]??.085;
-      // Explicit WORLD-space foot path. The old IK target assumed the leg
-      // remained fully extended while travelling ±0.66m, which stretched
-      // the knee and left both soles hovering in the submitted recording.
+      // Four deliberate contact poses + four recovery poses:
+      // heel contact, compression, passing, push-off, recover and land.
+      // Targets stay anatomically reachable and anchored in world space.
       const baseSide=sign*length*.17;
       const footGoal=vec(baseSide+foot.travel*localSide,0,
         foot.travel*localForward).applyQuaternion(rootQ).add(root.position);
@@ -715,6 +716,56 @@ export function poseFighter(view,alpha){
   // settle flat instead of twitching and lifting the supporting feet.
   const toeChains=animateFootBalls(view,{rootQ,leftStep,rightStep,
     idlePose:0,walkAmount,runMix,airborne,dashing,dash,land});
+  // Transition director: freeze the LAST actual walk pose briefly when
+  // movement stops. Previously the neutral stance instantly aimed both
+  // legs toward a straight bind pose before the Shinobi idle faded in,
+  // creating a visible pop. This crossfade is bone-complete and frame-clock
+  // driven so it behaves identically at 60 Hz or 240 Hz rendering.
+  const transitionBones=[
+    'pelvis','spine_01','spine_02','spine_03','neck_01','head',
+    'clavicle_l','clavicle_r',
+    'upperarm_l','lowerarm_l','hand_l','upperarm_r','lowerarm_r','hand_r',
+    'thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r',
+    'ball_l','ball_r'
+  ];
+  if(naturalWalk&&walkAmount>.55){
+    if(!view.lastWalkPose)view.lastWalkPose=new Map();
+    for(const name of transitionBones){
+      const joint=view.bones.get(name);
+      if(!joint)continue;
+      let q=view.lastWalkPose.get(name);
+      if(!q){q=joint.quaternion.clone();view.lastWalkPose.set(name,q);}
+      else q.copy(joint.quaternion);
+    }
+    const hips=view.bones.get('pelvis')||view.bones.get('hips');
+    view.lastWalkHips=hips?.position.clone();
+    view.lastWalkStateTick=a.animClock;
+    view.walkStopStart=null;
+  }else if(relaxedIdle&&view.lastWalkPose){
+    if(view.walkStopStart===null||view.walkStopStart===undefined)
+      view.walkStopStart=a.animClock;
+    const stopAge=Math.max(0,a.animClock-view.walkStopStart);
+    // 14 fixed ticks (0.23sec), eased, gives a graceful planted stop.
+    const carry=1-ease(stopAge/14);
+    if(carry>.0001){
+      for(const [name,snapshot] of view.lastWalkPose){
+        const joint=view.bones.get(name);
+        if(joint)joint.quaternion.slerpQuaternions(
+          joint.quaternion,snapshot,carry).normalize();
+      }
+      const hips=view.bones.get('pelvis')||view.bones.get('hips');
+      if(hips&&view.lastWalkHips)hips.position.lerp(view.lastWalkHips,carry);
+      root.updateWorldMatrix(true,true);
+    }else{
+      view.lastWalkPose=null;
+      view.lastWalkHips=null;
+      view.walkStopStart=null;
+    }
+  }else if(attack||blocked||hit||airborne||dashing){
+    view.lastWalkPose=null;
+    view.lastWalkHips=null;
+    view.walkStopStart=null;
+  }
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
   const jointBends={
@@ -735,6 +786,9 @@ export function poseFighter(view,alpha){
     walkLiftL:leftStep.lift,walkLiftR:rightStep.lift,walkBob,
     walkFootL:leftStep.travel,walkFootR:rightStep.travel,
     walkForwardLean:walkLean,walkTurnBank,
+    contactCurveLeft:leftStep.phase,contactCurveRight:rightStep.phase,
+    walkStopBlendAge:view.walkStopStart===null?null:
+      Math.max(0,a.animClock-view.walkStopStart),
     walkHipShift:walkingMotion?supportShift:0,
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
