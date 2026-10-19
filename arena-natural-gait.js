@@ -85,7 +85,11 @@ export function groundedStep(phase,runMix=0){
   return {
     contact,stance:contact,phase:u,
     travel:lerp(w.travel,r.travel,mix),
-    lift:contact?0:lerp(w.lift,r.lift,mix),
+    // At intermediate walk/run mixtures the two clips have different
+    // toe-off times. Ramp the new swing up from zero so contact never
+    // switches to an airborne ankle in a single rendered frame.
+    lift:contact?0:lerp(w.lift,r.lift,mix)*
+      ease((u-lerp(.57,.42,mix))/.055),
     roll:lerp(w.roll,r.roll,mix),
     support:contact?lerp(w.support,r.support,mix):0
   };
