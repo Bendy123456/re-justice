@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-ninja-fists-2';
-import {applyShinobiIdle} from './arena-shinobi-idle.js?v=bladed-neutral-4';
+import {applyShinobiIdle} from './arena-shinobi-idle.js?v=boxer-reference-neutral-5';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
@@ -26,7 +26,7 @@ const abs=Math.abs, sin=Math.sin, cos=Math.cos;
 // Three authored fighting styles, with distinct footwork, handedness and
 // windup/impact curves. Fractions are of the existing move frame data, NOT
 // replacements for gameplay startup, active, or recovery.
-// One complete authored idle profile, inspired by a crouched ninja-ready pose.
+// The active idle is the isolated, reference-matched boxer pose below (arena-shinobi-idle.js).
 // Measurements in normalized limb lengths except for torso/pelvis shifts.
 // Tweak these values together; combat timing and locomotion remain untouched.
 // Hand-authored neutral stance: asymmetric torso, individually posed shoulders,
@@ -543,7 +543,7 @@ export function poseFighter(view,alpha){
   // Close every articulated finger into a proper fist while standing still.
   // Fade the fist naturally into locomotion, never override punches or guard.
   const neutralFist=(!attack&&!blocked&&!hit&&!airborne&&!dashing)?
-    .99*ease(stanceWeight):0;
+    ease(stanceWeight):0;
   // Closed athletic fists reinforce the sharp, powerful hero run. The
   // idle grip and all attack/block hand logic remain independently authored.
   const sprintFist=naturalWalk?.82*runMix*walkFade:0;
@@ -726,8 +726,8 @@ export function poseFighter(view,alpha){
     view.bones.get('foot_r').getWorldPosition(vec()).y-
     (view.footSoleHeights?.r??.09):null;
 
-  // One coherent Shinobi-inspired guard, low-hip base and grounded
-  // stance. Never stack it on top of the older idle IK/shoulder layers.
+  // Reference-matched sculpted boxing guard: bent knees, wide grounded
+  // footprints and both fists closed. Never stack with old idle layers.
   const stance=applyShinobiIdle(view,{
     // Neutral pose must NEVER override a punch, guard, hit reaction or jump.
     weight:(attack||blocked||hit||airborne||dashing)?0:stanceWeight,
@@ -842,6 +842,7 @@ export function poseFighter(view,alpha){
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
     shinobiIdleWeight:stance.weight,shinobiIdleFloorErrors:stance.floorErrors,
+    idleStyle:stance.stance||null,closedGuard:!!stance.closedGuard,
     mocapWalkWeight:recorded.weight,mocapSource:recorded.capture||null,
     mocapRetargetJoints:recorded.joints||0,
     heroRunIntensity:runMix,heroRunGrip:sprintFist,
