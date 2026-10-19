@@ -8,8 +8,8 @@
  */
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
-  from './arena-anatomy.js?v=human-articulation-1';
-import {applyShinobiIdle} from './arena-shinobi-idle.js?v=rebuilt-1';
+  from './arena-anatomy.js?v=closed-ninja-fists-2';
+import {applyShinobiIdle} from './arena-shinobi-idle.js?v=aggressive-guard-2';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -531,8 +531,13 @@ export function poseFighter(view,alpha){
   // The Blender mesh already has 3 deforming joints and a tip per
   // finger. Pose them independently, splaying each digit and curling
   // real knuckles instead of rotating the whole fused-looking hand.
+  // Close every articulated finger into a proper fist while standing still.
+  // Fade the fist naturally into locomotion, never override punches or guard.
+  const neutralFist=(!attack&&!blocked&&!hit&&!airborne&&!dashing)?
+    .99*ease(stanceWeight):0;
   const digitPose=animateFingers(view,{idlePose:stanceWeight,walkAmount,runMix,
-    strideClock,breath,attack,blocked,hit,airborne});
+    strideClock,breath,attack,blocked,hit,airborne,
+    manualGrip:neutralFist});
 
   // Long alternating stride, real knee lift on the recovering leg and heels
   // swinging under the hips. Reverse gait works because travel yaw reverses.
@@ -705,6 +710,7 @@ export function poseFighter(view,alpha){
   // Exposed for browser QA & animation inspection, never consumed by combat.
   view.poseMetrics={...jointBends,
     articulatedFingers:digitPose.digitChains,grip:digitPose.grip,
+    neutralFist,
     toeChains,shoulderFlex,
     localForward,localSide,gaitWeight:walkAmount,groundSpeed:motion.speed,runMix,
     state:a.state,hipTwist,torsoTwist,chestRoll,chestPitch,chestLead,
