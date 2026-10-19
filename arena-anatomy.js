@@ -99,6 +99,9 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
       handRotate(view,id+'04_leaf'+suffix,Z,bend*.20,handQ);
       posed++;
     }
+    // Mirror thumb flexion for opposite palms so the right thumb wraps
+    // across the curled index finger rather than sticking out sideways.
+    const thumbCurlSign=side==='l'?1:-1;
     // Thumb is opposed across the palm and flexes around its own base:
     // different from a finger directly beside the index finger.
     handRotate(view,'thumb_01_'+side,X,
@@ -107,10 +110,10 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
       (side==='l'?-1:1)*(.15+.10*idlePose+.10*grip),handQ);
     // Thumb folds ACROSS the index/middle fingers rather than extending
     // beside them, completing the fist silhouette.
-    handRotate(view,'thumb_01_'+side,Z,.10+.62*grip,handQ);
-    handRotate(view,'thumb_02_'+side,Z,.14+.91*grip,handQ);
-    handRotate(view,'thumb_03_'+side,Z,.10+.69*grip,handQ);
-    handRotate(view,'thumb_04_leaf_'+side,Z,.20*grip,handQ);
+    handRotate(view,'thumb_01_'+side,Z,thumbCurlSign*(.10+.62*grip),handQ);
+    handRotate(view,'thumb_02_'+side,Z,thumbCurlSign*(.14+.91*grip),handQ);
+    handRotate(view,'thumb_03_'+side,Z,thumbCurlSign*(.10+.69*grip),handQ);
+    handRotate(view,'thumb_04_leaf_'+side,Z,thumbCurlSign*.20*grip,handQ);
     posed++;
   }
   return {digitChains:posed,grip};
