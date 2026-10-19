@@ -18,7 +18,11 @@ export function capturedArmDrive(samples,runMix=0,weight=1){
     const back=smooth((-z-.055)/.17);
     const shoulderAngle=active*(-.37*forward+.064*back);
     const collarAngle=active*(-.056*forward+.012*back);
-    return {shoulderAngle,collarAngle,forward,back};
+    // The scapula glides several centimeters toward the lead fist.
+    // This makes the hand reach farther *ahead* without unlocking the
+    // elbow or pulling the shoulder unnaturally sideways.
+    const shoulderReach=active*.053*forward;
+    return {shoulderAngle,collarAngle,shoulderReach,forward,back};
   };
   const left=arm(get(15)),right=arm(get(21));
   // Subtle upper chest counter-rotation, only when one arm really leads.
