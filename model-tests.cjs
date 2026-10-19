@@ -15,11 +15,14 @@ assert.equal(a.heroModel('batman'),'batman');
 for(const id of a.MALE.filter(x=>x!=='batman'))assert.equal(a.heroModel(id),'male',id);
 for(const id of a.FEMALE)assert.equal(a.heroModel(id),'female',id);
 assert.equal(a.heroModel('unregistered-character'),null);
-assert.ok(a.MODEL_PATHS.batman.endsWith('.glb'));
-assert.ok(a.MODEL_PATHS.male.endsWith('.glb'));
+// Model loader paths may include a cache-busting ?v= query. Node's
+// filesystem must check the real GLB filename, not the browser URL.
 for(const [id,url] of Object.entries(a.MODEL_PATHS)){
-  if(!fs.existsSync(__dirname+'/'+url))throw Error('Missing 3D asset '+id+' at '+url);
-  const bytes=fs.readFileSync(__dirname+'/'+url);
+  assert.match(url,/\\.glb(?:[?#]|$)/,id+' must reference a GLB');
+  const diskPath=url.split(/[?#]/,1)[0];
+  if(!fs.existsSync(__dirname+'/'+diskPath))
+    throw Error('Missing 3D asset '+id+' at '+diskPath);
+  const bytes=fs.readFileSync(__dirname+'/'+diskPath);
   assert.equal(bytes.toString('ascii',0,4),'glTF',id+' must be a binary GLB');
   assert.ok(bytes.length>100_000,id+' model unexpectedly small');
   assert.equal(bytes.readUInt32LE(8),bytes.length,id+' GLB header length mismatch');
