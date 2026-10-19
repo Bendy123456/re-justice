@@ -686,7 +686,9 @@ export function poseFighter(view,alpha){
   // One coherent Shinobi-inspired guard, low-hip base and grounded
   // stance. Never stack it on top of the older idle IK/shoulder layers.
   const stance=applyShinobiIdle(view,{
-    weight:stanceWeight,rootQ,actorYaw:yaw,breath,groundY:0
+    // Neutral pose must NEVER override a punch, guard, hit reaction or jump.
+    weight:(attack||blocked||hit||airborne||dashing)?0:stanceWeight,
+    rootQ,actorYaw:yaw,breath,groundY:0
   });
   // Forefoot flex remains available during steps, but planted idle toes
   // settle flat instead of twitching and lifting the supporting feet.
@@ -715,7 +717,16 @@ export function poseFighter(view,alpha){
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
     shinobiIdleWeight:stance.weight,shinobiIdleFloorErrors:stance.floorErrors,
-    floorErrorL,floorErrorR,contactFloorY:0,authoredIdle:true,
+    // World-space ankle errors measured AFTER the new Shinobi pose solve.
+    floorErrorL:(
+      view.bones.get('foot_l')?.getWorldPosition(vec()).y??
+      (view.footSoleHeights?.l??.09)
+    )-(view.footSoleHeights?.l??.09),
+    floorErrorR:(
+      view.bones.get('foot_r')?.getWorldPosition(vec()).y??
+      (view.footSoleHeights?.r??.09)
+    )-(view.footSoleHeights?.r??.09),
+    contactFloorY:0,authoredIdle:true,
     rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
