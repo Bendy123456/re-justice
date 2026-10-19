@@ -729,17 +729,24 @@ export function poseFighter(view,alpha){
     'ball_l','ball_r'
   ];
   if(naturalWalk&&walkAmount>.55){
-    if(!view.lastWalkPose)view.lastWalkPose=new Map();
-    for(const name of transitionBones){
-      const joint=view.bones.get(name);
-      if(!joint)continue;
-      let q=view.lastWalkPose.get(name);
-      if(!q){q=joint.quaternion.clone();view.lastWalkPose.set(name,q);}
-      else q.copy(joint.quaternion);
+    // Capture once per simulation tick (never once per 240Hz render).
+    // Reuse quaternion objects to keep the animation GC-stable.
+    if(view.lastWalkStateTick!==a.animClock){
+      if(!view.lastWalkPose)view.lastWalkPose=new Map();
+      for(const name of transitionBones){
+        const joint=view.bones.get(name);
+        if(!joint)continue;
+        let q=view.lastWalkPose.get(name);
+        if(!q){q=joint.quaternion.clone();view.lastWalkPose.set(name,q);}
+        else q.copy(joint.quaternion);
+      }
+      const hips=view.bones.get('pelvis')||view.bones.get('hips');
+      if(hips){
+        if(!view.lastWalkHips)view.lastWalkHips=hips.position.clone();
+        else view.lastWalkHips.copy(hips.position);
+      }
+      view.lastWalkStateTick=a.animClock;
     }
-    const hips=view.bones.get('pelvis')||view.bones.get('hips');
-    view.lastWalkHips=hips?.position.clone();
-    view.lastWalkStateTick=a.animClock;
     view.walkStopStart=null;
   }else if(relaxedIdle&&view.lastWalkPose){
     if(view.walkStopStart===null||view.walkStopStart===undefined)
