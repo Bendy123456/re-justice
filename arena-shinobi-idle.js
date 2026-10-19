@@ -76,19 +76,21 @@ function flatFoot(view,side,worldYaw){
 function worldAtRoot(root,rootQ,point){
   return V(...point).applyQuaternion(rootQ).add(root.position);
 }
-// The source game reference uses modest torso compression, a broad
-// offset base and a less symmetrical guard. These normalized offsets
-// deliberately depend on actual rig length instead of fixed world units.
+// Exaggerated hand-authored ninja fighting stance. One low, compressed
+// supporting knee; one extended lead step, prominent slouch and asymmetrical
+// closed-fist guard. Distances scale to actual rig leg length, NOT pixels.
 const POSE=Object.freeze({
-  pelvisDrop:.192, pelvisSide:.083, pelvisBack:.024, pelvisYaw:-.105,
-  chestCurl:[.065,.102,.063], chestYaw:[-.012,.033,.049],
-  chestRoll:[-.021,-.011,.018],
-  headCounterPitch:-.075,
-  // Each side is resolved using the rig's actual left/right signed X.
-  // Left/lead is a little straighter. Rear/right carries the crouch.
-  leadX:.44,leadZ:.205,trailingX:.41,trailingZ:-.125,
-  leadGuard:[.16,-.155,.255], // from head: fist at jaw/cheek
-  rearGuard:[.23,-.310,.270]  // from head: fist by sternum
+  pelvisDrop:.245, pelvisSide:.116, pelvisBack:.031, pelvisYaw:-.152,
+  chestCurl:[.100,.147,.086], chestYaw:[-.021,.050,.074],
+  chestRoll:[-.031,-.016,.028],
+  headCounterPitch:-.102,
+  // Wider triangular base: left foot forward, right foot pushed back.
+  // Feet are ultimately solved against the floor in world coordinates.
+  leadX:.505,leadZ:.258,trailingX:.455,trailingZ:-.178,
+  // Hands measured from the head so the forward fist guards the cheek,
+  // with the other tight under the jaw, not floating beside the ears.
+  leadGuard:[.125,-.105,.285],
+  rearGuard:[.190,-.230,.295]
 });
 export function applyShinobiIdle(view,{
   weight=0,rootQ,actorYaw=0,breath=0,groundY=0
@@ -134,10 +136,13 @@ export function applyShinobiIdle(view,{
   rotate(view,'head',Y,.055,rootQ);
   // The shoulder girdle protracts, but hands are placed from the HEAD,
   // rather than blindly raising both fists beside the ears.
-  rotate(view,'clavicle_l',X,-.025,rootQ);
-  rotate(view,'clavicle_r',X,.018,rootQ);
-  rotate(view,'clavicle_l',Y,-.028,rootQ);
-  rotate(view,'clavicle_r',Y,.015,rootQ);
+  // Shoulders roll forward/up into a visibly combative guard.
+  rotate(view,'clavicle_l',X,-.054,rootQ);
+  rotate(view,'clavicle_r',X,.038,rootQ);
+  rotate(view,'clavicle_l',Y,-.049,rootQ);
+  rotate(view,'clavicle_r',Y,.028,rootQ);
+  rotate(view,'clavicle_l',Z,-.090,rootQ);
+  rotate(view,'clavicle_r',Z,.073,rootQ);
   root.updateWorldMatrix(true,true);
   const head=bone(view,'head');
   if(head){
@@ -147,9 +152,10 @@ export function applyShinobiIdle(view,{
       const norm=side==='l'?POSE.leadGuard:POSE.rearGuard;
       const local=[handSign*norm[0],norm[1]+.004*breath,norm[2]];
       const goal=h.clone().add(V(...local).applyQuaternion(rootQ));
-      const pole=V(handSign*.82,-.57,.62).applyQuaternion(rootQ);
+      const pole=V(handSign*(side==='l'?.90:.85),-.50,.57)
+        .applyQuaternion(rootQ);
       solveTwoBone(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,goal,pole);
-      rotate(view,'hand_'+side,X,side==='l'?.10:.06,rootQ);
+      rotate(view,'hand_'+side,X,side==='l'?.14:.095,rootQ);
     }
   }
   root.updateWorldMatrix(true,true);
@@ -181,7 +187,10 @@ export function applyShinobiIdle(view,{
         ankleGoal.z=hipWorld.z+delta.z*maxHoriz/horiz;
       }
     }
-    const pole=V(sign*.16,-.12,1).applyQuaternion(rootQ);
+    // Higher forward knee-pole on the REAR side deepens its visible
+    // compression without requiring the ankle to leave the arena floor.
+    const pole=V(sign*(side==='l'?.13:.20),-.10,
+      side==='l'?1.00:1.18).applyQuaternion(rootQ);
     solveTwoBone(view,'thigh_'+side,'calf_'+side,'foot_'+side,ankleGoal,pole);
     flatFoot(view,side,actorYaw+(side==='l'?.012:-.17));
     floorErrors[side]=foot.getWorldPosition(V()).y-ankleGoal.y;
