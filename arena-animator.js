@@ -12,6 +12,7 @@ import {animateShoulders,animateFingers,animateFootBalls}
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
+import {sampleHumanMotion} from './arena-mocap-data.js?v=cmu-walk-run-1';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -198,6 +199,126 @@ function bendAngle(view,upperName,jointName,endName){
   return Math.acos(clamp(mid.sub(start).normalize().dot(tip.sub(joint.getWorldPosition(vec())).normalize()),-1,1));
 }
 
+
+// Transfer CMU-recorded HUMAN joint trajectories to the existing Blender
+// skin without importing a second model. Gameplay owns translation/yaw.
+// BVH is sampled into true leg, wrist, shoulder and spine motion; we solve
+// each chain on the actual imported character with its own bone lengths.
+// This REPLACES procedural limb poses during walking; it does not stack
+// another synthesized gait on top of them.
+function applyCapturedWalk(view,{weight=0,phase=0,runMix=0,rootQ,yaw=0}={}){
+  const strength=ease(weight);
+  if(strength<.0001)return {active:false,weight:0};
+  const d=sampleHumanMotion(phase,runMix);
+  const names=[
+    'pelvis','spine_01','spine_02','spine_03','neck_01','head',
+    'clavicle_l','clavicle_r',
+    'upperarm_l','lowerarm_l','hand_l','upperarm_r','lowerarm_r','hand_r',
+    'thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r'
+  ];
+  const old=new Map();
+  for(const name of names){
+    const joint=view.bones.get(name);
+    if(!joint)continue;
+    old.set(name,joint.quaternion.clone());
+    if(view.rests.has(name))joint.quaternion.copy(view.rests.get(name));
+  }
+  const pelvis=view.bones.get('pelvis')||view.bones.get('hips');
+  const beforePosition=pelvis?.position.clone();
+  if(pelvis){
+    const rest=view.restPositions?.get(pelvis.name.toLowerCase());
+    if(rest)pelvis.position.copy(rest);
+    // A grounded running human flexes knees rather than standing with
+    // a fully extended leg. CMU hip-height variations preserve impact
+    // absorption and an authentic vertical rhythm.
+    pelvis.position.y-=.083+Math.max(-.035,Math.min(.035,d[0]*.55));
+    pelvis.position.x+=.008*Math.sin(phase);
+  }
+  view.root.updateWorldMatrix(true,true);
+  // Measured shoulder depth difference is natural torso counter-rotation;
+  // the head counterbalances to avoid the previous artificial forward lean.
+  const counter=clamp(d[27]*.40,-.072,.072);
+  const torsoPitch=clamp(d[28]*.12,-.022,.022);
+  rotate(view,'pelvis',Y,counter*.25,rootQ);
+  rotate(view,'spine_01',Y,-counter*.25,rootQ);
+  rotate(view,'spine_02',Y,-counter*.54,rootQ);
+  rotate(view,'spine_03',Y,-counter*.21,rootQ);
+  rotate(view,'spine_02',X,torsoPitch,rootQ);
+  rotate(view,'head',X,-torsoPitch*.6,rootQ);
+  view.root.updateWorldMatrix(true,true);
+  let footErrors={};
+  // Anatomical lower-limb IK from LIVE motion-capture knee and ankle
+  // trajectories; source lateral separation adapted to the avatar pelvis.
+  for(const side of ['l','r']){
+    const left=side==='l',idx=left?1:7,kidx=left?4:10;
+    const hip=view.bones.get('thigh_'+side),knee=view.bones.get('calf_'+side),
+      ankle=view.bones.get('foot_'+side);
+    if(!hip||!knee||!ankle)continue;
+    const sign=view.legSides?.[side]??(left?1:-1);
+    const hipWorld=hip.getWorldPosition(vec());
+    const footWorld=vec(
+      sign*.143+d[idx]*.74,0,d[idx+2]*.98
+    ).applyQuaternion(rootQ).add(pelvis.getWorldPosition(vec()));
+    const floor=view.footSoleHeights?.[side]??.085;
+    // Heel at zero height in stance, knee/ankle lift only when source
+    // actor actually leaves the floor in the recorded capture.
+    footWorld.y=floor+.002+Math.max(0,Math.min(.26,d[left?25:26]*.92));
+    const upper=hipWorld.distanceTo(knee.getWorldPosition(vec()));
+    const lower=knee.getWorldPosition(vec()).distanceTo(ankle.getWorldPosition(vec()));
+    const legLength=upper+lower;
+    clampAnkleReach(hipWorld,footWorld,legLength,.012);
+    const target=footWorld.sub(hipWorld).applyQuaternion(
+      rootQ.clone().invert()).toArray();
+    // Source knee heading controls how far the knee bends forward in
+    // each frame; the solver keeps the real limb lengths unchanged.
+    const kneeForward=clamp(.77+d[kidx+2]*.8,.52,1.15);
+    const pole=[sign*(.15+Math.abs(d[kidx])*.40),-.05,kneeForward];
+    solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
+      target,pole,rootQ);
+    const ankleNow=ankle.getWorldPosition(vec());
+    footErrors[side]=ankleNow.y-(view.footSoleHeights?.[side]??.085);
+    // World-space flat sole on recorded foot contact. Swing recovers
+    // naturally instead of snapping the ankle to a rigid floor plane.
+    const support=(d[left?25:26]<.034);
+    const rest=view.footRestWorldQuats?.[side];
+    if(rest&&ankle.parent){
+      const heading=new THREE.Quaternion().setFromAxisAngle(Y,yaw);
+      const desired=heading.multiply(rest);
+      const actual=ankle.getWorldQuaternion(new THREE.Quaternion());
+      actual.slerp(desired,support?.99:.47).normalize();
+      const parent=ankle.parent.getWorldQuaternion(new THREE.Quaternion());
+      ankle.quaternion.copy(parent.invert().multiply(actual)).normalize();
+      ankle.updateWorldMatrix(false,true);
+    }
+  }
+  // Hands follow mocap-recorded swing and elbow bends, not sinusoidal
+  // procedural arm vectors. Shoulder and wrist remain anatomically linked.
+  for(const side of ['l','r']){
+    const left=side==='l',idx=left?13:19,eidx=left?16:22;
+    const shoulder=view.bones.get('upperarm_'+side);
+    if(!shoulder)continue;
+    const sign=view.armSides?.[side]??(left?1:-1);
+    const wristLocal=vec(sign*(.025+Math.abs(d[idx])*.85),
+      clamp(d[idx+1]*.97,-.47,-.06),d[idx+2]*1.02);
+    const pole=[sign*(.70+Math.abs(d[eidx])*.28),
+      clamp(d[eidx+1],-.32,.12),clamp(d[eidx+2]*1.35,-.35,.50)];
+    solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
+      wristLocal.toArray(),pole,rootQ);
+  }
+  // Smoothly crossfade COMPLETE bone rotations between idle/old walking
+  // and the real capture — never hard-swap skeletons at the first step.
+  for(const [name,base] of old){
+    const b=view.bones.get(name);
+    const captured=b.quaternion.clone();
+    b.quaternion.copy(base).slerp(captured,strength).normalize();
+  }
+  if(pelvis&&beforePosition){
+    const captured=pelvis.position.clone();
+    pelvis.position.copy(beforePosition).lerp(captured,strength);
+  }
+  view.root.updateWorldMatrix(true,true);
+  return {active:true,weight:strength,source:'CMU 02_01 / 02_03',footErrors};
+}
 
 // Captures a neutral state once so the exported Blender rig stays intact.
 // Each frame rebuilds from bind/rest; no accumulation or wrist drift.
@@ -716,6 +837,12 @@ export function poseFighter(view,alpha){
   // settle flat instead of twitching and lifting the supporting feet.
   const toeChains=animateFootBalls(view,{rootQ,leftStep,rightStep,
     idlePose:0,walkAmount,runMix,airborne,dashing,dash,land});
+  // Recorded human walking overrides the previous mathematical gait
+  // only while genuinely locomoting. Fighting, jumping, blocking, hit
+  // reactions, dashing and the Shinobi neutral stance keep their systems.
+  const recorded=applyCapturedWalk(view,{
+    weight:naturalWalk?walkFade:0,phase:strideClock,runMix,rootQ,yaw
+  });
   // Transition director: freeze the LAST actual walk pose briefly when
   // movement stops. Previously the neutral stance instantly aimed both
   // legs toward a straight bind pose before the Shinobi idle faded in,
@@ -800,6 +927,7 @@ export function poseFighter(view,alpha){
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
     shinobiIdleWeight:stance.weight,shinobiIdleFloorErrors:stance.floorErrors,
+    mocapWalkWeight:recorded.weight,mocapSource:recorded.source||null,
     // World-space ankle errors measured AFTER the new Shinobi pose solve.
     floorErrorL:(
       view.bones.get('foot_l')?.getWorldPosition(vec()).y??
