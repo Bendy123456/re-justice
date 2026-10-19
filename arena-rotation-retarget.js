@@ -11,8 +11,8 @@
  * aims the elbows, wrists or shoulders.
  */
 import * as THREE from 'three';
-import {MOTION_JOINTS,getCapturedRotations}
-  from './arena-retarget-rotations.js?v=heel-synced-3';
+import {MOTION_JOINTS,getHeroRunRotations}
+  from './arena-retarget-rotations.js?v=expressive-sprint-4';
 import {sampleHumanMotion} from './arena-mocap-data.js?v=heel-synced-2';
 
 const clamp=(n,a=0,b=1)=>Math.max(a,Math.min(b,n));
@@ -135,7 +135,9 @@ export function retargetCapturedHuman(view,{
     // No bind-pose cache: skip the retarget rather than invent rotations.
     return {active:false,weight:0,joints:0,error:'missing bind-world calibration'};
   }
-  const captured=getCapturedRotations(phase,runMix);
+  // Stronger RUN deltas are measured around the capture's average running
+  // pose, maintaining bent elbows, balanced knees and natural shoulder arcs.
+  const captured=getHeroRunRotations(phase,runMix);
   const src=sampleHumanMotion(phase,runMix);
   const pelvis=view.bones.get('pelvis')||view.bones.get('hips');
   if(pelvis){
@@ -172,7 +174,8 @@ export function retargetCapturedHuman(view,{
   const ground=blendFootGround(view,src,rootQ,actorYaw,blend,solveLimb);
   return {
     active:true,weight:blend,joints:applied,
-    capture:'CMU world delta -> avatar bind axes',
+    capture:'CMU hero sprint -> rig rotations',
+    expressiveRun:runMix,
     plantedLeft:ground.l,plantedRight:ground.r,turnLag
   };
 }
