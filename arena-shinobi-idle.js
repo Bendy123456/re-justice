@@ -107,7 +107,9 @@ export function applyShinobiIdle(view,{
   if(w<.0001)return {active:false,weight:0};
   const root=view.root,ids=targetBones.filter(name=>view.bones.has(name));
   const prior=new Map(ids.map(name=>[name,view.bones.get(name).quaternion.clone()]));
-  const pelvis=bone(view,'pelvis')||bone(view,'hips');
+  // The imported GLB uses HIPS as the top of the leg/torso hierarchy.
+  // Translating the auxiliary pelvis alone leaves both knees near-straight.
+  const pelvis=bone(view,'hips')||bone(view,'pelvis');
   const priorPos=pelvis?.position.clone();
   // Construct a WHOLE pose from the exported bind rig, then blend with
   // the current walk/dash pose. No historical idle tweaks can accumulate.
@@ -130,9 +132,9 @@ export function applyShinobiIdle(view,{
     pelvis.position.y-=(POSE.pelvisDrop+Math.sin(breath)*.002)*legLen;
     pelvis.position.z-=POSE.pelvisBack*legLen;
     root.updateWorldMatrix(true,true);
-    rotate(view,'pelvis',Y,POSE.pelvisYaw,rootQ);
-    rotate(view,'pelvis',X,POSE.pelvisPitch,rootQ);
-    rotate(view,'pelvis',Z,POSE.pelvisRoll,rootQ);
+    rotate(view,'hips',Y,POSE.pelvisYaw,rootQ);
+    rotate(view,'hips',X,POSE.pelvisPitch,rootQ);
+    rotate(view,'hips',Z,POSE.pelvisRoll,rootQ);
   }
   // Pelvis anchors the planted stance and the chest pitches slightly toward
   // the opponent. Neck/head counter-bend to keep the guard at eye level.
