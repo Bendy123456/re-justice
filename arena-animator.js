@@ -10,6 +10,8 @@ import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-ninja-fists-2';
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
+import {groundedStep,walkArm,clampAnkleReach}
+  from './arena-natural-gait.js?v=grounded-rebuild-1';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -152,28 +154,8 @@ function unitMotion(m){
   return length>.001?{forward:m.forward/length,side:m.side/length}:
     {forward:1,side:0};
 }
-// Foot-contact gait: 62% grounded stance, 38% eased swing with a
-// separate heel strike, toe-off and recovery lift (not a pure sine wave).
-function walkStep(phase,runMix=0){
-  const u=((phase/(2*Math.PI))%1+1)%1;
-  // Sprinting has a shorter grounded phase and longer airborne recovery;
-  // ordinary steps retain stable walk contact. Full-speed movement is 7m/s,
-  // which MUST animate as a run, never as a hyper-fast short-step walk.
-  const stance=lerp(.62,.43,runMix);
-  const reach=lerp(.50,.66,runMix);
-  if(u<stance){
-    const t=u/stance;
-    return {contact:true,travel:reach*(1-2*t),lift:0,
-      roll:.12*(1-ease(t/.18))-.20*ease((t-.78)/.22),
-      support:sin(Math.PI*t)**2};
-  }
-  const t=(u-stance)/(1-stance);
-  return {contact:false,travel:lerp(-reach,reach,ease(t)),
-    lift:lerp(.175,.30,runMix)*Math.pow(Math.max(0,sin(Math.PI*t)),.8),
-    // Match preceding toe-off (-0.20 rad) and next heel strike (+0.12)
-    // exactly; no wrist/ankle snapping at the stance/swing boundaries.
-    roll:-.20*(1-ease(t/.18))+.12*ease((t-.82)/.18),support:0};
-}
+// Distance-calibrated stance/swing paths now live in arena-natural-gait.js.
+// The original broad/high-knee walkStep no longer contributes to any pose.
 // Solve an anatomical 2-bone chain from the actual GLB joint lengths.
 // Unlike directing both segments toward fixed angles, the elbow/knee is
 // placed geometrically between its shoulder/hip and the moving hand/foot.
@@ -259,8 +241,8 @@ export function poseFighter(view,alpha){
   const walkingMotion=walkAmount>.0005;
   const walkFade=ease(walkAmount);
   const runMix=clamp((motion.speed-3.6)/2.7)*walkFade;
-  const leftStep=walkStep(strideClock,runMix);
-  const rightStep=walkStep(strideClock+Math.PI,runMix);
+  const leftStep=groundedStep(strideClock,runMix);
+  const rightStep=groundedStep(strideClock+Math.PI,runMix);
   const legL=view.legSides?.l??-1,legR=view.legSides?.r??1;
   const supportShift=walkAmount*.055*
     (leftStep.support*legL+rightStep.support*legR);
@@ -274,16 +256,18 @@ export function poseFighter(view,alpha){
   const breath=sin((a.animClock+alpha)*.063);
   // Gravity-like weight absorption on contact, directional lean and
   // counter-balance rather than spinning a motionless torso on top of legs.
-  const walkBob=walkAmount*(.010+.011*(1-cos(2*strideClock))*.5+
-    runMix*.028*(.5-.5*cos(2*strideClock)));
+  // Restrained vertical bob: shoulders must not pogo with each knee lift.
+  const walkBob=walkAmount*(.004+.006*(1-cos(2*strideClock))*.5+
+    runMix*.008*(.5-.5*cos(2*strideClock)));
   const bob=(walkingMotion?walkBob:drive*(.009+abs(stride)*.049))+
     dashBurst*.022-dashIgnite*.085-dashBrake*.038-
     (attack?.crouch||0)*.11-land*.09;
   const rawLean=lerp(a.prevLean,a.lean,alpha);
-  const lean=(walkingMotion?rawLean*.22:rawLean)+
+  const lean=(walkingMotion?rawLean*.11:rawLean)+
     (attack?.lean||0)-(hit?.21:0);
-  const walkLean=walkAmount*((.058+runMix*.074)*localForward-
-    .010*abs(localSide));
+  // A subtle athletic forward inclination (not the old running hunch).
+  const walkLean=walkAmount*((.014+runMix*.025)*localForward-
+    .007*abs(localSide));
   const walkTurnBank=walkingMotion?
     clamp(-motion.turn*.31,-.075,.075)*walkAmount:0;
   const bank=lerp(a.prevBank,a.bank,alpha)*(!walkingMotion?1:.33)+
@@ -314,8 +298,12 @@ export function poseFighter(view,alpha){
     const hips=view.bones.get('hips')||view.bones.get('pelvis');
     if(hips){
       if(walkingMotion){
-        hips.position.x+=supportShift;
-        hips.position.y-=walkAmount*.009*(1-abs(step));
+        hips.position.x+=supportShift*.70;
+        // Lower the centre of gravity just enough for each leg to reach
+        // its planted ankle without stretching the shin or raising the foot.
+        // Imported skeletons are nearly straight in their neutral pose.
+        hips.position.y-=walkFade*(.078+runMix*.082);
+        hips.position.y-=walkAmount*.006*(1-abs(step));
       }
       if(idlePose>.0001){
         const offset=COMBAT_IDLE.hipsOffset;
@@ -341,8 +329,8 @@ export function poseFighter(view,alpha){
     (-supportShift*.42+walkAmount*.048*sin(strideClock-.48)-
       localSide*.023*walkAmount):0;
   const chestPitch=walkingMotion?
-    walkAmount*(.019+.026*cos(2*strideClock+.35)):0;
-  const torsoBend=(walkingMotion?walkAmount*(.045+.011*abs(step)):drive*.047)*abs(step)+
+    walkAmount*(.006+.009*cos(2*strideClock+.35)):0;
+  const torsoBend=(walkingMotion?walkAmount*(.018+.007*abs(step)):drive*.047)*abs(step)+
     (attack?.lean||0)*.20+dashBurst*.045;
   // Hand-authored three-segment spine and deliberately uneven shoulders.
   // Idle strength blends every joint together during stop/start transitions.
@@ -497,16 +485,18 @@ export function poseFighter(view,alpha){
       }
       // Author the wrist and elbow targets independently per side, instead
       // of allowing the ordinary idle arm IK to pull the fists back down.
-      const handPose=side==='l'?COMBAT_IDLE.leadHand:COMBAT_IDLE.trailHand;
-      const polePose=side==='l'?COMBAT_IDLE.leadArmPole:COMBAT_IDLE.trailArmPole;
-      handX=lerp(handX,handPose[0],idlePose);
-      handY=lerp(handY,handPose[1]+.006*breath,idlePose);
-      handZ=lerp(handZ,handPose[2]+.010*breath,idlePose);
-      const elbowOut=dashing?.95:lerp(.055,.30,walkFade);
+      // Proper counter-swing of a bent arm; the previous targets had the
+      // hands hanging near the thighs and elbows flipping behind the torso.
+      if(!dashing){
+        const path=walkArm(strideClock,side,localForward,localSide,runMix);
+        handX=lerp(.20,path.out,walkFade);
+        handY=lerp(-.78,path.down,walkFade);
+        handZ=lerp(.055,path.forward,walkFade);
+      }
       const armPole=[
-        sgn*lerp(elbowOut,polePose[0],idlePose),
-        lerp(.05,polePose[1],idlePose),
-        lerp(dashing?-.32:-.99,polePose[2],idlePose)
+        sgn*(dashing?.70:lerp(.29,.43+runMix*.09,walkFade)),
+        .01,
+        dashing?-.30:lerp(-.52,-.28,walkFade)
       ];
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],armPole,rootQ);
@@ -568,38 +558,45 @@ export function poseFighter(view,alpha){
         -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
         length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
     if(walkingMotion){
-      const foot=side==='l'?leftStep:rightStep,blend=walkAmount;
-      // Each heel travels along the character-local 2D ground direction.
-      // Reversing/strafe reorients the stride without rotating combat facing.
-      const lateral=sign*length*.065+foot.travel*localSide;
-      const fore=length*.025+foot.travel*localForward;
-      const reachSq=(lateral*lateral+fore*fore)/(length*length);
-      const extensionY=Math.sqrt(Math.max(.57,.985*.985-reachSq));
-      const walkTarget=[lateral,
-        -length*extensionY+foot.lift-(foot.contact?walkBob:0),
-        fore];
-      target=blendVec(target,walkTarget,blend);
+      const foot=side==='l'?leftStep:rightStep;
+      const hipWorld=hip.getWorldPosition(vec());
+      const sole=view.footSoleHeights?.[side]??.085;
+      // Explicit WORLD-space foot path. The old IK target assumed the leg
+      // remained fully extended while travelling ±0.66m, which stretched
+      // the knee and left both soles hovering in the submitted recording.
+      const baseSide=sign*length*.17;
+      const footGoal=vec(baseSide+foot.travel*localSide,0,
+        foot.travel*localForward).applyQuaternion(rootQ).add(root.position);
+      footGoal.y=sole+.003+(foot.contact?0:foot.lift*walkFade);
       if(!view.footPlants)view.footPlants={l:null,r:null};
-      const movingRoot=Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.0001;
-      const worldHip=hip.getWorldPosition(vec());
       let planted=view.footPlants[side];
-      // Discard a stale world anchor on teleport, jump, or large separation.
-      if(planted&&(worldHip.distanceTo(planted.world)>length*1.22||
-          Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.65)){
-        view.footPlants[side]=null;planted=null;
-      }
-      if(!foot.contact){
+      const movingRoot=Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.0001;
+      // A planted foot does not move with the travelling root. Keep its
+      // world point and world heading until that foot begins swing.
+      if(!naturalWalk||!foot.contact){
         view.footPlants[side]=null;
-      }else if(naturalWalk&&(movingRoot||planted)){
-        if(!planted){
-          const worldFoot=vec(...walkTarget).applyQuaternion(rootQ).add(worldHip);
-          planted={world:worldFoot};
+      }else{
+        if(planted&&(hipWorld.distanceTo(planted.world)>length*1.30||
+            Math.hypot(a.x-a.prevX,a.z-a.prevZ)>.65)){
+          view.footPlants[side]=null;planted=null;
+        }
+        if(!planted&&movingRoot){
+          planted={world:footGoal.clone(),heading:yaw};
           view.footPlants[side]=planted;
         }
-        const locked=planted.world.clone().sub(worldHip).
-          applyQuaternion(rootQ.clone().invert()).toArray();
-        target=blendVec(target,locked,blend);
+        if(planted)footGoal.copy(planted.world);
       }
+      // If the ankle is farther away than the actual thigh + calf can
+      // reach, constrain horizontal extension but preserve floor height.
+      // Never solve the IK toward an impossible floating ankle location.
+      const shortened=clampAnkleReach(hipWorld,footGoal,length,.016);
+      if(shortened&&planted){
+        // Retarget at the reachable edge: avoids a snap at the next render.
+        planted.world.copy(footGoal);
+      }
+      const goalLocal=footGoal.clone().sub(hipWorld).
+        applyQuaternion(rootQ.clone().invert()).toArray();
+      target=blendVec(target,goalLocal,walkFade);
     }else if(view.footPlants)view.footPlants[side]=null;
     // A sculpted, asymmetric foot layout: lead foot reaches forward,
     // while the rear foot stays nearer the bent supporting knee. The
@@ -656,6 +653,25 @@ export function poseFighter(view,alpha){
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
   rotate(view,'foot_r',X,(walkingMotion?rightStep.roll*walkAmount:
     -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
+  // Flatten each actual planted foot in world space after the knee solve.
+  // With no correction, calf rotation pitches the shoe sharply into the
+  // ground, producing skating even when the ankle itself is planted.
+  if(walkingMotion&&a.grounded&&!airborne){
+    for(const [side,phase] of [['l',leftStep],['r',rightStep]]){
+      const foot=view.bones.get('foot_'+side);
+      const rest=view.footRestWorldQuats?.[side];
+      if(!foot||!rest||!foot.parent)continue;
+      const anchored=view.footPlants?.[side];
+      const heading=(phase.contact&&anchored)?anchored.heading:yaw;
+      const desired=new THREE.Quaternion().setFromAxisAngle(Y,heading).
+        multiply(rest);
+      const world=foot.getWorldQuaternion(new THREE.Quaternion());
+      world.slerp(desired,walkFade*(phase.contact?1:.54)).normalize();
+      const parent=foot.parent.getWorldQuaternion(new THREE.Quaternion());
+      foot.quaternion.copy(parent.invert().multiply(world)).normalize();
+      foot.updateWorldMatrix(false,true);
+    }
+  }
   rotate(view,'foot_l',Y,(view.legSides?.l??-1)*idlePose*
     COMBAT_IDLE.leadFootYaw,rootQ);
   rotate(view,'foot_r',Y,(view.legSides?.r??1)*idlePose*
