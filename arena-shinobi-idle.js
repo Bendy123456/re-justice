@@ -96,9 +96,9 @@ const POSE=Object.freeze({
   leadFootYaw:.075,rearFootYaw:-.165,
   // Cheek-high fist targets are REACHABLE from both shoulders. Previous
   // rearGuard forward=.488 made an entire arm lock out and point at ground.
-  leadGuard:[.140,-.092,.195],
+  leadGuard:[.255,-.136,.295],
   rearGuard:[.160,-.108,.215],
-  leadPole:[.57,-.86,.31],rearPole:[.62,-.85,.35]
+  leadPole:[.67,-.86,.36],rearPole:[.62,-.85,.35]
 });
 export function applyShinobiIdle(view,{
   weight=0,rootQ,actorYaw=0,breath=0,groundY=0
