@@ -18,7 +18,7 @@ assert.equal(a.heroModel('unregistered-character'),null);
 // Model loader paths may include a cache-busting ?v= query. Node's
 // filesystem must check the real GLB filename, not the browser URL.
 for(const [id,url] of Object.entries(a.MODEL_PATHS)){
-  assert.match(url,/\\.glb(?:[?#]|$)/,id+' must reference a GLB');
+  assert.match(url,/\.glb(?:[?#]|$)/,id+' must reference a GLB');
   const diskPath=url.split(/[?#]/,1)[0];
   if(!fs.existsSync(__dirname+'/'+diskPath))
     throw Error('Missing 3D asset '+id+' at '+diskPath);
