@@ -13,7 +13,7 @@ import {applyShinobiIdle} from './arena-shinobi-idle.js?v=upright-guard-3';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
-  from './arena-rotation-retarget.js?v=ground-push-off-5';
+  from './arena-rotation-retarget.js?v=extended-arm-pump-6';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
