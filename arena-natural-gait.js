@@ -15,23 +15,23 @@ const ease=t=>{t=clamp(t);return t*t*(3-2*t);};
 // but the stance-to-swing boundary snaps only boolean contact, not geometry.
 const WALK=[
   [0,    1,    0,     .07,0.05],
-  [.12,  .64,  0,     .00,.55],
-  [.31,  -.08, 0,    -.01,1],
-  [.49,  -.84, 0,    -.07,.34],
-  [.57,  -1,   0,    -.11,0],
-  [.67,  -.76, .45, -.065,0],
-  [.79,  .15, 1,     .02,0],
+  [.11,  .64,  0,     .00,.55],
+  [.29,  -.08, 0,    -.01,1],
+  [.44,  -.84, 0,    -.07,.34],
+  [.53,  -1,   0,    -.11,0],
+  [.64,  -.76, .45, -.065,0],
+  [.78,  .15, 1,     .02,0],
   [.91,  .81,  .38,   .055,0],
   [1,    1,   0,     .07,.05]
 ];
 const RUN=[
   [0,    1,    0,     .065,0],
-  [.085, .60,  0,     0,.58],
-  [.24, -.22,  0,    -.025,1],
-  [.35, -.82,  0,    -.09,.30],
-  [.42, -1,    0,    -.13,0],
-  [.56, -.76,  .60, -.07,0],
-  [.70,  .06,  1,    -.01,0],
+  [.070, .60,  0,     0,.58],
+  [.180,-.22,  0,    -.025,1],
+  [.270,-.82,  0,    -.09,.30],
+  [.340,-1,    0,    -.13,0],
+  [.490,-.76,  .60, -.07,0],
+  [.700, .06,  1,    -.01,0],
   [.88,  .84,  .32,   .05,0],
   [1,    1,    0,     .065,0]
 ];
@@ -62,7 +62,7 @@ function interp(keys,u,col){
 }
 function sample(keys,u,run,reach,lift){
   const values=[1,2,3,4].map(col=>interp(keys,u,col));
-  const contact=u<(run?.42:.57);
+  const contact=u<(run?.34:.53);
   return {
     contact,stance:contact,phase:u,
     travel:clamp(values[0],-1,1)*reach,
@@ -81,7 +81,7 @@ export function groundedStep(phase,runMix=0){
   const r=sample(RUN,u,true,reach,lift);
   // Mixed gait needs a consistent contact state; choose the appropriate
   // contact phase, but keep all position/roll channels continuously blended.
-  const contact=u<lerp(.57,.42,mix);
+  const contact=u<lerp(.53,.34,mix);
   return {
     contact,stance:contact,phase:u,
     travel:lerp(w.travel,r.travel,mix),
@@ -89,7 +89,7 @@ export function groundedStep(phase,runMix=0){
     // toe-off times. Ramp the new swing up from zero so contact never
     // switches to an airborne ankle in a single rendered frame.
     lift:contact?0:lerp(w.lift,r.lift,mix)*
-      ease((u-lerp(.57,.42,mix))/.055),
+      ease((u-lerp(.53,.34,mix))/.055),
     roll:lerp(w.roll,r.roll,mix),
     support:contact?lerp(w.support,r.support,mix):0
   };
