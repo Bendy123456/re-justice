@@ -76,14 +76,18 @@ function flatFoot(view,side,worldYaw){
 function worldAtRoot(root,rootQ,point){
   return V(...point).applyQuaternion(rootQ).add(root.position);
 }
-// Exaggerated hand-authored ninja fighting stance. One low, compressed
-// supporting knee; one extended lead step, prominent slouch and asymmetrical
-// closed-fist guard. Distances scale to actual rig leg length, NOT pixels.
+// Athletic Shinobi-style guard: a broad, planted base with an UPRIGHT
+// upper body. The previous .333rad of cumulative forward spine curl was
+// making every fighter look hunched. Instead, a tiny upper-back extension
+// lets the chest stack above the hips, while the head levels the gaze.
+// Actual feet and individual closed fists remain exactly as authored.
 const POSE=Object.freeze({
-  pelvisDrop:.245, pelvisSide:.116, pelvisBack:.031, pelvisYaw:-.152,
-  chestCurl:[.100,.147,.086], chestYaw:[-.021,.050,.074],
-  chestRoll:[-.031,-.016,.028],
-  headCounterPitch:-.102,
+  pelvisDrop:.205, pelvisSide:.105, pelvisBack:.024, pelvisYaw:-.152,
+  // Three gentle upper-back angles total about -0.052rad (~3deg back).
+  // Deliberately do NOT apply a global root lean to the entire fighter.
+  chestCurl:[-.018,-.024,-.010], chestYaw:[-.021,.050,.074],
+  chestRoll:[-.026,-.014,.016],
+  headCounterPitch:.034,
   // Wider triangular base: left foot forward, right foot pushed back.
   // Feet are ultimately solved against the floor in world coordinates.
   leadX:.505,leadZ:.258,trailingX:.455,trailingZ:-.178,
@@ -124,14 +128,16 @@ export function applyShinobiIdle(view,{
     root.updateWorldMatrix(true,true);
     rotate(view,'pelvis',Y,POSE.pelvisYaw,rootQ);
   }
-  // Spine curves FORWARD, head counter-turns to retain opponent eye line.
+  // Pelvis anchors the planted stance while a nearly straight spine
+  // rises over it. Neck/head counter the small back extension to keep
+  // the fighter looking directly at the opponent.
   for(let i=0;i<3;i++){
     const name='spine_0'+(i+1);
     rotate(view,name,X,POSE.chestCurl[i]+(i===1?.006*breath:0),rootQ);
     rotate(view,name,Y,POSE.chestYaw[i],rootQ);
     rotate(view,name,Z,POSE.chestRoll[i],rootQ);
   }
-  rotate(view,'neck_01',X,-.036,rootQ);
+  rotate(view,'neck_01',X,.012,rootQ);
   rotate(view,'head',X,POSE.headCounterPitch-.008*breath,rootQ);
   rotate(view,'head',Y,.055,rootQ);
   // The shoulder girdle protracts, but hands are placed from the HEAD,
