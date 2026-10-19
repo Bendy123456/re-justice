@@ -76,25 +76,21 @@ function flatFoot(view,side,worldYaw){
 function worldAtRoot(root,rootQ,point){
   return V(...point).applyQuaternion(rootQ).add(root.position);
 }
-// Athletic Shinobi-style guard: a broad, planted base with an UPRIGHT
-// upper body. The previous .333rad of cumulative forward spine curl was
-// making every fighter look hunched. Instead, a tiny upper-back extension
-// lets the chest stack above the hips, while the head levels the gaze.
-// Actual feet and individual closed fists remain exactly as authored.
+// Bladed fighting stance: front leg ready, weight on the rear leg.
+// Fists sit apart in a relaxed high guard, chest rotated, gaze forward.
+// All targets are measured against the imported GLB skeleton and floor.
 const POSE=Object.freeze({
-  pelvisDrop:.205, pelvisSide:.105, pelvisBack:.024, pelvisYaw:-.152,
-  // Three gentle upper-back angles total about -0.052rad (~3deg back).
-  // Deliberately do NOT apply a global root lean to the entire fighter.
-  chestCurl:[-.018,-.024,-.010], chestYaw:[-.021,.050,.074],
-  chestRoll:[-.026,-.014,.016],
-  headCounterPitch:.034,
-  // Wider triangular base: left foot forward, right foot pushed back.
-  // Feet are ultimately solved against the floor in world coordinates.
-  leadX:.505,leadZ:.258,trailingX:.455,trailingZ:-.178,
-  // Hands measured from the head so the forward fist guards the cheek,
-  // with the other tight under the jaw, not floating beside the ears.
-  leadGuard:[.125,-.105,.285],
-  rearGuard:[.190,-.230,.295]
+  pelvisDrop:.183,pelvisSide:.118,pelvisBack:.058,
+  pelvisYaw:-.145,pelvisPitch:.018,pelvisRoll:-.013,
+  chestCurl:[.023,.027,.014],
+  chestYaw:[-.019,-.032,-.027],
+  chestRoll:[-.012,.010,-.010],
+  headCounterPitch:-.047,headCounterYaw:.158,
+  leadX:.353,leadZ:.376,trailingX:.326,trailingZ:-.249,
+  leadFootYaw:.055,rearFootYaw:-.218,
+  leadGuard:[.210,-.092,.350],
+  rearGuard:[.235,-.141,.249],
+  leadPole:[.70,-.67,.38],rearPole:[.67,-.63,.33]
 });
 export function applyShinobiIdle(view,{
   weight=0,rootQ,actorYaw=0,breath=0,groundY=0
@@ -127,6 +123,8 @@ export function applyShinobiIdle(view,{
     pelvis.position.z-=POSE.pelvisBack*legLen;
     root.updateWorldMatrix(true,true);
     rotate(view,'pelvis',Y,POSE.pelvisYaw,rootQ);
+    rotate(view,'pelvis',X,POSE.pelvisPitch,rootQ);
+    rotate(view,'pelvis',Z,POSE.pelvisRoll,rootQ);
   }
   // Pelvis anchors the planted stance while a nearly straight spine
   // rises over it. Neck/head counter the small back extension to keep
@@ -137,18 +135,18 @@ export function applyShinobiIdle(view,{
     rotate(view,name,Y,POSE.chestYaw[i],rootQ);
     rotate(view,name,Z,POSE.chestRoll[i],rootQ);
   }
-  rotate(view,'neck_01',X,.012,rootQ);
-  rotate(view,'head',X,POSE.headCounterPitch-.008*breath,rootQ);
-  rotate(view,'head',Y,.055,rootQ);
+  rotate(view,'neck_01',X,-.018,rootQ);
+  rotate(view,'head',X,POSE.headCounterPitch-.006*breath,rootQ);
+  rotate(view,'head',Y,POSE.headCounterYaw,rootQ);
   // The shoulder girdle protracts, but hands are placed from the HEAD,
   // rather than blindly raising both fists beside the ears.
   // Shoulders roll forward/up into a visibly combative guard.
-  rotate(view,'clavicle_l',X,-.054,rootQ);
-  rotate(view,'clavicle_r',X,.038,rootQ);
-  rotate(view,'clavicle_l',Y,-.049,rootQ);
-  rotate(view,'clavicle_r',Y,.028,rootQ);
-  rotate(view,'clavicle_l',Z,-.090,rootQ);
-  rotate(view,'clavicle_r',Z,.073,rootQ);
+  rotate(view,'clavicle_l',X,-.065,rootQ);
+  rotate(view,'clavicle_r',X,.016,rootQ);
+  rotate(view,'clavicle_l',Y,-.059,rootQ);
+  rotate(view,'clavicle_r',Y,.021,rootQ);
+  rotate(view,'clavicle_l',Z,-.058,rootQ);
+  rotate(view,'clavicle_r',Z,.051,rootQ);
   root.updateWorldMatrix(true,true);
   const head=bone(view,'head');
   if(head){
@@ -156,9 +154,11 @@ export function applyShinobiIdle(view,{
     for(const side of ['l','r']){
       const handSign=view.armSides?.[side]??(side==='l'?1:-1);
       const norm=side==='l'?POSE.leadGuard:POSE.rearGuard;
-      const local=[handSign*norm[0],norm[1]+.004*breath,norm[2]];
+      const local=[handSign*(norm[0]+.003*breath),
+        norm[1]+.006*breath,norm[2]+.007*breath];
       const goal=h.clone().add(V(...local).applyQuaternion(rootQ));
-      const pole=V(handSign*(side==='l'?.90:.85),-.50,.57)
+      const poleVec=side==='l'?POSE.leadPole:POSE.rearPole;
+      const pole=V(handSign*poleVec[0],poleVec[1],poleVec[2])
         .applyQuaternion(rootQ);
       solveTwoBone(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,goal,pole);
       rotate(view,'hand_'+side,X,side==='l'?.14:.095,rootQ);
@@ -198,7 +198,8 @@ export function applyShinobiIdle(view,{
     const pole=V(sign*(side==='l'?.13:.20),-.10,
       side==='l'?1.00:1.18).applyQuaternion(rootQ);
     solveTwoBone(view,'thigh_'+side,'calf_'+side,'foot_'+side,ankleGoal,pole);
-    flatFoot(view,side,actorYaw+(side==='l'?.012:-.17));
+    flatFoot(view,side,actorYaw+
+      (side==='l'?POSE.leadFootYaw:POSE.rearFootYaw));
     floorErrors[side]=foot.getWorldPosition(V()).y-ankleGoal.y;
   }
   root.updateWorldMatrix(true,true);
@@ -234,7 +235,8 @@ export function applyShinobiIdle(view,{
     // Blend toe yaw and keep the sole level while settling into stance.
     if(w>.15) {
       const qNow=foot.getWorldQuaternion(new THREE.Quaternion());
-      const yaw=actorYaw+(side==='l'?.012:-.17)*w;
+      const yaw=actorYaw+
+        (side==='l'?POSE.leadFootYaw:POSE.rearFootYaw)*w;
       flatFoot(view,side,yaw);
       if(w<1){
         const flatLocal=foot.quaternion.clone();
