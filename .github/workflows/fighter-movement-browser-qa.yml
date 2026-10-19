@@ -4,6 +4,9 @@ on:
     branches: [main]
     paths:
       - 'arena3d.js'
+      - 'arena-shinobi-idle.js'
+      - 'arena-anatomy.js'
+      - 'model-tests.cjs'
       - 'arena-animator.js'
       - 'arena-browser-qa.mjs'
       - '.github/workflows/fighter-movement-browser-qa.yml'
