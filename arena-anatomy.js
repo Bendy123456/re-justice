@@ -72,6 +72,9 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
   const actionGrip=attack?clamp(attack.wind*.65+attack.reach*1.22+.30):
     blocked?.82:hit?.04:airborne?.27:0;
   const grip=clamp(Math.max(actionGrip,manualGrip));
+  // A full grip must bring fingertips to the knuckle line on this GLB.
+  // Browser rig calibration measured tip-to-base falling from ~8cm at rest
+  // to ~2-3cm at a bend of 2.8; the previous 1.24 left hands visually OPEN.
   const walkGrip=walkAmount*(.12+runMix*.28);
   const relaxed=clamp(1-grip);
   let posed=0;
@@ -86,7 +89,7 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
       // a distinct closed fist; their individual curl differences remain.
       const spread=f.spread*(.45+.55*idlePose)*relaxed*.85;
       const bend=f.curl*(.55+.45*idlePose)+walkGrip+
-        grip*(1.24-f.curl);
+        grip*(2.82-f.curl);
       const wave=.016*breath*(.25+idlePose)+.025*walkAmount*phase;
       handRotate(view,id+'01'+suffix,X,spread,handQ);
       handRotate(view,id+'01'+suffix,Z,bend*.60+wave,handQ);
@@ -99,15 +102,15 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
     // Thumb is opposed across the palm and flexes around its own base:
     // different from a finger directly beside the index finger.
     handRotate(view,'thumb_01_'+side,X,
-      (side==='l'?-1:1)*(.16*idlePose+.24*grip),handQ);
+      (side==='l'?-1:1)*(.14*idlePose+.34*grip),handQ);
     handRotate(view,'thumb_01_'+side,Y,
-      (side==='l'?-1:1)*(.13+.08*idlePose),handQ);
+      (side==='l'?-1:1)*(.15+.10*idlePose+.10*grip),handQ);
     // Thumb folds ACROSS the index/middle fingers rather than extending
     // beside them, completing the fist silhouette.
-    handRotate(view,'thumb_01_'+side,Z,.13+.39*grip,handQ);
-    handRotate(view,'thumb_02_'+side,Z,.20+.49*grip,handQ);
-    handRotate(view,'thumb_03_'+side,Z,.14+.34*grip,handQ);
-    handRotate(view,'thumb_04_leaf_'+side,Z,.10*grip,handQ);
+    handRotate(view,'thumb_01_'+side,Z,.10+.62*grip,handQ);
+    handRotate(view,'thumb_02_'+side,Z,.14+.91*grip,handQ);
+    handRotate(view,'thumb_03_'+side,Z,.10+.69*grip,handQ);
+    handRotate(view,'thumb_04_leaf_'+side,Z,.20*grip,handQ);
     posed++;
   }
   return {digitChains:posed,grip};
