@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=human-articulation-1';
+import {applyShinobiIdle} from './arena-shinobi-idle.js?v=rebuilt-1';
 
 const clamp=(v,lo=0,hi=1)=>Math.max(lo,Math.min(hi,v));
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -246,7 +247,10 @@ export function poseFighter(view,alpha){
     if(!relaxedIdle&&view.combatIdleWeight<.001)view.combatIdleWeight=0;
     view.lastStateTick=a.animClock;
   }
-  const idlePose=view.combatIdleWeight??0;
+  // Old procedural pose remains dormant. The new entire neutral silhouette
+  // is built from the bind rig after other locomotion/combat animation.
+  const stanceWeight=view.combatIdleWeight??0;
+  const idlePose=0;
   const walk=motion.weight;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
@@ -527,7 +531,7 @@ export function poseFighter(view,alpha){
   // The Blender mesh already has 3 deforming joints and a tip per
   // finger. Pose them independently, splaying each digit and curling
   // real knuckles instead of rotating the whole fused-looking hand.
-  const digitPose=animateFingers(view,{idlePose,walkAmount,runMix,
+  const digitPose=animateFingers(view,{idlePose:stanceWeight,walkAmount,runMix,
     strideClock,breath,attack,blocked,hit,airborne});
 
   // Long alternating stride, real knee lift on the recovering leg and heels
@@ -679,11 +683,15 @@ export function poseFighter(view,alpha){
     view.bones.get('foot_r').getWorldPosition(vec()).y-
     (view.footSoleHeights?.r??.09):null;
 
-  // Forward push-off bends the skinned ball/toe hinge after ankle leveling.
-  // The model has ball_l/ball_r and weighted toe tips, not five separate
-  // toe chains, so use its real existing skinned anatomy.
-  const toeChains=animateFootBalls(view,{rootQ,leftStep,rightStep,idlePose,
-    walkAmount,runMix,airborne,dashing,dash,land});
+  // One coherent Shinobi-inspired guard, low-hip base and grounded
+  // stance. Never stack it on top of the older idle IK/shoulder layers.
+  const stance=applyShinobiIdle(view,{
+    weight:stanceWeight,rootQ,actorYaw:yaw,breath,groundY:0
+  });
+  // Forefoot flex remains available during steps, but planted idle toes
+  // settle flat instead of twitching and lifting the supporting feet.
+  const toeChains=animateFootBalls(view,{rootQ,leftStep,rightStep,
+    idlePose:0,walkAmount,runMix,airborne,dashing,dash,land});
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
   const jointBends={
@@ -705,7 +713,8 @@ export function poseFighter(view,alpha){
     walkForwardLean:walkLean,walkTurnBank,
     walkHipShift:walkingMotion?supportShift:0,
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
-    idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:idlePose,
+    idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
+    shinobiIdleWeight:stance.weight,shinobiIdleFloorErrors:stance.floorErrors,
     floorErrorL,floorErrorR,contactFloorY:0,authoredIdle:true,
     rootPitch:pitch,rootBank:bank,
     dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
