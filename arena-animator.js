@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-sculpted-fists-4';
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=grounded-boxing-hips-10';
-import {applyDashSculpt} from './arena-dash-sculpt.js?v=athletic-dash-1';
+import {applyDashSculpt} from './arena-dash-sculpt.js?v=athletic-dash-2';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
