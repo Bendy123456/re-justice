@@ -168,10 +168,15 @@ export function applyDashSculpt(view,{rootQ,actorYaw=0,active=false,
   for(const name of names){
     const b=bone(view,name);
     const orig=original.get(name);
-    if(b&&orig)b.quaternion.copy(orig).slerp(b.quaternion.clone(),strength).normalize();
+    if(b&&orig){
+      const authored=b.quaternion.clone();
+      b.quaternion.copy(orig).slerp(authored,strength).normalize();
+    }
   }
-  if(pelvis&&beforeHips)
-    pelvis.position.copy(beforeHips).lerp(pelvis.position.clone(),strength);
+  if(pelvis&&beforeHips){
+    const authored=pelvis.position.clone();
+    pelvis.position.copy(beforeHips).lerp(authored,strength);
+  }
   root.updateWorldMatrix(true,true);
   return {active:true,weight:strength,phase,ignition,surge,land};
 }
