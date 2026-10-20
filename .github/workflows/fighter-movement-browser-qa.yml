@@ -8,6 +8,7 @@ on:
       - 'arena-anatomy.js'
       - 'model-tests.cjs'
       - 'arena-animator.js'
+      - 'arena-dash-sculpt.js'
       - 'arena-browser-qa.mjs'
       - '.github/workflows/fighter-movement-browser-qa.yml'
   workflow_dispatch:
