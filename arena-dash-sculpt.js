@@ -61,7 +61,7 @@ export function applyDashSculpt(view,{rootQ,actorYaw=0,active=false,
   // Attack/block/hit/jump/walk must not inherit a sticky dash pose.
   const release=!active&&recovery>0;
   const strength=active?(.76+.24*smooth(elapsed/3)):
-    release?.72*smooth(recovery/7):0;
+    release?.92*smooth(recovery/7):0;
   if(strength<.0001)return {active:false,weight:0,phase:0};
   const phase=active?clamp((elapsed-1)/10):1;
   const ignition=1-smooth((phase-.02)/.28);
