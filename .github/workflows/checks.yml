@@ -19,6 +19,7 @@ jobs:
           node --check input.js
           node --check arena3d.js
           node --check arena-animator.js
+          node --check arena-dash-sculpt.js
           node --check arena-browser-qa.mjs
           node --check smoke-tests.cjs
       - name: Run combat, input, and menu regression tests
