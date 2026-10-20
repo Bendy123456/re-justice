@@ -121,6 +121,70 @@ try{
      guardQA.metrics.elbowL<.55||guardQA.metrics.elbowR<.55)
     throw Error('Sculpted idle: fist below guard or knee/elbow insufficiently flexed');
   
+  // Run -> idle transition on the actual male GLB. Check 60-Hz bone
+  // trajectory, hip absorption, progressive planting and delayed guard.
+  // Unlike screenshot-only tests, this catches one-frame wrist/ankle snaps.
+  const stopQA=await page.evaluate(()=>{
+    const ar=window.game.arena3d,v=ar.views[0],a=v.actor;
+    a.reset(-11,-7);a.visualYaw=a.prevVisualYaw=0;
+    a.attack=null;a.grounded=true;a.blocking=false;a.stun=0;
+    v.lastWalkPose=null;v.lastWalkHips=null;v.walkStopStart=null;
+    v.combatIdleWeight=0;v.lastStateTick=-1;v.motionTick=-1;
+    v.motion={weight:1,forward:1,side:0,speed:8.2,turn:0};
+    v.walkWeight=1;
+    for(let i=0;i<12;i++){
+      a.state='walk';
+      a.prevX=a.x;a.prevZ=a.z;
+      a.x+=.11;
+      a.prevGaitPhase=a.gaitPhase;a.gaitPhase+=.28;
+      a.animClock++;ar.pose(v,1);
+    }
+    const world=name=>v.bones.get(name).getWorldPosition(
+      v.root.position.clone());
+    const frames=[];
+    for(let t=0;t<34;t++){
+      a.state='idle';a.prevX=a.x;a.prevZ=a.z;a.animClock++;
+      ar.pose(v,1);
+      const head=world('head'),pelvis=world('pelvis');
+      const hands=['l','r'].map(side=>world('hand_'+side));
+      const feet=['l','r'].map(side=>world('foot_'+side));
+      frames.push({t,hipY:pelvis.y,
+        guard:Math.max(...hands.map(p=>head.y-p.y)),
+        hands:hands.map(p=>p.toArray()),feet:feet.map(p=>p.toArray()),
+        kneeL:v.poseMetrics.kneeL,kneeR:v.poseMetrics.kneeR,
+        settle:v.poseMetrics.walkStopSettle,
+        stopAge:v.poseMetrics.walkStopBlendAge,
+        active:v.poseMetrics.walkStopActive,
+        fingerGrip:v.poseMetrics.grip});
+    }
+    // The normal render cycle takes over only after the test.
+    return {model:v.key,frames};
+  });
+  const samples=stopQA.frames.filter(f=>[0,3,7,13,20,26,28,33].includes(f.t));
+  console.log('PLANTED_STOP_RECOVERY_QA',JSON.stringify({
+    model:stopQA.model,samples}));
+  const stops=stopQA.frames,startStop=stops[0],finished=stops.at(-1);
+  const distance=(p,q)=>Math.hypot(...p.map((x,i)=>x-q[i]));
+  const peakHandJump=Math.max(...stops.slice(1).flatMap((f,i)=>
+    f.hands.map((p,j)=>distance(p,stops[i].hands[j]))));
+  const peakFootJump=Math.max(...stops.slice(1).flatMap((f,i)=>
+    f.feet.map((p,j)=>distance(p,stops[i].feet[j]))));
+  const minFootHeight=Math.min(...stops.flatMap(f=>f.feet.map(p=>p[1])));
+  console.log('PLANTED_STOP_CONTINUITY_QA',JSON.stringify({
+    peakHandJump,peakFootJump,minFootHeight,
+    hipLowering:startStop.hipY-finished.hipY,
+    handRaise:startStop.guard-finished.guard,
+    settle:finished.settle}));
+  if(stopQA.model!=='male'||!startStop.active||
+      finished.active||finished.stopAge!==null||
+      finished.kneeL<.6||finished.kneeR<.6||
+      finished.guard>.30||finished.fingerGrip<.95||
+      startStop.hipY-finished.hipY<.12||
+      startStop.guard-finished.guard<.18||
+      peakHandJump>.31||peakFootJump>.37||
+      minFootHeight<-.025)
+    throw Error('Run-to-fighting-stance has a pop, sliding foot, open hand, or no grounded settling');
+
   // Continue the legacy suite with its original female/Batman matchup.
   // The pose screenshot and measured fist/knee checks above use male GLB.
   await page.evaluate(()=>{
