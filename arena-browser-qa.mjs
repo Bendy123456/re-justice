@@ -185,6 +185,90 @@ try{
       minFootHeight<-.025)
     throw Error('Run-to-fighting-stance has a pop, sliding foot, open hand, or no grounded settling');
 
+  // Dash pose inspection on the same male GLB as RE Justice's free roam.
+  // Sample the ignition, acceleration, release and first idle frames at
+  // deterministic fixed simulation times; assert the actual skinned bones.
+  const dashQA=await page.evaluate(()=>{
+    const game=window.game,arena=game.arena3d;
+    game.running=false;
+    const a=arena.fighters[0],v=arena.views[0];
+    a.reset(-11,-7);a.visualYaw=a.prevVisualYaw=0;
+    a.attack=null;a.grounded=true;a.blocking=false;a.stun=0;
+    v.lastWalkPose=null;v.lastWalkHips=null;v.walkStopStart=null;
+    v.combatIdleWeight=0;v.lastStateTick=-1;v.motionTick=-1;
+    const frames=[];
+    const world=name=>v.bones.get(name).getWorldPosition(v.root.position.clone());
+    for(let tick=1;tick<=11;tick++){
+      a.state='dash';a.dashElapsed=tick;a.dashRecovery=0;
+      a.prevX=a.x;a.x+=16.4/60;
+      a.animClock++;arena.pose(v,1);
+      const head=world('head'),hip=world('pelvis');
+      const feet=['l','r'].map(side=>world('foot_'+side).toArray());
+      const hands=['l','r'].map(side=>world('hand_'+side).toArray());
+      let frame={tick,phase:v.poseMetrics.dashSculptPhase,
+        weight:v.poseMetrics.dashSculptWeight,
+        ignite:v.poseMetrics.dashSculptIgnition,
+        surge:v.poseMetrics.dashSculptSurge,
+        land:v.poseMetrics.dashSculptLand,
+        pitch:v.poseMetrics.rootPitch,hipY:hip.y,headY:head.y,
+        footY:feet.map(p=>p[1]),hands,feet,
+        elbowL:v.poseMetrics.elbowL,elbowR:v.poseMetrics.elbowR,
+        kneeL:v.poseMetrics.kneeL,kneeR:v.poseMetrics.kneeR,
+        grip:v.poseMetrics.grip};
+      if(tick===6){
+        arena.camera.position.set(a.x+.5,1.9,a.z+3.0);
+        arena.camera.lookAt(a.x,.93,a.z);
+        arena.renderer.render(arena.scene,arena.camera);
+        arena.renderer.getContext().finish();
+        frame.jpeg=arena.webgl.toDataURL('image/jpeg',.64).split(',')[1];
+      }
+      frames.push(frame);
+    }
+    for(let tick=1;tick<=9;tick++){
+      a.state='idle';a.dashElapsed=11;a.dashRecovery=Math.max(0,7-tick);
+      a.prevX=a.x;a.animClock++;arena.pose(v,1);
+      frames.push({tick:11+tick,
+        weight:v.poseMetrics.dashSculptWeight,
+        pitch:v.poseMetrics.rootPitch,
+        hipY:world('pelvis').y,
+        footY:['l','r'].map(side=>world('foot_'+side).y),
+        hands:['l','r'].map(side=>world('hand_'+side).toArray()),
+        kneeL:v.poseMetrics.kneeL,kneeR:v.poseMetrics.kneeR,
+        grip:v.poseMetrics.grip});
+    }
+    return {model:v.key,frames};
+  });
+  const dashJpeg=dashQA.frames[5]?.jpeg||'';
+  if(dashQA.frames[5])delete dashQA.frames[5].jpeg;
+  console.log('DASH_SCULPT_TIMELINE_QA',JSON.stringify({
+    model:dashQA.model,
+    frames:dashQA.frames.filter(f=>[1,3,6,9,11,12,15,18,20].includes(f.tick))
+  }));
+  if(dashJpeg){
+    const parts=dashJpeg.match(/.{1,5000}/g)||[];
+    parts.forEach((chunk,i)=>console.log('DASH_SCULPT_JPG:'+i+'/'+parts.length+':'+chunk));
+    console.log('DASH_SCULPT_JPG_END:'+parts.length);
+  }
+  const peak=(series)=>Math.max(...series);
+  const dashFrames=dashQA.frames;
+  const distance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));
+  const handJumps=dashFrames.slice(1).flatMap((f,i)=>
+    f.hands.map((p,j)=>distance(p,dashFrames[i].hands[j])));
+  const maxHandJump=peak(handJumps);
+  const minFootY=Math.min(...dashFrames.flatMap(f=>f.footY));
+  console.log('DASH_SCULPT_CONTINUITY_QA',JSON.stringify({
+    maxHandJump,minFootY,launch:dashFrames[0]?.weight,
+    burst:dashFrames[5]?.weight,recovery:dashFrames[13]?.weight,
+    idle:dashFrames.at(-1)?.weight
+  }));
+  if(dashQA.model!=='male'||!dashJpeg||
+     dashFrames[0].weight<.45||dashFrames[5].weight<.8||
+     dashFrames.at(-1).weight>.05||
+     dashFrames[5].elbowL<.3||dashFrames[5].elbowR<.3||
+     dashFrames[5].kneeL<.25||dashFrames[5].kneeR<.25||
+     dashFrames[5].grip<.85||minFootY<-.05||maxHandJump>.55)
+     throw Error('Dash lacks a grounded sprint pose or has a visible skeletal snap');
+
   // Continue the legacy suite with its original female/Batman matchup.
   // The pose screenshot and measured fist/knee checks above use male GLB.
   await page.evaluate(()=>{
