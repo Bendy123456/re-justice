@@ -813,13 +813,15 @@ export function poseFighter(view,alpha){
       };
       for(const [name,snapshot] of view.lastWalkPose){
         const joint=view.bones.get(name);
-        if(joint)joint.quaternion.slerpQuaternions(
-          snapshot,joint.quaternion,targetBlend(name)).normalize();
+        // Quaternion.slerpQuaternions() copies its first argument into the
+        // destination; passing the destination as its second argument aliases
+        // that target and accidentally freezes the entire running skeleton.
+        // Start from the authored pose and slerp BACK toward the snapshot.
+        if(joint)joint.quaternion.slerp(snapshot,1-targetBlend(name)).normalize();
       }
       const hips=view.bones.get('pelvis')||view.bones.get('hips');
       if(hips&&view.lastWalkHips)
-        hips.position.copy(view.lastWalkHips).lerp(hips.position,
-          ease(stopAge/22));
+        hips.position.lerp(view.lastWalkHips,1-ease(stopAge/22));
       root.updateWorldMatrix(true,true);
       for(const side of ['l','r']){
         const foot=view.bones.get('foot_'+side);
