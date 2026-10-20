@@ -253,7 +253,7 @@ export function poseFighter(view,alpha){
   // Carry the visual lean into braking; the physics dash stays unchanged.
   const dashVisual=dashing?(.80+.20*ease(a.dashElapsed/3)):
     ((a.dashRecovery>0&&!attack&&!blocked&&!hit&&!airborne&&
-      a.state==='idle')?.70*ease(a.dashRecovery/7):0);
+      a.state==='idle')?ease(a.dashRecovery/7):0);
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
   const walkAmount=(!dashing&&!airborne&&!attack&&!blocked&&!hit)?
     clamp(walk):0;
@@ -303,7 +303,7 @@ export function poseFighter(view,alpha){
     (attack?.impact||0)*.02;
   const pitch=lean+walkLean+
     dashVisual*.32+dashBurst*.10-dashIgnite*.095-
-    dashBrake*.12+land*.07;
+    dashBrake*.025+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
     lerp(a.prevY,a.y,alpha)+bob,lerp(a.prevZ,a.z,alpha));
   view.shadow.position.set(root.position.x,.018,root.position.z);
