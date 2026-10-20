@@ -10,6 +10,7 @@ import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
   from './arena-anatomy.js?v=closed-sculpted-fists-4';
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=grounded-boxing-hips-10';
+import {applyDashSculpt} from './arena-dash-sculpt.js?v=athletic-dash-1';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
   from './arena-natural-gait.js?v=authored-gait-3';
 import {retargetCapturedHuman}
@@ -249,6 +250,10 @@ export function poseFighter(view,alpha){
   const idlePose=0;
   const walk=motion.weight;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
+  // Carry the visual lean into braking; the physics dash stays unchanged.
+  const dashVisual=dashing?(.80+.20*ease(a.dashElapsed/3)):
+    ((a.dashRecovery>0&&!attack&&!blocked&&!hit&&!airborne&&
+      a.state==='idle')?.70*ease(a.dashRecovery/7):0);
   const drive=(attack||blocked||hit)?0:clamp(walk+dash);
   const walkAmount=(!dashing&&!airborne&&!attack&&!blocked&&!hit)?
     clamp(walk):0;
@@ -297,7 +302,7 @@ export function poseFighter(view,alpha){
     walkTurnBank-walkAmount*localSide*.058+
     (attack?.impact||0)*.02;
   const pitch=lean+walkLean+
-    dash*.23+dashBurst*.12-dashIgnite*.06-
+    dashVisual*.32+dashBurst*.10-dashIgnite*.095-
     dashBrake*.12+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
     lerp(a.prevY,a.y,alpha)+bob,lerp(a.prevZ,a.z,alpha));
@@ -550,7 +555,9 @@ export function poseFighter(view,alpha){
     ease(stanceWeight):0;
   // Closed athletic fists reinforce the sharp, powerful hero run. The
   // idle grip and all attack/block hand logic remain independently authored.
-  const sprintFist=naturalWalk?.82*runMix*walkFade:0;
+  const sprintFist=dashing?.95:
+    naturalWalk?.82*runMix*walkFade:
+    dashVisual>.05?.90*dashVisual:0;
   const digitPose=animateFingers(view,{idlePose:stanceWeight,walkAmount,runMix,
     strideClock,breath,attack,blocked,hit,airborne,
     manualGrip:Math.max(neutralFist,sprintFist)});
@@ -761,6 +768,14 @@ export function poseFighter(view,alpha){
   }else if(view.shadow){
     view.shadow.scale.set(1,1,1);
   }
+  // Distinct authored dash: loaded rear push-off, strong bent-arm burst,
+  // forward knee lift and toe-first recovery on the real rig.
+  const dashVisualPose=applyDashSculpt(view,{
+    active:dashing,elapsed:Number(a.dashElapsed||0),
+    recovery:(!dashing&&a.state==='idle'&&!attack&&!blocked&&!hit&&!airborne)?
+      Number(a.dashRecovery||0):0,
+    rootQ,actorYaw:yaw,groundY:0,travelSide:localSide
+  });
   // Hand-animated stop director (visual ONLY). The last ACTUAL running
   // skeleton is captured after mocap retargeting, including all fingers.
   // At rest we construct the exact established fighting stance first, then
@@ -916,7 +931,13 @@ export function poseFighter(view,alpha){
     )-(view.footSoleHeights?.r??.09),
     contactFloorY:0,authoredIdle:true,
     rootPitch:pitch,rootBank:bank,
-    dash,dashIgnite,dashBurst,dashBrake,attackReach:attack?.reach||0,
+    dash,dashIgnite,dashBurst,dashBrake,
+    dashSculptWeight:dashVisualPose.weight,
+    dashSculptPhase:dashVisualPose.phase,
+    dashSculptIgnition:dashVisualPose.ignition||0,
+    dashSculptSurge:dashVisualPose.surge||0,
+    dashSculptLand:dashVisualPose.land||0,
+    attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
   };
