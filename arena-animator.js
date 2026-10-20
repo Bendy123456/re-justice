@@ -241,7 +241,11 @@ export function poseFighter(view,alpha){
   }
   // Old procedural pose remains dormant. The new entire neutral silhouette
   // is built from the bind rig after other locomotion/combat animation.
-  const stanceWeight=view.combatIdleWeight??0;
+  // A stop has ONE final authored target. The transition below owns the
+  // entire crossfade from the captured last running pose into that target;
+  // do not run the older independent idle fade underneath it.
+  const stanceWeight=relaxedIdle&&view.lastWalkPose?
+    1:(view.combatIdleWeight??0);
   const idlePose=0;
   const walk=motion.weight;
   const dash=dashing?Math.max(.55,view.dashWeight||0):0;
@@ -757,29 +761,21 @@ export function poseFighter(view,alpha){
   }else if(view.shadow){
     view.shadow.scale.set(1,1,1);
   }
-  // Transition director: freeze the LAST actual walk pose briefly when
-  // movement stops. Previously the neutral stance instantly aimed both
-  // legs toward a straight bind pose before the Shinobi idle faded in,
-  // creating a visible pop. This crossfade is bone-complete and frame-clock
-  // driven so it behaves identically at 60 Hz or 240 Hz rendering.
-  const transitionBones=[
-    'pelvis','spine_01','spine_02','spine_03','neck_01','head',
-    'clavicle_l','clavicle_r',
-    'upperarm_l','lowerarm_l','hand_l','upperarm_r','lowerarm_r','hand_r',
-    'thigh_l','calf_l','foot_l','thigh_r','calf_r','foot_r',
-    'ball_l','ball_r'
-  ];
-  if(naturalWalk&&walkAmount>.55){
-    // Capture once per simulation tick (never once per 240Hz render).
-    // Reuse quaternion objects to keep the animation GC-stable.
+  // Hand-animated stop director (visual ONLY). The last ACTUAL running
+  // skeleton is captured after mocap retargeting, including all fingers.
+  // At rest we construct the exact established fighting stance first, then
+  // ease hip load, planting feet, chest and closed fists into that target.
+  // A single fixed-tick progression avoids the previous double-blending
+  // pop when locomotion and combat-idle fades raced each other.
+  const STOP_TICKS=27; // 0.45s @ deterministic 60Hz, not a render-frame timer
+  let stopAge=null,stopSettle=0;
+  if(naturalWalk&&walkAmount>.35){
     if(view.lastWalkStateTick!==a.animClock){
       if(!view.lastWalkPose)view.lastWalkPose=new Map();
-      for(const name of transitionBones){
-        const joint=view.bones.get(name);
-        if(!joint)continue;
-        let q=view.lastWalkPose.get(name);
-        if(!q){q=joint.quaternion.clone();view.lastWalkPose.set(name,q);}
-        else q.copy(joint.quaternion);
+      for(const [name,bone] of view.bones){
+        let snap=view.lastWalkPose.get(name);
+        if(!snap)view.lastWalkPose.set(name,bone.quaternion.clone());
+        else snap.copy(bone.quaternion);
       }
       const hips=view.bones.get('pelvis')||view.bones.get('hips');
       if(hips){
@@ -792,20 +788,72 @@ export function poseFighter(view,alpha){
   }else if(relaxedIdle&&view.lastWalkPose){
     if(view.walkStopStart===null||view.walkStopStart===undefined)
       view.walkStopStart=a.animClock;
-    const stopAge=Math.max(0,a.animClock-view.walkStopStart);
-    // 18 fixed ticks (0.3 sec): let the grounded running pose settle
-    // into the guard rather than snapping both wrists toward the face.
-    const carry=1-ease(stopAge/18);
-    if(carry>.0001){
+    stopAge=Math.max(0,a.animClock-view.walkStopStart);
+    stopSettle=ease(stopAge/STOP_TICKS);
+    if(stopAge<STOP_TICKS){
+      // Save planted-stance foot headings BEFORE slerping skeleton bones.
+      // The authored stance is the destination, never a new animation pose.
+      const goalFeet=new Map();
+      for(const side of ['l','r']){
+        const foot=view.bones.get('foot_'+side);
+        if(foot)goalFeet.set(side,foot.getWorldQuaternion(new THREE.Quaternion()));
+      }
+      // Stagger the landing: supporting foot absorbs the deceleration first,
+      // trailing foot steps down a fraction later; torso follows hip load
+      // and fists rise only AFTER the feet have started to plant.
+      const targetBlend=name=>{
+        if(name==='pelvis'||name==='hips')return ease(stopAge/22);
+        if(/^thigh_|^calf_|^foot_|^ball_/.test(name))
+          return ease((stopAge-(name.endsWith('_l')?0:4))/23);
+        if(/^upperarm_|^lowerarm_|^hand_|^clavicle_/.test(name))
+          return ease((stopAge-3)/22);
+        if(/^(index|middle|ring|pinky|thumb)_/.test(name))
+          return ease((stopAge-6)/20);
+        return ease(stopAge/24);
+      };
       for(const [name,snapshot] of view.lastWalkPose){
         const joint=view.bones.get(name);
         if(joint)joint.quaternion.slerpQuaternions(
-          joint.quaternion,snapshot,carry).normalize();
+          snapshot,joint.quaternion,targetBlend(name)).normalize();
       }
       const hips=view.bones.get('pelvis')||view.bones.get('hips');
-      if(hips&&view.lastWalkHips)hips.position.lerp(view.lastWalkHips,carry);
+      if(hips&&view.lastWalkHips)
+        hips.position.copy(view.lastWalkHips).lerp(hips.position,
+          ease(stopAge/22));
+      root.updateWorldMatrix(true,true);
+      for(const side of ['l','r']){
+        const foot=view.bones.get('foot_'+side);
+        const thigh=view.bones.get('thigh_'+side);
+        if(!foot||!thigh)continue;
+        const sole=(view.footSoleHeights?.[side]??.085)+.005;
+        const current=foot.getWorldPosition(vec());
+        // Don't snap a lifted recovery toe to the floor on the first idle
+        // tick. Set it down gradually while never letting a sole sink through.
+        const plant=ease((stopAge-(side==='l'?0:4))/22);
+        const desired=current.clone();
+        desired.y=lerp(Math.max(current.y,sole),sole,plant);
+        if(Math.abs(desired.y-current.y)>.0015){
+          const hip=thigh.getWorldPosition(vec());
+          const relative=desired.sub(hip).
+            applyQuaternion(rootQ.clone().invert());
+          const sign=view.legSides?.[side]??(side==='l'?1:-1);
+          solveLimb(view,'thigh_'+side,'calf_'+side,'foot_'+side,
+            relative.toArray(),[sign*.19,-.14,1.1],rootQ);
+        }
+        // Correct inherited ankle roll after knee IK as the planted sole
+        // becomes loaded. Preserve the exact authored foot heading.
+        const flat=goalFeet.get(side);
+        if(flat&&foot.parent&&plant>.0001){
+          const now=foot.getWorldQuaternion(new THREE.Quaternion());
+          now.slerp(flat,plant).normalize();
+          const parent=foot.parent.getWorldQuaternion(new THREE.Quaternion());
+          foot.quaternion.copy(parent.invert().multiply(now)).normalize();
+          foot.updateWorldMatrix(false,true);
+        }
+      }
       root.updateWorldMatrix(true,true);
     }else{
+      stopSettle=1;
       view.lastWalkPose=null;
       view.lastWalkHips=null;
       view.walkStopStart=null;
@@ -836,8 +884,8 @@ export function poseFighter(view,alpha){
     walkFootL:leftStep.travel,walkFootR:rightStep.travel,
     walkForwardLean:walkLean,walkTurnBank,
     contactCurveLeft:leftStep.phase,contactCurveRight:rightStep.phase,
-    walkStopBlendAge:view.walkStopStart===null?null:
-      Math.max(0,a.animClock-view.walkStopStart),
+    walkStopBlendAge:stopAge,walkStopSettle:stopSettle,
+    walkStopActive:stopAge!==null&&stopAge<STOP_TICKS,
     walkHipShift:walkingMotion?supportShift:0,
     plantedL:!!view.footPlants?.l,plantedR:!!view.footPlants?.r,
     idleWeight:1-walkFade,relaxedIdle,combatIdleWeight:stanceWeight,
