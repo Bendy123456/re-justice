@@ -251,9 +251,9 @@ try{
   }
   const peak=(series)=>Math.max(...series);
   const dashFrames=dashQA.frames;
-  const distance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));
+  const dashDistance=(a,b)=>Math.hypot(...a.map((x,i)=>x-b[i]));
   const handJumps=dashFrames.slice(1).flatMap((f,i)=>
-    f.hands.map((p,j)=>distance(p,dashFrames[i].hands[j])));
+    f.hands.map((p,j)=>dashDistance(p,dashFrames[i].hands[j])));
   const maxHandJump=peak(handJumps);
   const minFootY=Math.min(...dashFrames.flatMap(f=>f.footY));
   console.log('DASH_SCULPT_CONTINUITY_QA',JSON.stringify({
