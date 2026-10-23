@@ -40,6 +40,56 @@ try{
   if(start.scene!=='arena3d'||!start.ready||start.avatars.length!==2||
       start.avatars.some(v=>v.rigBones<60)||start.arenaCanvas!=='block')
     throw Error('Failed to activate 3D arena with 2 fully rigged GLB characters');
+  // Camera review on actual WebGL male/female rigs: distant approach,
+  // close-range two-shot, wall/tree avoidance and solo framing.
+  const cameraQA=await page.evaluate(()=>{
+    const game=window.game,ar=game.arena3d;
+    game.running=false;
+    const measure=(v)=>{
+      const head=v.bones.get('head').getWorldPosition(v.root.position.clone())
+        .project(ar.camera);
+      const foot=v.bones.get('foot_l').getWorldPosition(v.root.position.clone())
+        .project(ar.camera);
+      return {headPx:[(head.x+1)*640,(1-head.y)*360],
+        footPx:[(foot.x+1)*640,(1-foot.y)*360],
+        heightPx:Math.abs(foot.y-head.y)*360,
+        visible:head.x>-1&&head.x<1&&head.y<1&&head.y>-.9&&
+          foot.x>-1&&foot.x<1&&foot.y<.85&&foot.y>-.9};
+    };
+    function duel(name,ax,az,bx,bz){
+      ar.fighters[0].reset(ax,az);ar.fighters[1].reset(bx,bz);
+      ar.initialCamera=false;ar.render(1);
+      return {name,camera:ar.camera.position.toArray(),
+        focus:ar.cameraFocus.toArray(),fov:ar.camera.fov,
+        player:measure(ar.views[0]),opponent:measure(ar.views[1]),
+        treeDistance:Math.hypot(ar.camera.position.x,ar.camera.position.z)};
+    }
+    const far=duel('far',-11,-8,11,-8);
+    const close=duel('close',-10,-8,-6.4,-8);
+    const nearWall=duel('wall',-28,-8,-25,-8);
+    const closeJpeg=ar.webgl.toDataURL('image/jpeg',.55).split(',')[1];
+    game.startMatch({p1:'flash',mode:'sandbox',stage:'neon-rooftop'});
+    const solo=game.arena3d;solo.initialCamera=false;solo.render(1);
+    const sandbox={camera:solo.camera.position.toArray(),
+      focus:solo.cameraFocus.toArray(),fov:solo.camera.fov,
+      player:measure(solo.views[0])};
+    game.startMatch({p1:'flash',p2:'batman',mode:'cpu',stage:'neon-rooftop'});
+    return {far,close,nearWall,sandbox,closeJpeg};
+  });
+  const cameraFrame=cameraQA.closeJpeg;delete cameraQA.closeJpeg;
+  console.log('REJUSTICE_CAMERA_FRAMING_QA',JSON.stringify(cameraQA));
+  if(cameraFrame){
+    const chunks=cameraFrame.match(/.{1,5000}/g)||[];
+    chunks.forEach((piece,i)=>console.log('REJUSTICE_CAMERA_JPG:'+i+'/'+chunks.length+':'+piece));
+    console.log('REJUSTICE_CAMERA_JPG_END:'+chunks.length);
+  }
+  if(!cameraQA.close.player.visible||!cameraQA.close.opponent.visible||
+     cameraQA.close.player.heightPx<155||
+     cameraQA.far.player.heightPx<120||
+     cameraQA.sandbox.player.heightPx<170||
+     cameraQA.nearWall.treeDistance<4.2)
+    throw Error('Camera framing failed: fighter too small, close opponent cropped, or wall/tree clipping');
+
   // Diagnostic: independently render the CURRENT pose at full idle weight,
   // from the fighter's front, and report measured wrists vs guard targets.
   const guardQA=await page.evaluate(()=>{
