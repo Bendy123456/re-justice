@@ -15,7 +15,10 @@ const FPS=60,STEP=1/FPS,ARENA_RADIUS=34,WALL_GAP=1.2,TREE_RADIUS=3.15,RADIUS=.52
 // combat action timing unchanged so the new locomotion remains controllable.
 const RUN=8.6,BACK=5.9,STRAFE=7.0,DASH=16.4,DASH_FRAMES=11,DASH_COOLDOWN=44;
 const JUMP=11.0,GRAVITY=25,ROUND_FRAMES=99*60,INTRO_FRAMES=78,KO_FRAMES=110;
-const CAM_DIST=4.75,CAM_HEIGHT=2.85,CAM_SIDE=1.15,CAM_LERP=.13;
+// Close, readable third-person combat camera. The distance increases only
+// when both fighters are close enough to benefit from a two-shot.
+const CAM_LERP=.19,CAM_SNAP=10;
+const smoothstep=t=>{t=clamp(t,0,1);return t*t*(3-2*t);};
 const clamp=(a,b,c)=>Math.max(b,Math.min(c,a));
 const lerp=(a,b,t)=>a+(b-a)*t;
 // Keep visual rotations on the shortest arc (particularly across +/-PI).
@@ -132,7 +135,7 @@ class Arena3D {
       this.scene=new THREE.Scene();
       this.scene.background=new THREE.Color('#add3f0');
       this.scene.fog=new THREE.FogExp2('#afc9d3',.0036);
-      this.camera=new THREE.PerspectiveCamera(58,1280/720,.08,200);
+      this.camera=new THREE.PerspectiveCamera(48,1280/720,.08,200);
       this.createSkySystem();
       this.scene.add(new THREE.HemisphereLight(0xe7f8ff,0x786a52,1.55));
       const sunlight=new THREE.DirectionalLight(0xffe7b5,2.15);
@@ -447,12 +450,14 @@ class Arena3D {
       this.phase='live';this.intro=0;this.roundFrames=Infinity;
     }else this.startRound();
     this.active=true;this.paused=false;this.initialCamera=false;
+    this.cameraMode=null;this.camera.fov=48;this.camera.updateProjectionMatrix();
     this.show(true);
   }
   startRound(){
     const [a,b]=this.fighters;
     a.reset(-11,-7);b.reset(11,-7);
     this.phase='intro';this.intro=INTRO_FRAMES;
+    this.initialCamera=false;
     this.koFrames=0;this.winner=0;this.roundFrames=ROUND_FRAMES;
     this.effects.length=0;
   }
@@ -668,28 +673,50 @@ class Arena3D {
   // Full-body animation is separated from gameplay and authored in the
   // rig-aware keyframe animation library.
   pose(view,alpha){poseFighter(view,alpha);}
+  // Camera-only constraints: never place the eye inside the central tree
+  // or outside the arena wall. These do not affect fighter collision.
+  constrainCamera(pos){
+    let d=Math.hypot(pos.x,pos.z);
+    const outer=ARENA_RADIUS-WALL_GAP-1.15;
+    if(d>outer){pos.x*=outer/d;pos.z*=outer/d;d=outer;}
+    const treeMin=TREE_RADIUS+1.25;
+    if(d<treeMin){
+      const angle=Math.atan2(pos.z,pos.x);
+      pos.x=Math.cos(angle)*treeMin;
+      pos.z=Math.sin(angle)*treeMin;
+    }
+    pos.y=Math.max(1.15,pos.y);
+    return pos;
+  }
+  // Moving targets get quicker camera catch-up, with a hard snap on large
+  // teleports/spawn changes to avoid seconds of empty arena in the view.
+  settleCamera(desired,focus,mode){
+    const moved=!this.initialCamera||this.cameraMode!==mode;
+    const deviation=this.camera.position.distanceTo(desired);
+    const targetDeviation=this.cameraFocus?.distanceTo(focus)??Infinity;
+    if(moved||deviation>CAM_SNAP||targetDeviation>CAM_SNAP){
+      this.camera.position.copy(desired);
+      this.cameraFocus=focus.clone();
+      this.initialCamera=true;
+    }else{
+      const follow=clamp(CAM_LERP+deviation*.043,CAM_LERP,.52);
+      this.camera.position.lerp(desired,follow);
+      this.cameraFocus.lerp(focus,clamp(follow+.035,.2,.56));
+    }
+    this.cameraMode=mode;
+    this.constrainCamera(this.camera.position);
+    this.camera.lookAt(this.cameraFocus);
+  }
   renderSandbox(alpha){
     const a=this.fighters[0];
     const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
     const py=lerp(a.prevY,a.y,alpha);
-    // Stable third-person follow camera with no invisible opponent/lock-on.
-    const desired=new THREE.Vector3(px+1.15,CAM_HEIGHT+py*.5,pz-CAM_DIST-1.25);
-    const distance=Math.hypot(desired.x,desired.z);
-    const limit=ARENA_RADIUS-WALL_GAP-.5;
-    if(distance>limit){desired.x*=limit/distance;desired.z*=limit/distance;}
-    if(Math.hypot(desired.x,desired.z)<TREE_RADIUS+1.1){
-      const dir=unit(desired.x,desired.z,{x:-1,z:-1});
-      desired.x=dir.x*(TREE_RADIUS+1.1);
-      desired.z=dir.z*(TREE_RADIUS+1.1);
-    }
-    const focus=new THREE.Vector3(px,1.45+py*.35,pz+1.05);
-    if(!this.initialCamera){
-      this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;
-    }else{
-      this.camera.position.lerp(desired,CAM_LERP);
-      this.cameraFocus.lerp(focus,CAM_LERP);
-    }
-    this.camera.lookAt(this.cameraFocus);
+    // Tighter over-shoulder view: model fills more of the frame while the
+    // camera still shows the ground ahead for movement/dash navigation.
+    const desired=new THREE.Vector3(px+.78,2.12+py*.42,pz-3.52);
+    const focus=new THREE.Vector3(px,1.09+py*.54,pz+.58);
+    this.constrainCamera(desired);
+    this.settleCamera(desired,focus,'sandbox');
     this.updateSky(alpha);
     this.renderer.render(this.scene,this.camera);
     this.drawSandboxHUD();
@@ -724,28 +751,36 @@ class Arena3D {
       for(const o of this.views)this.pose(o,alpha);
       if(this.mode==='sandbox'){this.renderSandbox(alpha);return;}
       const [a,b]=this.fighters;
-      const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha),py=lerp(a.prevY,a.y,alpha);
-      const forward=unit(b.x-px,b.z-pz);
+      const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha),
+        py=lerp(a.prevY,a.y,alpha);
+      const bx=lerp(b.prevX,b.x,alpha),bz=lerp(b.prevZ,b.z,alpha),
+        by=lerp(b.prevY,b.y,alpha);
+      const gap=Math.hypot(bx-px,bz-pz);
+      const forward=unit(bx-px,bz-pz,
+        {x:Math.sin(a.visualYaw),z:Math.cos(a.visualYaw)});
       const right={x:-forward.z,z:forward.x};
-      const desired=new THREE.Vector3(px-forward.x*CAM_DIST+right.x*CAM_SIDE,
-        CAM_HEIGHT+py*.5,pz-forward.z*CAM_DIST+right.z*CAM_SIDE);
-      // The follow camera cannot travel through the central tree or outer
-      // wall; these analytic constraints are render-only, never mesh physics.
-      let camDist=Math.hypot(desired.x,desired.z);
-      if(camDist<TREE_RADIUS+1.1){
-        const outward=unit(desired.x,desired.z,{x:-forward.x,z:-forward.z});
-        desired.x=outward.x*(TREE_RADIUS+1.1);
-        desired.z=outward.z*(TREE_RADIUS+1.1);
-      }
-      camDist=Math.hypot(desired.x,desired.z);
-      const cameraLimit=ARENA_RADIUS-WALL_GAP-.5;
-      if(camDist>cameraLimit){
-        desired.x*=cameraLimit/camDist;desired.z*=cameraLimit/camDist;
-      }
-      const focus=new THREE.Vector3(px+forward.x*1.25,1.5+py*.4,pz+forward.z*1.25);
-      if(!this.initialCamera){this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;}
-      else{this.camera.position.lerp(desired,CAM_LERP);this.cameraFocus.lerp(focus,CAM_LERP);}
-      this.camera.lookAt(this.cameraFocus);
+      // At long range prioritize a big, legible player with an offscreen
+      // opponent locator. Once within fighting range move toward a composed
+      // two-shot, looking across both characters instead of down the arena.
+      const together=1-smoothstep((gap-4.3)/10.7);
+      const twoShot=smoothstep((12.5-gap)/8.3);
+      const lead= .70+(2.15-.70)*together;
+      const distance=3.65+twoShot*1.15+Math.max(0,8-gap)*.11*twoShot;
+      const side=1.05+twoShot*2.20;
+      const focus=new THREE.Vector3(px+forward.x*lead,
+        1.11+.37*py+.18*twoShot+.15*Math.max(0,by-py)*twoShot,
+        pz+forward.z*lead);
+      const desired=new THREE.Vector3(
+        focus.x-forward.x*distance+right.x*side,
+        2.20+py*.45+twoShot*.18,
+        focus.z-forward.z*distance+right.z*side);
+      this.constrainCamera(desired);
+      this.settleCamera(desired,focus,'duel');
+      // Keep the near player expressive while giving the opponent room
+      // during close-range clashes; don't zoom wildly on a single dash.
+      const targetFov=48+twoShot*2.0;
+      this.camera.fov+= (targetFov-this.camera.fov)*.13;
+      this.camera.updateProjectionMatrix();
       this.updateSky(alpha);
       this.renderer.render(this.scene,this.camera);
       this.drawHUD();
