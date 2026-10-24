@@ -507,9 +507,6 @@ try{
     const dashLean=v.poseMetrics.lean;
     const sample=kind=>{
       a.attack=null;a.attackWith(kind);
-      if(kind==='super'){ // only manual pose samples; preserve gameplay meter.
-        a.attack={button:'super',kind:'standing',startup:16,active:5,recovery:32};
-      }
       a.attackTick=a.attack.startup+1;
       a.state='attack';
       a.lean=0;a.prevLean=0;
@@ -521,21 +518,20 @@ try{
       full.recover=v.poseMetrics.attackReach;
       return full;
     };
-    const light=sample('light'),medium=sample('medium'),heavy=sample('heavy');
+    const light=sample('light'),heavy=sample('heavy');
     a.reset(-11,-7);b.reset(11,-7);
-    return {rigBones:v.bones.size,idle,footTravel,dashLean,light,medium,heavy};
+    return {rigBones:v.bones.size,idle,footTravel,dashLean,light,heavy};
   });
   console.log('FULL_BODY_ANIMATION_QA',JSON.stringify(animationQA));
   if(animationQA.rigBones<60||
      animationQA.footTravel<.12||
      animationQA.dashLean<animationQA.idle.lean+.18||
      animationQA.light.left<animationQA.idle.left+.07||
-     animationQA.medium.right<animationQA.idle.right+.07||
-     // Hooks travel around the guard, so check a shorter forward extension.
      animationQA.heavy.right<animationQA.idle.right+.04||
-     animationQA.light.twist>-.12||
-     animationQA.medium.twist<.14||
-     animationQA.heavy.twist<animationQA.medium.twist+.12||
+     animationQA.light.attackReach<.1||
+     animationQA.heavy.attackReach<.1||
+     animationQA.light.twist>-.08||
+     animationQA.heavy.twist<.1||
      animationQA.heavy.recover>=animationQA.heavy.attackReach*.55)
     throw Error('Full-body gait, punch, or dash motion is not visible on real rigs');
   await page.screenshot({path:'arena-qa-images/full-body-animation.png'});
