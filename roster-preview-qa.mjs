@@ -131,8 +131,18 @@ try{
       const beginX=a.x;
       pad.axes[0]=1;tick();
       const movedRight=a.x>beginX+.02;
+      ar.initialCamera=false;ar.render(1);
+      const originalCamera=ar.camera.position.clone();
+      const originalDistance=Math.hypot(
+        originalCamera.x-a.x,originalCamera.z-a.z);
       pad.axes=[0,0,.88,-.70];tick();
-      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01;
+      ar.initialCamera=false;ar.render(1);
+      const newCamera=ar.camera.position.clone();
+      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01 &&
+        Math.hypot(newCamera.x-originalCamera.x,
+          newCamera.z-originalCamera.z)>.13;
+      const orbitDistance=Math.hypot(newCamera.x-a.x,newCamera.z-a.z);
+      const distancePreserved=Math.abs(orbitDistance-originalDistance)<.12;
       const orbitYaw=ar.sandboxOrbitYaw;
       pad.axes=[0,0,0,0];press(2);tick();
       const light=a.attack?.button==='light';
@@ -147,7 +157,7 @@ try{
       const jumped=!a.grounded&&a.y>0;
       press(-1);tick();
       return {model:ar.views[0].key,initiallyP2,assigned,movedRight,
-        orbitMoved,orbitYaw,light,heavy,dashed,jumped};
+        orbitMoved,distancePreserved,orbitYaw,light,heavy,dashed,jumped};
     }finally{
       input.win=savedWin;input.padSlots=savedSlots;
       input.keyboardJoined=savedJoined;
