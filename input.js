@@ -10,7 +10,7 @@
     2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',heavy:'Numpad3',power:'Numpad0',super:'Numpad6',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
   };
   const ALL_FALSE=()=>Object.fromEntries(ACTIONS.map(a=>[a,false]));
-  const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),x:0,y:0});
+  const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),x:0,y:0,lookX:0,lookY:0});
   function snapStick(x,y){
     if(Math.hypot(x,y)<DEADZONE)return {x:0,y:0};
     const step=Math.round(Math.atan2(y,x)/(Math.PI/4));
@@ -35,6 +35,14 @@
     if(!pad)return out;
     const axes=pad.axes||[];
     const snapped=snapStick(Number(axes[0])||0,Number(axes[1])||0);
+    // Standard Xbox / PlayStation right-stick axes. Preserve analog
+    // magnitude for a smooth 360-degree third-person camera orbit.
+    const rx=Number(axes[2])||0,ry=Number(axes[3])||0;
+    const lookLength=Math.hypot(rx,ry);
+    const lookStrength=lookLength<.19?0:
+      Math.min(1,(lookLength-.19)/.81);
+    out.lookX=lookLength?rx/lookLength*lookStrength:0;
+    out.lookY=lookLength?ry/lookLength*lookStrength:0;
     const pressed=n=>Number.isInteger(n)&&readButton(pad.buttons?.[n]);
     // Standard mapping: left stick + D-pad. Never treat right-stick aim
     // movement as an additional character movement input.
@@ -170,6 +178,7 @@
         if(pad){
           const gp=padFrame(pad,this.bindings.pad[player]);
           for(const action of ACTIONS)current[action]=current[action]||gp[action];
+          current.lookX=gp.lookX;current.lookY=gp.lookY;
         }
         resolveSOCD(current);
         const was=this.frames[player];
@@ -195,7 +204,19 @@
       if(this.padSlots[2]===pad.index)this.padSlots[2]=null;
       this.padSlots[1]=pad.index;
       this.disconnected=false;
-      // Re-read mapped input on the next update, preserving edge semantics.
+      // The arena may start between fixed updates. Move the live input
+      // frame now, not a tick later: jump/dash/attack must respond immediately.
+      const gp=padFrame(pad,this.bindings.pad[1]);
+      const before=this.frames[1],next={...before};
+      for(const action of ACTIONS){
+        next[action]=before[action]||gp[action];
+        next.pressed[action]=Boolean(next[action]&&!before[action]);
+        next.released[action]=Boolean(!next[action]&&before[action]);
+      }
+      next.lookX=gp.lookX;next.lookY=gp.lookY;
+      resolveSOCD(next);
+      this.frames[1]=next;
+      this.frames[2]=emptyFrame();
       this.toast('Controller active for Player 1');
       return true;
     }
