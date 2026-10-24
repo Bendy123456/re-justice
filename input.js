@@ -14,7 +14,7 @@
   };
   const ALL_FALSE=()=>Object.fromEntries(ACTIONS.map(a=>[a,false]));
   const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),
-    x:0,y:0,moveX:0,moveY:0,lookX:0,lookY:0});
+    x:0,y:0,moveX:null,moveY:null,lookX:0,lookY:0});
   function snapStick(x,y){
     if(Math.hypot(x,y)<DEADZONE)return {x:0,y:0};
     const step=Math.round(Math.atan2(y,x)/(Math.PI/4));
