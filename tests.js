@@ -152,6 +152,13 @@
     input.update();assert(!input.frame(1).pressed.up);
     input.destroy();
   });
+  test('Empty input frame does not override explicit keyboard movement',()=>{
+    const frame=FG.InputUtils.emptyFrame();
+    equal(frame.moveX,null);equal(frame.moveY,null);
+    frame.x=1;frame.y=-1;
+    equal(frame.moveX??frame.x,1);
+    equal(frame.moveY??frame.y,-1);
+  });
   test('Reversed physical left stick runs forward without inverting menus',()=>{
     // Some hardware reports positive Y for physical stick-up. The analog
     // correction must not change D-pad/menu navigation or keyboard keys.
