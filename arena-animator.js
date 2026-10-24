@@ -63,12 +63,12 @@ const COMBAT_IDLE=Object.freeze({
 const STRIKES=Object.freeze({
   // A real jab begins in guard, shortens into a bent elbow, then snaps
   // forward behind a subtle lead-hip and lead-shoulder rotation.
-  light: {hand:'l',chamber:.44,rotation:-.40,hip:-.24,lean:.12,
-    step:.11,hook:0,contact:.88,guard:.86,shoulder:.18,pivot:.055},
+  light: {hand:'l',chamber:.44,rotation:-.23,hip:-.13,lean:.09,
+    step:.11,hook:0,contact:.93,guard:.86,shoulder:.20,pivot:.045},
   // A true rear-hand cross: deeper elbow chamber, rear-foot pivot, hip
   // initiates, ribs follow, shoulder extends LAST. Not a sideways slap.
-  heavy: {hand:'r',chamber:.72,rotation:.80,hip:.58,lean:.28,
-    step:.23,hook:.08,contact:.93,guard:.90,shoulder:.34,pivot:.25},
+  heavy: {hand:'r',chamber:.72,rotation:.48,hip:.32,lean:.16,
+    step:.22,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.20},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22},
   super: {hand:'r',chamber:.68,rotation:.92,hip:.66,lean:.33,step:.30,hook:.45}
 });
@@ -572,7 +572,9 @@ export function poseFighter(view,alpha){
         // upper+forearm length forward, driven by the turning chest.
         const ready=[sgn*.26,.12,.23];
         const chamber=[sgn*.19,.015,-.13-profile.chamber*.09];
-        const contact=[sgn*(.08+profile.hook*.16),-.055,
+        // Compensate for the strike's forward torso lean: the fist
+        // stays at SHOULDER/HEAD height rather than punching at the floor.
+        const contact=[sgn*(.07+profile.hook*.11),.14,
           profile.contact];
         const coiled=blendVec(ready,chamber,wind);
         goal=blendVec(coiled,contact,reach).map(v=>v*length);
@@ -657,6 +659,27 @@ export function poseFighter(view,alpha){
       [sign*length*.12,
         -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
         length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
+    if(attack&&a.grounded&&!airborne){
+      // An attacking fighter plants BOTH soles. Earlier brace
+      // compression shortened the leg targets and levitated the whole
+      // character in the middle of every punch.
+      const hipWorld=hip.getWorldPosition(vec());
+      const sole=view.footSoleHeights?.[side]??.09;
+      const worldGoal=vec(...target).applyQuaternion(rootQ).add(hipWorld);
+      worldGoal.y=sole;
+      const dy=worldGoal.y-hipWorld.y;
+      const reach=Math.max(.001,length-.012);
+      const maxXZ=Math.sqrt(Math.max(.0001,reach*reach-dy*dy));
+      const dx=worldGoal.x-hipWorld.x,dz=worldGoal.z-hipWorld.z;
+      const horizontal=Math.hypot(dx,dz);
+      if(horizontal>maxXZ&&horizontal>.00001){
+        const scale=maxXZ/horizontal;
+        worldGoal.x=hipWorld.x+dx*scale;
+        worldGoal.z=hipWorld.z+dz*scale;
+      }
+      target=worldGoal.sub(hipWorld).applyQuaternion(
+        rootQ.clone().invert()).toArray();
+    }
     if(walkingMotion){
       const foot=side==='l'?leftStep:rightStep;
       const hipWorld=hip.getWorldPosition(vec());
