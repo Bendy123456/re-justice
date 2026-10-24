@@ -39,11 +39,11 @@
     // Standard mapping: left stick + D-pad. Never treat right-stick aim
     // movement as an additional character movement input.
     const dpad={left:pressed(14),right:pressed(15),up:pressed(12),down:pressed(13)};
-    const hasDpad=Object.values(dpad).some(Boolean);
-    out.left=dpad.left||(!hasDpad&&snapped.x===-1);
-    out.right=dpad.right||(!hasDpad&&snapped.x===1);
-    out.up=dpad.up||(!hasDpad&&snapped.y===-1);
-    out.down=dpad.down||(!hasDpad&&snapped.y===1);
+    // Opposing stick/D-pad commands intentionally neutralize (SOCD).
+    out.left=dpad.left||snapped.x===-1;
+    out.right=dpad.right||snapped.x===1;
+    out.up=dpad.up||snapped.y===-1;
+    out.down=dpad.down||snapped.y===1;
     for(const name of Object.keys(BUTTON_DEFAULT))out[name]=pressed(bindings[name]);
     return resolveSOCD(out);
   }
@@ -81,10 +81,8 @@
           ' controller connected');
         // The gamepadconnected event can arrive before the first button
         // press. Assign P1 immediately; don't require a keyboard action.
-        if(e.gamepad?.connected!==false&&this.padSlots[1]===null){
-          this.padSlots[1]=e.gamepad.index;
-          this.toast('Controller ready as P1 · use D-pad or left stick');
-        }
+        // Poll on the next fixed tick; a connected event is not itself
+        // evidence that the browser has unlocked the Gamepad API yet.
       };
       this._disconnected=e=>this.disconnect(e.gamepad.index);
       win.addEventListener('keydown',this._down);
@@ -135,11 +133,11 @@
       // A plugged-in controller should WORK without the user having to
       // discover the hidden "press a face button to join" prerequisite.
       // A keyboard player may coexist with P1's controller.
-      if(this.padSlots[1]===null&&this.rawPads.length){
+      if(this.padSlots[1]===null&&this.rawPads.length&&!this.keyboardJoined[1]){
         const pad=this.rawPads[0];
         this.padSlots[1]=pad.index;
         this.disconnected=false;
-        this.toast('Controller ready as P1 · D-pad/left stick to move');
+        this.toast('Controller ready as P1 · use D-pad or left stick');
         this.onJoin?.(1,pad);
       }
       for(const pad of this.rawPads){
@@ -155,7 +153,8 @@
         // Second pad can explicitly join P2 with any face button or D-pad.
         if(firstPress&&!assigned&&this.padSlots[2]===null){
           this.padSlots[2]=pad.index;
-          this.toast('Second controller joined as P2');
+          this.toast(this.keyboardJoined[1]?'Controller joined as P2 (keyboard is P1)':
+            'Second controller joined as P2');
           this.onJoin?.(2,pad);
         }
         this.padLast[pad.index]=buttons;
