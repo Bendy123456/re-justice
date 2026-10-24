@@ -96,7 +96,7 @@ class ArenaCPU {
       b.attackTick>=b.attack.startup-3&&dist<b.attack.reach/32+1;
     out.block=!!threatening&&this.random()>.28;
     if(dist<3.5&&!out.block&&!a.attack&&tick%31===0){
-      const k=this.random()<.5?'light':this.random()<.68?'medium':'heavy';
+      const k=this.random()<.62?'light':'heavy';
       out[k]=true;out.pressed[k]=true;
     }
     if(dist>8&&tick%135===0){out.burn=true;out.pressed.burn=true;}
@@ -559,7 +559,7 @@ class Arena3D {
         a.dash=DASH_FRAMES;a.dashElapsed=0;a.dashRecovery=0;
         a.dashCooldown=DASH_COOLDOWN;
       }
-      for(const button of ['light','medium','heavy']){
+      for(const button of ['light','heavy']){
         if(control.pressed[button]&&a.attackWith(button)){
           this.game.audio.play('whoosh',.25);break;
         }
@@ -814,7 +814,7 @@ class Arena3D {
       c.lineWidth=3;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.stroke();
     }
     c.fillStyle='rgba(5,16,24,.77)';c.fillRect(20,665,1240,47);
-    text('WASD / LEFT STICK: MOVE   SPACE / A: JUMP   SHIFT / RB: DASH    J K L / X Y B: ATTACK',38,685,14,'#e5f5ff');
+    text('WASD / LEFT STICK: MOVE   SPACE / A: JUMP   SHIFT / RB: DASH    J / X: LIGHT   L / B: HEAVY',38,685,14,'#e5f5ff');
     text('I / LT: BLOCK   O / RT: SUPER (4 BARS)   ESC / START: PAUSE',38,705,14,'#a6d8ea');
     if(this.paused){
       c.fillStyle='rgba(6,12,19,.85)';c.fillRect(0,0,1280,720);
