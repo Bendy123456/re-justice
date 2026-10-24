@@ -10,11 +10,11 @@
   const PREV_STICK_KEY='rejustice-stick-directions-v3';
   const STICK_DEFAULT={moveX:false,moveY:false,lookX:false,lookY:false};
   const STICK_AXES=['moveX','moveY','lookX','lookY'];
-  const ACTIONS=['left','right','up','down','light','heavy','power','super','throw','block','burn','pause','reset'];
-  const BUTTON_DEFAULT={light:2,heavy:1,power:0,super:7,throw:4,block:6,burn:5,pause:9,reset:8};
+  const ACTIONS=['left','right','up','down','light','heavy','power','throw','block','burn','pause','reset'];
+  const BUTTON_DEFAULT={light:2,heavy:1,power:0,throw:4,block:6,burn:5,pause:9,reset:8};
   const KEY_DEFAULT={
-    1:{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',light:'KeyJ',heavy:'KeyL',power:'KeyH',super:'KeyO',throw:'KeyU',block:'KeyI',burn:'KeyP',pause:'Escape',reset:'Backspace'},
-    2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',heavy:'Numpad3',power:'Numpad0',super:'Numpad6',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
+    1:{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',light:'KeyJ',heavy:'KeyL',power:'KeyH',throw:'KeyU',block:'KeyI',burn:'KeyP',pause:'Escape',reset:'Backspace'},
+    2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',heavy:'Numpad3',power:'Numpad0',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
   };
   const ALL_FALSE=()=>Object.fromEntries(ACTIONS.map(a=>[a,false]));
   const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),
