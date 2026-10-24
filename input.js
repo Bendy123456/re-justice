@@ -3,11 +3,11 @@
   const FG=window.FG=window.FG||{};
   const DEADZONE=0.35,ANALOG_PRESS=0.55, BINDINGS_KEY='shattered-accord-input-v1';
   const RUMBLE_KEY='shattered-accord-rumble-v1';
-  const ACTIONS=['left','right','up','down','light','medium','heavy','power','super','throw','block','burn','pause','reset'];
-  const BUTTON_DEFAULT={light:2,medium:3,heavy:1,power:0,super:7,throw:4,block:6,burn:5,pause:9,reset:8};
+  const ACTIONS=['left','right','up','down','light','heavy','power','super','throw','block','burn','pause','reset'];
+  const BUTTON_DEFAULT={light:2,heavy:1,power:0,super:7,throw:4,block:6,burn:5,pause:9,reset:8};
   const KEY_DEFAULT={
-    1:{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',light:'KeyJ',medium:'KeyK',heavy:'KeyL',power:'KeyH',super:'KeyO',throw:'KeyU',block:'KeyI',burn:'KeyP',pause:'Escape',reset:'Backspace'},
-    2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',medium:'Numpad2',heavy:'Numpad3',power:'Numpad0',super:'Numpad6',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
+    1:{left:'KeyA',right:'KeyD',up:'KeyW',down:'KeyS',light:'KeyJ',heavy:'KeyL',power:'KeyH',super:'KeyO',throw:'KeyU',block:'KeyI',burn:'KeyP',pause:'Escape',reset:'Backspace'},
+    2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',heavy:'Numpad3',power:'Numpad0',super:'Numpad6',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
   };
   const ALL_FALSE=()=>Object.fromEntries(ACTIONS.map(a=>[a,false]));
   const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),x:0,y:0});
