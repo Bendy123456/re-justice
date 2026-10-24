@@ -106,6 +106,64 @@ try{
      soloStart.model!=='male'||soloStart.canvas!=='block'||
      soloStart.timer!==Infinity||!soloStart.bornWithFullHealth)
     throw Error('Sandbox spawned a bot, omitted the preview model or started a match clock');
+  // Simulate standard Xbox / PlayStation Gamepad API without requiring
+  // hardware on headless CI. Covers an actual preview-only Sandbox fighter,
+  // controller reassignment after keyboard menu usage, both attacks,
+  // jump/dash buttons and an independent right-stick camera orbit.
+  const controllerArenaQA=await page.evaluate(()=>{
+    const g=window.game,ar=g.arena3d,input=g.input,a=ar.fighters[0];
+    const savedWin=input.win,savedSlots={...input.padSlots};
+    const savedJoined={...input.keyboardJoined};
+    const pad={index:0,id:'Xbox Wireless Controller',mapping:'standard',
+      connected:true,axes:[0,0,0,0],
+      buttons:Array.from({length:18},()=>({pressed:false,value:0}))};
+    const press=idx=>{
+      pad.buttons.forEach((b,i)=>{b.pressed=i===idx;b.value=i===idx?1:0;});
+    };
+    const tick=()=>{input.update();ar.step(input,new Set());};
+    try{
+      input.win={navigator:{getGamepads:()=>[pad]}};
+      input.keyboardJoined[1]=true;input.padSlots[1]=null;input.padSlots[2]=null;
+      tick(); // with keyboard P1, controller initially auto-joins P2
+      const initiallyP2=input.padSlots[2]===0;
+      input.preferControllerP1();
+      const assigned=input.padSlots[1]===0;
+      const beginX=a.x;
+      pad.axes[0]=1;tick();
+      const movedRight=a.x>beginX+.02;
+      pad.axes=[0,0,.88,-.70];tick();
+      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01;
+      const orbitYaw=ar.sandboxOrbitYaw;
+      pad.axes=[0,0,0,0];press(2);tick();
+      const light=a.attack?.button==='light';
+      a.attack=null;a.attackTick=0;
+      press(1);tick();
+      const heavy=a.attack?.button==='heavy';
+      a.attack=null;a.attackTick=0;
+      press(5);tick();
+      const dashed=a.dashCooldown>0&&a.state==='dash';
+      a.dash=0;a.dashCooldown=0;
+      press(0);tick();
+      const jumped=!a.grounded&&a.y>0;
+      press(-1);tick();
+      return {model:ar.views[0].key,initiallyP2,assigned,movedRight,
+        orbitMoved,orbitYaw,light,heavy,dashed,jumped};
+    }finally{
+      input.win=savedWin;input.padSlots=savedSlots;
+      input.keyboardJoined=savedJoined;
+      input.frames[1]=window.FG.InputUtils.emptyFrame();
+      input.frames[2]=window.FG.InputUtils.emptyFrame();
+      input.rawPads=[];input.padLast={};input.padLastAxes={};
+      a.reset(-11,-9);a.visualYaw=a.prevVisualYaw=0;
+      ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;ar.initialCamera=false;
+    }
+  });
+  console.log('SANDBOX_GAMEPAD_AND_LOOK_QA',JSON.stringify(controllerArenaQA));
+  if(Object.entries(controllerArenaQA).some(([k,v])=>
+      !['model','orbitYaw'].includes(k)&&v!==true)||
+     controllerArenaQA.model!=='male')
+    throw Error('Standard controller buttons/movement or right-stick camera failed in Sandbox');
+
   const beforeMove=await page.evaluate(()=>{
     const f=window.game.arena3d.fighters[0];return {x:f.x,z:f.z};
   });
