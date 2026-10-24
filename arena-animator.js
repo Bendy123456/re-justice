@@ -62,7 +62,6 @@ const COMBAT_IDLE=Object.freeze({
 });
 const STRIKES=Object.freeze({
   light: {hand:'l',chamber:.26,rotation:-.31,hip:-.17,lean:.12,step:.11,hook:0},
-  medium:{hand:'r',chamber:.35,rotation:.46,hip:.31,lean:.20,step:.18,hook:.12},
   heavy: {hand:'r',chamber:.58,rotation:.99,hip:.64,lean:.33,step:.27,hook:.45},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22},
   super: {hand:'r',chamber:.68,rotation:.92,hip:.66,lean:.33,step:.30,hook:.45}
