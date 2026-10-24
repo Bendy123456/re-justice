@@ -179,20 +179,36 @@ try{
       pad.axes=[0,0,0,0];
       ar.initialCamera=false;ar.render(1);
       const originalCamera=ar.camera.position.clone();
-      const originalLook=ar.camera.getWorldDirection(ar.camera.position.clone());
+      const point3=ar.camera.position.constructor;
+      // A fixed landmark out in front of the player must slide to the
+      // LEFT of the screen when the camera looks RIGHT. Comparing world
+      // look-direction X was the old misleading test: screen-right is
+      // world -X from this behind-the-back camera.
+      const landmark=new point3(a.x,1.4,a.z+9);
+      const beforeScreen=landmark.clone().project(ar.camera).x;
       const originalDistance=Math.hypot(
         originalCamera.x-a.x,originalCamera.z-a.z);
       pad.axes=[0,0,.88,-.70];tick();
       ar.initialCamera=false;ar.render(1);
       const newCamera=ar.camera.position.clone();
-      const changedLook=ar.camera.getWorldDirection(ar.camera.position.clone());
-      const orbitMoved=ar.sandboxOrbitYaw<-.015&&ar.sandboxOrbitPitch<-.01 &&
+      const afterScreen=landmark.clone().project(ar.camera).x;
+      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01 &&
         Math.hypot(newCamera.x-originalCamera.x,
           newCamera.z-originalCamera.z)>.13;
-      const lookRightCorrect=changedLook.x>originalLook.x+.019;
+      const lookRightCorrect=afterScreen<beforeScreen-.012;
       const orbitDistance=Math.hypot(newCamera.x-a.x,newCamera.z-a.z);
       const distancePreserved=Math.abs(orbitDistance-originalDistance)<.12;
       const orbitYaw=ar.sandboxOrbitYaw;
+      // Also test stick LEFT rotates the other way. Neither operation
+      // should move the character or change the camera distance.
+      ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
+      pad.axes=[0,0,0,0];ar.initialCamera=false;ar.render(1);
+      const leftBefore=landmark.clone().project(ar.camera).x;
+      pad.axes=[0,0,-.88,0];tick();
+      ar.initialCamera=false;ar.render(1);
+      const lookLeftCorrect=landmark.clone().project(ar.camera).x>
+        leftBefore+.012;
+      pad.axes=[0,0,0,0];ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
       // Xbox and DualSense default to the same standard Gamepad API
       // -Y forward. Custom inverted axes remain user-adjustable in Settings.
       const forwardCorrect=testedControllers[0].forward>.004;
@@ -213,7 +229,7 @@ try{
       const jumped=!a.grounded&&a.y>0;
       press(-1);tick();
       return {model:ar.views[0].key,initiallyP2,assigned,movedRight,
-        orbitMoved,lookRightCorrect,distancePreserved,forwardCorrect,
+        orbitMoved,lookRightCorrect,lookLeftCorrect,distancePreserved,forwardCorrect,
         turnedForwardCorrect,turnedRightCorrect,standardPadCorrect,screenDirections,
         testedControllers,orbitYaw,light,heavy,dashed,jumped};
     }finally{
