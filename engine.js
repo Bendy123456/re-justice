@@ -4,7 +4,7 @@
   const WIDTH=1280,HEIGHT=720,FPS=60,STEP_MS=1000/FPS,MAX_CATCHUP=6;
   const MAX_ROUND_SECONDS=99,INTRO_FRAMES=100,KO_WAIT=130,WIN_ROUNDS=2;
   const GRAVITY=.88,BODY_RADIUS=26,MIN_DISTANCE=49,START_GAP=430;
-  const HITSTOP={light:5,medium:7,heavy:9};
+  const HITSTOP={light:5,heavy:9};
   const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
   const overlaps=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
   const empty=()=>FG.InputUtils.emptyFrame();
@@ -542,7 +542,7 @@
       const keys1=this.input?this.input.frame(1):empty();
       const keys2=this.mode==='cpu'?this.cpu.decide(b,a,this.frame):(this.input?this.input.frame(2):empty());
       for(const [index,frame] of [[1,keys1],[2,keys2]]){
-        const buttons=['left','right','up','down','light','medium','heavy','block'].filter(k=>frame.pressed[k]);
+        const buttons=['left','right','up','down','light','heavy','block'].filter(k=>frame.pressed[k]);
         if(buttons.length)this.inputHistory[index].unshift({buttons,at:this.frame});
         this.inputHistory[index]=this.inputHistory[index].slice(0,8);
       }
@@ -582,7 +582,7 @@
       f.crouch=Boolean(ctrl.down&&f.grounded);
       f.blocking=Boolean((ctrl.block||away)&&f.grounded&&!ctrl.up);
       f.blockLow=f.blocking&&f.crouch;
-      for(const key of ['light','medium','heavy']){
+      for(const key of ['light','heavy']){
         if(ctrl.pressed[key]){
           if(f.attemptAttack(key))this.audio.play('whoosh',key==='heavy'?.48:.25);
           break;
