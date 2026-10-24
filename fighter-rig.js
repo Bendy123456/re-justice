@@ -51,22 +51,19 @@
   const ATTACKS={
     standing:{
       light:{wind:{armA:.13,foreA:-1.9,torso:-.16},strike:{armA:1.50,foreA:.03,torso:.20,lean:.17},recover:{armA:.76,foreA:-.96,torso:.07}},
-      medium:{wind:{armA:-.29,foreA:-2.05,torso:-.30,armB:.42},strike:{armA:1.54,foreA:-.09,torso:.38,lean:.26,armB:-.5},recover:{armA:.8,foreA:-.94,torso:.10}},
       heavy:{wind:{armA:-.67,foreA:-1.68,torso:-.49,legA:-.28},strike:{armA:1.69,foreA:.24,torso:.52,lean:.38,legA:.54},recover:{armA:.91,foreA:-.63,torso:.23}}
     },
     crouching:{
       light:{wind:{...POSES.crouch,armA:.33,foreA:-1.46},strike:{...POSES.crouch,armA:1.52,foreA:.02,torso:.27},recover:POSES.crouch},
-      medium:{wind:{...POSES.crouch,armA:-.33,foreA:-1.78},strike:{...POSES.crouch,armA:1.67,foreA:-.03,torso:.36},recover:POSES.crouch},
       heavy:{wind:{...POSES.crouch,legA:-.23,shinA:-.48,armA:.25},strike:{...POSES.crouch,legA:1.42,shinA:.11,torso:-.15,bodyY:19},recover:POSES.crouch}
     },
     airborne:{
       light:{wind:{...POSES.jump,armA:-.15,foreA:-1.65},strike:{...POSES.jump,armA:1.4,foreA:0,torso:.15},recover:POSES.fall},
-      medium:{wind:{...POSES.jump,armA:-1.1,foreA:-1.4},strike:{...POSES.jump,armA:1.69,foreA:.05,torso:.27},recover:POSES.fall},
       heavy:{wind:{...POSES.jump,legA:1.3,shinA:-1.1},strike:{...POSES.jump,legA:1.55,shinA:0,torso:.29},recover:POSES.fall}
     }
   };
   const ANIMATIONS=['idle','walk','back','jump','jump_forward','fall','land','crouch','crouch_block','stand_block','hit_light','hit_heavy','launched','knockdown','get_up','throw','throw_victim','victory','defeat','super','power',
-    ...['standing','crouching','airborne'].flatMap(k=>['light','medium','heavy'].map(b=>`${k}_${b}`))];
+    ...['standing','crouching','airborne'].flatMap(k=>['light','heavy'].map(b=>`${k}_${b}`))];
   function mix(a,b,t){const out={};for(const k of Object.keys(NEUTRAL))out[k]=lerp(a[k]??NEUTRAL[k],b[k]??NEUTRAL[k],ease(t));return out;}
   function sample(name,frame,attack=null){
     let animation=name;
