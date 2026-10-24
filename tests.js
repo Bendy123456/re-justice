@@ -121,6 +121,46 @@
     assert(input.frame(1).light);assert(input.frame(2).light);
     input.destroy();
   });
+  test('Already-connected controller auto-joins P1 without button press',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    win.pads=[fakePad(0,[])];input.update();
+    equal(input.padSlots[1],0);
+    win.pads=[fakePad(0,[],[.95,-.94])];input.update();
+    assert(input.frame(1).up&&input.frame(1).right);
+    equal(input.frame(1).x,1);equal(input.frame(1).y,-1);
+    assert(input.frame(1).pressed.up&&input.frame(1).pressed.right);
+    input.update();assert(!input.frame(1).pressed.up);
+    input.destroy();
+  });
+  test('Controller takes over P1 in single player after keyboard joined menu',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    input._down({code:'KeyJ',preventDefault(){}});
+    input.update();input.checkKeyboardJoin(1);
+    equal(input.keyboardJoined[1],true);
+    win.pads=[fakePad(0,[0])];input.update();
+    equal(input.padSlots[2],0);equal(input.padSlots[1],null);
+    assert(input.preferControllerP1());
+    equal(input.padSlots[1],0);equal(input.padSlots[2],null);
+    input.update();assert(input.frame(1).power);
+    input.destroy();
+  });
+  test('First controller can navigate and confirm title and character select',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    const g=new FG.Game({input,audio:{play(){},unlock(){}},
+      assets:{load(){},image(){return null;},sound(){return null;}}});
+    win.pads=[fakePad(0,[])];g.step();
+    equal(input.padSlots[1],0);equal(g.scene,'title');
+    win.pads=[fakePad(0,[13])];g.step();
+    equal(g.menuCursor,2);
+    win.pads=[fakePad(0,[])];g.step();
+    win.pads=[fakePad(0,[0])];g.step();
+    equal(g.scene,'versus');equal(g.mode,'sandbox');
+    win.pads=[fakePad(0,[])];g.step();
+    win.pads=[fakePad(0,[15])];g.step();
+    assert(g.previewPlayer===1&&g.selectNavCooldown[1]>0);
+    equal(input.padSlots[1],0);
+    input.destroy();
+  });
   test('Controller disconnect unassigns pad and fires callback',()=>{
     const win=fakeWindow();const input=new FG.InputManager(win);
     win.pads=[fakePad(0,[0])];input.update();let called=0;
