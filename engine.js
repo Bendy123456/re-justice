@@ -421,8 +421,10 @@
       }else if(this.settingsRow===-1&&(navLeft||navRight)){
         this.settingsDevice=this.settingsDevice==='keyboard'?'pad':'keyboard';this.audio.play('confirm',.14);
       }else if(this.settingsRow>=0&&(navLeft||navRight)){
-        // Jump between the two eight-row columns without changing row position.
-        this.settingsRow=(this.settingsRow+8)%16;
+        // The Settings action list has a variable length. Move between
+        // columns without selecting nonexistent rows after removing Super.
+        this.settingsRow=this.settingsRow<8?
+          Math.min(this.settingsRow+8,maxRow):this.settingsRow-8;
         this.audio.play('confirm',.14);
       }
       if(confirm){
