@@ -4,21 +4,18 @@
   // PHASE 1: only four templates are playable. The complete 24+6 roster is
   // registered for later phases; the unused entries deliberately have no fake moves.
   // Frame data here is ORIGINAL PROTOTYPE BALANCING, not official Injustice data.
-  const STARTUP_LIGHT=5,STARTUP_MEDIUM=8,STARTUP_HEAVY=12;
+  const STARTUP_LIGHT=5,STARTUP_HEAVY=12;
   const NORMALS={
     standing:{
       light:{startup:STARTUP_LIGHT,active:3,recovery:10,damage:38,hitstun:14,blockstun:8,reach:74,height:47,offsetY:-97,level:'mid',push:8},
-      medium:{startup:STARTUP_MEDIUM,active:3,recovery:14,damage:67,hitstun:19,blockstun:11,reach:93,height:51,offsetY:-101,level:'mid',push:12},
       heavy:{startup:STARTUP_HEAVY,active:4,recovery:21,damage:100,hitstun:25,blockstun:14,reach:111,height:59,offsetY:-105,level:'mid',push:17}
     },
     crouching:{
       light:{startup:5,active:3,recovery:10,damage:32,hitstun:13,blockstun:9,reach:71,height:30,offsetY:-25,level:'low',push:6},
-      medium:{startup:9,active:3,recovery:15,damage:62,hitstun:19,blockstun:12,reach:96,height:31,offsetY:-27,level:'low',push:10},
       heavy:{startup:13,active:4,recovery:22,damage:90,hitstun:22,blockstun:13,reach:113,height:35,offsetY:-28,level:'low',push:13}
     },
     airborne:{
       light:{startup:5,active:4,recovery:11,damage:34,hitstun:15,blockstun:8,reach:71,height:46,offsetY:-70,level:'overhead',push:7},
-      medium:{startup:8,active:4,recovery:16,damage:64,hitstun:19,blockstun:11,reach:91,height:49,offsetY:-78,level:'overhead',push:10},
       heavy:{startup:12,active:5,recovery:21,damage:93,hitstun:23,blockstun:14,reach:104,height:56,offsetY:-79,level:'overhead',push:14}
     }
   };
