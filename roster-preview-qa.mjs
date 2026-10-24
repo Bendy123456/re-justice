@@ -136,17 +136,36 @@ try{
       const movedRight=a.x>beginX+.02;
       ar.initialCamera=false;ar.render(1);
       const originalCamera=ar.camera.position.clone();
+      const originalLook=ar.camera.getWorldDirection(ar.camera.position.clone());
       const originalDistance=Math.hypot(
         originalCamera.x-a.x,originalCamera.z-a.z);
       pad.axes=[0,0,.88,-.70];tick();
       ar.initialCamera=false;ar.render(1);
       const newCamera=ar.camera.position.clone();
-      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01 &&
+      const changedLook=ar.camera.getWorldDirection(ar.camera.position.clone());
+      const orbitMoved=ar.sandboxOrbitYaw<-.015&&ar.sandboxOrbitPitch<-.01 &&
         Math.hypot(newCamera.x-originalCamera.x,
           newCamera.z-originalCamera.z)>.13;
+      // On a STANDARD pad, right stick to the right must rotate the VIEW
+      // toward positive world X at the default camera heading.
+      const lookRightCorrect=changedLook.x>originalLook.x+.019;
       const orbitDistance=Math.hypot(newCamera.x-a.x,newCamera.z-a.z);
       const distancePreserved=Math.abs(orbitDistance-originalDistance)<.12;
       const orbitYaw=ar.sandboxOrbitYaw;
+      // Check camera-relative running at cardinal directions. At normal
+      // heading stick-up must go away from camera (+Z), stick-right +X.
+      a.reset(-11,-9);ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
+      pad.axes=[0,-1,0,0];tick();
+      const forwardCorrect=a.z>-9+.04;
+      // After rotating view right by 90 degrees, "forward" becomes +X
+      // and "right" becomes -Z, just like third-person console controls.
+      a.reset(-11,-9);ar.sandboxOrbitYaw=-Math.PI/2;
+      pad.axes=[0,-1,0,0];tick();
+      const turnedForwardCorrect=a.x>-11+.04&&Math.abs(a.z+9)<.025;
+      a.reset(-11,-9);
+      pad.axes=[1,0,0,0];tick();
+      const turnedRightCorrect=a.z<-9-.04&&Math.abs(a.x+11)<.025;
+      a.reset(-11,-9);ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
       pad.axes=[0,0,0,0];press(2);tick();
       const light=a.attack?.button==='light';
       a.attack=null;a.attackTick=0;
@@ -160,7 +179,9 @@ try{
       const jumped=!a.grounded&&a.y>0;
       press(-1);tick();
       return {model:ar.views[0].key,initiallyP2,assigned,movedRight,
-        orbitMoved,distancePreserved,orbitYaw,light,heavy,dashed,jumped};
+        orbitMoved,lookRightCorrect,distancePreserved,forwardCorrect,
+        turnedForwardCorrect,turnedRightCorrect,orbitYaw,
+        light,heavy,dashed,jumped};
     }finally{
       input.win=savedWin;input.padSlots=savedSlots;
       input.keyboardJoined=savedJoined;
