@@ -68,7 +68,7 @@ const STRIKES=Object.freeze({
   // A true rear-hand cross: deeper elbow chamber, rear-foot pivot, hip
   // initiates, ribs follow, shoulder extends LAST. Not a sideways slap.
   heavy: {hand:'r',chamber:.72,rotation:.62,hip:.40,lean:.20,
-    step:.34,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.32},
+    step:.29,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.30},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22}
 });
 
@@ -329,7 +329,9 @@ export function poseFighter(view,alpha){
     (walkingMotion?-supportShift*.53:drive*step*.047)+
     walkTurnBank-walkAmount*localSide*.058+
     (attack?.impact||0)*.02;
-  const pitch=lean+walkLean+
+  // Punches drive from a planted stance. Lean through the segmented
+  // spine instead of tipping the entire avatar/root and pulling soles up.
+  const pitch=(attack?rawLean+attack.lean*.16:lean)+walkLean+
     dashVisual*.32+dashBurst*.10-dashIgnite*.095-
     dashBrake*.025+land*.07;
   root.position.set(lerp(a.prevX,a.x,alpha),
@@ -396,7 +398,7 @@ export function poseFighter(view,alpha){
   const chestPitch=walkingMotion?
     walkAmount*(.006+.009*cos(2*strideClock+.35)):0;
   const torsoBend=(walkingMotion?walkAmount*(.018+.007*abs(step)):drive*.047)*abs(step)+
-    (attack?.lean||0)*.44+dashBurst*.045;
+    (attack?.lean||0)*1.15+dashBurst*.045;
   // Hand-authored three-segment spine and deliberately uneven shoulders.
   // Idle strength blends every joint together during stop/start transitions.
   const idleBreath=idlePose*(1-walkFade)*breath*.012;
