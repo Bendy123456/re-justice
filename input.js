@@ -41,8 +41,8 @@
     const lookLength=Math.hypot(rx,ry);
     const lookStrength=lookLength<.19?0:
       Math.min(1,(lookLength-.19)/.81);
-    out.lookX=lookLength?rx/lookLength*lookStrength:0;
-    out.lookY=lookLength?ry/lookLength*lookStrength:0;
+    out.lookX=lookStrength>0?rx/lookLength*lookStrength:0;
+    out.lookY=lookStrength>0?ry/lookLength*lookStrength:0;
     const pressed=n=>Number.isInteger(n)&&readButton(pad.buttons?.[n]);
     // Standard mapping: left stick + D-pad. Never treat right-stick aim
     // movement as an additional character movement input.
