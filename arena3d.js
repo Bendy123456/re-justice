@@ -752,7 +752,11 @@ class Arena3D {
     c.fillText('LEFT STICK  MOVE     RIGHT STICK  LOOK     A / CROSS  JUMP     RB / R1  DASH',38,685);
     c.fillStyle='#9cc8c6';c.font='700 13px Arial, sans-serif';
     const pad=this.game.input?.padFor(1);
-    const status=pad?'P1 CONTROLLER ACTIVE':'CONTROLLER: PRESS A / CROSS TO CONNECT';
+    const status=pad?((
+      /dualsense|dualshock|playstation|sony|054c|wireless controller/i.test(pad.id||'')
+        ?'PLAYSTATION':'XBOX')+
+      (pad.mapping==='standard'?' P1 READY':' P1 NON-STANDARD MAPPING')):
+      'CONTROLLER: PRESS A / CROSS TO CONNECT';
     c.fillText('X / SQUARE  LIGHT     B / CIRCLE  HEAVY     START  PAUSE     '+status,38,704);
     if(this.paused){
       c.fillStyle='rgba(6,12,19,.83)';c.fillRect(0,0,1280,720);
