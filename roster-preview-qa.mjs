@@ -124,10 +124,13 @@ try{
     try{
       input.win={navigator:{getGamepads:()=>[pad]}};
       input.keyboardJoined[1]=true;input.padSlots[1]=null;input.padSlots[2]=null;
-      tick(); // with keyboard P1, controller initially auto-joins P2
+      // Controller must press a button to join P2 when keyboard already
+      // owns P1. That was intentionally true in the previous input system.
+      press(2);tick();
       const initiallyP2=input.padSlots[2]===0;
       input.preferControllerP1();
       const assigned=input.padSlots[1]===0;
+      press(-1);
       const beginX=a.x;
       pad.axes[0]=1;tick();
       const movedRight=a.x>beginX+.02;
