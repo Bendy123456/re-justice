@@ -269,6 +269,7 @@ try{
         lean:m.rootPitch,pivot:m.punchPivot,bendDegrees,
         wristZ:wrist.z-shoulder.z,
         offHandToHead:offWrist.distanceTo(head),
+        floorL:m.floorErrorL,floorR:m.floorErrorR,
         screenshot:ar.webgl.toDataURL('image/png').split(',')[1]};
     };
     const results=[];
@@ -305,6 +306,7 @@ try{
     if(parts.length!==3||parts.some(p=>!Number.isFinite(p.bendDegrees)||
         !Number.isFinite(p.wristZ)||!Number.isFinite(p.hip)||
         !Number.isFinite(p.torso)||
+        Math.abs(p.floorL)>.12||Math.abs(p.floorR)>.12||
         p.offHandToHead>1.0)){
       throw Error('Punch geometry contains invalid bones or dropped guard');
     }
