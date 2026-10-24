@@ -753,8 +753,7 @@ class Arena3D {
     c.fillStyle='#9cc8c6';c.font='700 13px Arial, sans-serif';
     const pad=this.game.input?.padFor(1);
     const status=pad?((
-      /dualsense|dualshock|playstation|sony|054c|wireless controller/i.test(pad.id||'')
-        ?'PLAYSTATION':'XBOX')+
+      FG.InputUtils.padFamily(pad.id)==='ps'?'PLAYSTATION':'XBOX')+
       (pad.mapping==='standard'?' P1 READY':' P1 NON-STANDARD MAPPING')):
       'CONTROLLER: PRESS A / CROSS TO CONNECT';
     c.fillText('X / SQUARE  LIGHT     B / CIRCLE  HEAVY     START  PAUSE     '+status,38,704);
