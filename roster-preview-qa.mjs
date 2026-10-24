@@ -269,7 +269,7 @@ try{
         lean:m.rootPitch,pivot:m.punchPivot,bendDegrees,
         wristZ:wrist.z-shoulder.z,
         offHandToHead:offWrist.distanceTo(head),
-        screenshot:ar.webgl.toDataURL('image/jpeg',.66).split(',')[1]};
+        screenshot:ar.webgl.toDataURL('image/png').split(',')[1]};
     };
     const results=[];
     for(const kind of ['light','heavy']){
@@ -293,7 +293,7 @@ try{
   for(const sample of punchQA){
     const image=sample.screenshot;delete sample.screenshot;
     if(sample.stage==='contact'||sample.stage==='load'){
-      const name=`ci-images/boxing-${sample.kind}-${sample.stage}.jpg`;
+      const name=`ci-images/boxing-${sample.kind}-${sample.stage}.png`;
       fs.writeFileSync(name,Buffer.from(image,'base64'));
       punchFrames.push(name);
     }
