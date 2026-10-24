@@ -185,6 +185,20 @@
       this.toasts=this.toasts.filter(t=>t.frames>0);
       return this.frames;
     }
+    // CPU and Sandbox are one-player modes. If the keyboard joined first,
+    // the first attached pad may have joined P2 instead. Transfer it to P1
+    // without disabling keyboard movement or changing local-versus behavior.
+    preferControllerP1(){
+      if(this.padSlots[1]!==null)return false;
+      const pad=this.rawPads[0];
+      if(!pad)return false;
+      if(this.padSlots[2]===pad.index)this.padSlots[2]=null;
+      this.padSlots[1]=pad.index;
+      this.disconnected=false;
+      // Re-read mapped input on the next update, preserving edge semantics.
+      this.toast('Controller active for Player 1');
+      return true;
+    }
     frame(player){return this.frames[player]||emptyFrame();}
     padFor(player){return this.rawPads.find(p=>p.index===this.padSlots[player])||null;}
     glyph(player,action){
