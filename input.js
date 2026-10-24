@@ -92,12 +92,14 @@
       this.toasts=[];this.disconnected=false;this.toggleKeys=new Set();
       this.stickSettings={...STICK_DEFAULT};
       try{
-        const current=localStorage.getItem(STICK_KEY);
-        const saved=JSON.parse(current??localStorage.getItem(PREV_STICK_KEY));
+        const current=JSON.parse(localStorage.getItem(STICK_KEY));
+        const hasV4=current&&typeof current==='object';
+        const saved=hasV4?current:
+          JSON.parse(localStorage.getItem(PREV_STICK_KEY));
         for(const axis of STICK_AXES){
           // Old look-X values could have been a workaround for broken
           // camera yaw; start this corrected control in NORMAL mode.
-          if(current===null&&axis==='lookX')continue;
+          if(!hasV4&&axis==='lookX')continue;
           if(typeof saved?.[axis]==='boolean')
             this.stickSettings[axis]=saved[axis];
         }
