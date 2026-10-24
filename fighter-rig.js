@@ -44,7 +44,6 @@
     throw_victim:{...NEUTRAL,bodyY:-20,torso:-.75,armA:-.9,foreA:.5,armB:-1.4,foreB:.6},
     victory:{...NEUTRAL,bodyY:-3,torso:-.13,armA:-2.86,foreA:.12,armB:-.72,foreB:-.35},
     defeat:{...NEUTRAL,bodyY:18,torso:.39,head:.22,armA:.14,foreA:-.03,armB:-.11,foreB:.03,legA:.35,shinA:-.4},
-    super:{...NEUTRAL,bodyY:-4,torso:-.16,armA:-2.15,foreA:-.19,armB:1.35,foreB:-.45,legA:.46,legB:-.38},
     power:{...NEUTRAL,armA:-1.45,foreA:-.4,armB:-1.12,foreB:.2,torso:-.15}
   };
   // Each attack family has unique upper/lower-body startup, strike and recovery poses.
@@ -62,7 +61,7 @@
       heavy:{wind:{...POSES.jump,legA:1.3,shinA:-1.1},strike:{...POSES.jump,legA:1.55,shinA:0,torso:.29},recover:POSES.fall}
     }
   };
-  const ANIMATIONS=['idle','walk','back','jump','jump_forward','fall','land','crouch','crouch_block','stand_block','hit_light','hit_heavy','launched','knockdown','get_up','throw','throw_victim','victory','defeat','super','power',
+  const ANIMATIONS=['idle','walk','back','jump','jump_forward','fall','land','crouch','crouch_block','stand_block','hit_light','hit_heavy','launched','knockdown','get_up','throw','throw_victim','victory','defeat','power',
     ...['standing','crouching','airborne'].flatMap(k=>['light','heavy'].map(b=>`${k}_${b}`))];
   function mix(a,b,t){const out={};for(const k of Object.keys(NEUTRAL))out[k]=lerp(a[k]??NEUTRAL[k],b[k]??NEUTRAL[k],ease(t));return out;}
   function sample(name,frame,attack=null){
