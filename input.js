@@ -3,6 +3,9 @@
   const FG=window.FG=window.FG||{};
   const DEADZONE=0.35,ANALOG_PRESS=0.55, BINDINGS_KEY='shattered-accord-input-v1';
   const RUMBLE_KEY='shattered-accord-rumble-v1';
+  const STICK_KEY='rejustice-stick-directions-v1';
+  const STICK_DEFAULT={moveX:false,moveY:true,lookX:false,lookY:false};
+  const STICK_AXES=['moveX','moveY','lookX','lookY'];
   const ACTIONS=['left','right','up','down','light','heavy','power','super','throw','block','burn','pause','reset'];
   const BUTTON_DEFAULT={light:2,heavy:1,power:0,super:7,throw:4,block:6,burn:5,pause:9,reset:8};
   const KEY_DEFAULT={
@@ -10,7 +13,8 @@
     2:{left:'ArrowLeft',right:'ArrowRight',up:'ArrowUp',down:'ArrowDown',light:'Numpad1',heavy:'Numpad3',power:'Numpad0',super:'Numpad6',throw:'Numpad4',block:'Numpad5',burn:'Numpad7',pause:'Enter',reset:'NumpadDecimal'}
   };
   const ALL_FALSE=()=>Object.fromEntries(ACTIONS.map(a=>[a,false]));
-  const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),x:0,y:0,lookX:0,lookY:0});
+  const emptyFrame=()=>({...ALL_FALSE(),pressed:ALL_FALSE(),released:ALL_FALSE(),
+    x:0,y:0,moveX:0,moveY:0,lookX:0,lookY:0});
   function snapStick(x,y){
     if(Math.hypot(x,y)<DEADZONE)return {x:0,y:0};
     const step=Math.round(Math.atan2(y,x)/(Math.PI/4));
@@ -30,7 +34,7 @@
   function readButton(button){
     return Boolean(button&&(button.pressed||Number(button.value||0)>=ANALOG_PRESS));
   }
-  function padFrame(pad,bindings=BUTTON_DEFAULT){
+  function padFrame(pad,bindings=BUTTON_DEFAULT,stickSettings=STICK_DEFAULT){
     const out=emptyFrame();
     if(!pad)return out;
     const axes=pad.axes||[];
@@ -41,8 +45,10 @@
     const lookLength=Math.hypot(rx,ry);
     const lookStrength=lookLength<.19?0:
       Math.min(1,(lookLength-.19)/.81);
-    out.lookX=lookStrength>0?rx/lookLength*lookStrength:0;
-    out.lookY=lookStrength>0?ry/lookLength*lookStrength:0;
+    out.lookX=lookStrength>0?rx/lookLength*lookStrength*
+      (stickSettings.lookX?-1:1):0;
+    out.lookY=lookStrength>0?ry/lookLength*lookStrength*
+      (stickSettings.lookY?-1:1):0;
     const pressed=n=>Number.isInteger(n)&&readButton(pad.buttons?.[n]);
     // Standard mapping: left stick + D-pad. Never treat right-stick aim
     // movement as an additional character movement input.
@@ -53,7 +59,13 @@
     out.up=dpad.up||snapped.y===-1;
     out.down=dpad.down||snapped.y===1;
     for(const name of Object.keys(BUTTON_DEFAULT))out[name]=pressed(bindings[name]);
-    return resolveSOCD(out);
+    resolveSOCD(out);
+    // Keep physical stick directions separate from navigation. Otherwise
+    // fixing an inverted running stick reverses the Settings menu as well.
+    // D-pad moves normally, and only the analog stick uses inversion flags.
+    out.moveX=snapped.x?(stickSettings.moveX?-snapped.x:snapped.x):out.x;
+    out.moveY=snapped.y?(stickSettings.moveY?-snapped.y:snapped.y):out.y;
+    return out;
   }
   function normalizeBindings(raw){
     const base={keyboard:structuredClone(KEY_DEFAULT),pad:{1:{...BUTTON_DEFAULT},2:{...BUTTON_DEFAULT}}};
@@ -74,6 +86,12 @@
       this.keyboardJoined={1:false,2:false};this.padLast={};this.rawPads=[];
       this.missingPadTicks={1:0,2:0};
       this.toasts=[];this.disconnected=false;this.toggleKeys=new Set();
+      this.stickSettings={...STICK_DEFAULT};
+      try{
+        const saved=JSON.parse(localStorage.getItem(STICK_KEY));
+        for(const axis of STICK_AXES)if(typeof saved?.[axis]==='boolean')
+          this.stickSettings[axis]=saved[axis];
+      }catch(_){};
       try{this.rumbleEnabled=localStorage.getItem(RUMBLE_KEY)!=='false';}
       catch(_){this.rumbleEnabled=true;}
       try{this.bindings=normalizeBindings(JSON.parse(localStorage.getItem(BINDINGS_KEY)));}
@@ -117,6 +135,13 @@
       this.bindings[device][player][action]=value;this.save();return true;
     }
     resetBindings(){this.bindings=normalizeBindings(null);this.save();}
+    setStickDirection(axis,inverted){
+      if(!STICK_AXES.includes(axis))return false;
+      this.stickSettings[axis]=Boolean(inverted);
+      try{localStorage.setItem(STICK_KEY,JSON.stringify(this.stickSettings));}
+      catch(_){}
+      return true;
+    }
     setRumble(enabled){this.rumbleEnabled=Boolean(enabled);
       try{localStorage.setItem(RUMBLE_KEY,String(this.rumbleEnabled));}catch(_){}
     }
@@ -186,11 +211,17 @@
         const index=this.padSlots[player];
         const pad=index===null?null:pads[index];
         if(pad){
-          const gp=padFrame(pad,this.bindings.pad[player]);
+          const gp=padFrame(pad,this.bindings.pad[player],this.stickSettings);
           for(const action of ACTIONS)current[action]=current[action]||gp[action];
           current.lookX=gp.lookX;current.lookY=gp.lookY;
+          current.moveX=gp.moveX||current.x;
+          current.moveY=gp.moveY||current.y;
         }
         resolveSOCD(current);
+        // If there is no active analog input, keyboard and D-pad retain
+        // their ordinary menu/gameplay direction and never get reversed.
+        if(!current.moveX)current.moveX=current.x;
+        if(!current.moveY)current.moveY=current.y;
         const was=this.frames[player];
         for(const action of ACTIONS){
           current.pressed[action]=Boolean(current[action]&&!was[action]);
@@ -216,7 +247,7 @@
       this.disconnected=false;
       // The arena may start between fixed updates. Move the live input
       // frame now, not a tick later: jump/dash/attack must respond immediately.
-      const gp=padFrame(pad,this.bindings.pad[1]);
+      const gp=padFrame(pad,this.bindings.pad[1],this.stickSettings);
       const before=this.frames[1],next={...before};
       for(const action of ACTIONS){
         next[action]=before[action]||gp[action];
@@ -224,6 +255,7 @@
         next.released[action]=Boolean(!next[action]&&before[action]);
       }
       next.lookX=gp.lookX;next.lookY=gp.lookY;
+      next.moveX=gp.moveX;next.moveY=gp.moveY;
       resolveSOCD(next);
       this.frames[1]=next;
       this.frames[2]=emptyFrame();
