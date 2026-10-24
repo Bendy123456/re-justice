@@ -46,7 +46,7 @@ class Combatant {
     this.x=x;this.z=z;this.y=0;
     this.prevX=x;this.prevZ=z;this.prevY=0;
     this.vy=0;this.grounded=true;this.facing={x:1,z:0};
-    this.health=def.maxHealth;this.meter=0;
+    this.health=this.maxHealth;this.meter=0;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
     this.gaitPhase=this.prevGaitPhase=0;
@@ -74,7 +74,11 @@ class Combatant {
   attackWith(button){
     if(this.stun||this.attack||this.health<=0)return false;
     const kind=this.grounded?'standing':'airborne';
-    const move=this.def.moves?.[kind]?.[button];
+    // Sandbox preview models intentionally have no competitive moveset.
+    // Give them the basic two-punch training moves only here; CPU/versus
+    // still require a roster fighter with its own authored attacks.
+    const moves=this.def.moves||FG.CHARACTERS.flash.moves;
+    const move=moves?.[kind]?.[button];
     if(!move)return false;
     this.attack={...move,button,kind};this.attackTick=0;this.attackHit=false;this.state='attack';
     return true;
@@ -448,6 +452,7 @@ class Arena3D {
       this.phase='live';this.intro=0;this.roundFrames=Infinity;
     }else this.startRound();
     this.active=true;this.paused=false;this.initialCamera=false;
+    this.sandboxOrbitYaw=0;this.sandboxOrbitPitch=0;
     this.show(true);
   }
   startRound(){
@@ -472,7 +477,17 @@ class Arena3D {
   }
   step(input,keys){
     this.tick++;
-    if(keys.has('Escape')||input?.anyPress('pause')){
+    // Look input is read once per simulation tick, not in render().
+    // Right stick orbits the existing third-person camera, preserving its
+    // original distance; left stick continues to move the actual fighter.
+    if(this.mode==='sandbox'&&!this.paused){
+      const controls=input?.frame(1);
+      this.sandboxOrbitYaw+= (controls?.lookX||0)*.049;
+      this.sandboxOrbitPitch=clamp(
+        this.sandboxOrbitPitch+(controls?.lookY||0)*.031,-.72,1.03);
+    }
+    if(keys.has('Escape')||input?.frame(1)?.pressed?.pause||
+       (this.mode==='versus'&&input?.frame(2)?.pressed?.pause)){
       this.paused=!this.paused;
       this.game.audio.play('confirm',.25);
     }
@@ -485,6 +500,7 @@ class Arena3D {
       if(keys.has('KeyR')||input?.frame(1)?.pressed?.reset){
         a.reset(-11,-9);a.visualYaw=a.prevVisualYaw=0;
         a.facing={x:0,z:1};this.initialCamera=false;
+        this.sandboxOrbitYaw=0;this.sandboxOrbitPitch=0;
       }
       a.prevX=a.x;a.prevZ=a.z;a.prevY=a.y;a.animClock++;
       a.prevVisualYaw=a.visualYaw;a.prevLean=a.lean;a.prevBank=a.bank;
@@ -533,8 +549,13 @@ class Arena3D {
     const startMoveX=a.x,startMoveZ=a.z;
     // A solo session uses a stable camera-relative travel direction.
     // Duels still orient around the actual opponent.
-    const forward=b?unit(b.x-a.x,b.z-a.z):{x:0,z:1};
-    const right={x:-forward.z,z:forward.x};
+    const orbitYaw=this.sandboxOrbitYaw||0;
+    const forward=b?unit(b.x-a.x,b.z-a.z):
+      {x:-Math.sin(orbitYaw),z:Math.cos(orbitYaw)};
+    // Free-roam right means screen-right even after orbiting the camera.
+    // Preserve duel strafing handedness for existing combat balance.
+    const right=b?{x:-forward.z,z:forward.x}:
+      {x:forward.z,z:-forward.x};
     // Keep combat targeting/strike cones on the opponent, but let the mesh
     // turn into actual travel, like a third-person arena fighter.
     a.facing=b?forward:unit(Math.sin(a.visualYaw),Math.cos(a.visualYaw));
@@ -673,8 +694,15 @@ class Arena3D {
     const a=this.fighters[0];
     const px=lerp(a.prevX,a.x,alpha),pz=lerp(a.prevZ,a.z,alpha);
     const py=lerp(a.prevY,a.y,alpha);
-    // Stable third-person follow camera with no invisible opponent/lock-on.
-    const desired=new THREE.Vector3(px+1.15,CAM_HEIGHT+py*.5,pz-CAM_DIST-1.25);
+    // Full 360° right-stick orbit at the ORIGINAL follow distance.
+    // 0 yaw / 0 pitch exactly reproduces the previous camera location.
+    const yaw=this.sandboxOrbitYaw||0,pitch=this.sandboxOrbitPitch||0;
+    const c=Math.cos(yaw),sn=Math.sin(yaw);
+    const side=1.15,behind=CAM_DIST+1.25;
+    const desired=new THREE.Vector3(
+      px+side*c+behind*sn,
+      CAM_HEIGHT+py*.5+pitch*1.72,
+      pz+side*sn-behind*c);
     const distance=Math.hypot(desired.x,desired.z);
     const limit=ARENA_RADIUS-WALL_GAP-.5;
     if(distance>limit){desired.x*=limit/distance;desired.z*=limit/distance;}
@@ -683,7 +711,8 @@ class Arena3D {
       desired.x=dir.x*(TREE_RADIUS+1.1);
       desired.z=dir.z*(TREE_RADIUS+1.1);
     }
-    const focus=new THREE.Vector3(px,1.45+py*.35,pz+1.05);
+    const focus=new THREE.Vector3(
+      px-1.05*sn,1.45+py*.35,pz+1.05*c);
     if(!this.initialCamera){
       this.camera.position.copy(desired);this.cameraFocus=focus;this.initialCamera=true;
     }else{
@@ -704,9 +733,11 @@ class Arena3D {
     c.fillText(this.fighters[0].def.name+'  ·  FREE ROAM / NO BOT',36,74);
     c.fillStyle='rgba(5,18,26,.77)';c.fillRect(20,666,1240,45);
     c.fillStyle='#d5f3ef';c.font='700 15px Arial, sans-serif';
-    c.fillText('WASD / LEFT STICK  MOVE     SPACE / A  JUMP     SHIFT / RB  DASH',38,685);
+    c.fillText('LEFT STICK  MOVE     RIGHT STICK  LOOK     A / CROSS  JUMP     RB / R1  DASH',38,685);
     c.fillStyle='#9cc8c6';c.font='700 13px Arial, sans-serif';
-    c.fillText('R / RESET  RETURN TO SPAWN      ESC / START  PAUSE      Q (PAUSED)  MENU',38,704);
+    const pad=this.game.input?.padFor(1);
+    const status=pad?'P1 CONTROLLER ACTIVE':'CONTROLLER: PRESS A / CROSS TO CONNECT';
+    c.fillText('X / SQUARE  LIGHT     B / CIRCLE  HEAVY     START  PAUSE     '+status,38,704);
     if(this.paused){
       c.fillStyle='rgba(6,12,19,.83)';c.fillRect(0,0,1280,720);
       c.textAlign='center';
