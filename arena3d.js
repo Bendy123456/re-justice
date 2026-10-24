@@ -483,7 +483,10 @@ class Arena3D {
     // original distance; left stick continues to move the actual fighter.
     if(this.mode==='sandbox'&&!this.paused){
       const controls=input?.frame(1);
-      this.sandboxOrbitYaw+= (controls?.lookX||0)*.049;
+      // In Three.js a camera orbiting +yaw moves the VIEW left.
+      // Standard right stick → must turn the VIEW right, so orbit yaw
+      // moves in the opposite direction. Movement uses this same yaw.
+      this.sandboxOrbitYaw-= (controls?.lookX||0)*.049;
       this.sandboxOrbitPitch=clamp(
         this.sandboxOrbitPitch+(controls?.lookY||0)*.031,-.72,1.03);
     }
