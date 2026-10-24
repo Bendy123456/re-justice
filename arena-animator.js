@@ -63,12 +63,12 @@ const COMBAT_IDLE=Object.freeze({
 const STRIKES=Object.freeze({
   // A real jab begins in guard, shortens into a bent elbow, then snaps
   // forward behind a subtle lead-hip and lead-shoulder rotation.
-  light: {hand:'l',chamber:.44,rotation:-.23,hip:-.13,lean:.09,
-    step:.11,hook:0,contact:.93,guard:.86,shoulder:.20,pivot:.045},
+  light: {hand:'l',chamber:.44,rotation:-.33,hip:-.20,lean:.11,
+    step:.22,hook:0,contact:.93,guard:.86,shoulder:.20,pivot:.035},
   // A true rear-hand cross: deeper elbow chamber, rear-foot pivot, hip
   // initiates, ribs follow, shoulder extends LAST. Not a sideways slap.
-  heavy: {hand:'r',chamber:.72,rotation:.48,hip:.32,lean:.16,
-    step:.22,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.20},
+  heavy: {hand:'r',chamber:.72,rotation:.62,hip:.40,lean:.20,
+    step:.34,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.32},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22}
 });
 
@@ -99,6 +99,16 @@ function strikePose(actor){
     recoil=sin(Math.PI*t)*.12;
   }
   const contact=ease(extend),wind=chamber;
+  // The lead foot takes a real step BEFORE contact, with a small toe-off;
+  // it then plants under the punch and returns smoothly to boxing guard.
+  const driving=tick>=startup&&tick<startup+active;
+  const recovering=tick>=startup+active;
+  const stepProgress=recovering?
+    1-ease(clamp((tick-startup-active)/(recovery*.90))):
+    driving?.70+.30*ease((tick-startup+1)/active):
+    .70*ease(tick/startup);
+  const stepLift=!driving&&!recovering?
+    .057*Math.sin(Math.PI*clamp(tick/startup)):0;
   // The hips lead the chest on commitment; elbow extension follows.
   commit=ease(clamp((extend-.10)/.75));
   const preload=wind*(1-commit);
@@ -113,7 +123,9 @@ function strikePose(actor){
     pivot:p.pivot*commit,
     plant:clamp(wind*.70+contact),
     crouch:wind*.135+contact*.035,
-    step:p.step*(wind*.18+contact*.82),
+    step:p.step*stepProgress,
+    stepProgress,stepLift,
+    weightTransfer:ease(stepProgress)*(.35+.65*contact),
     retract:1-contact
   };
 }
@@ -353,10 +365,10 @@ export function poseFighter(view,alpha){
         // Body weight transitions from the rear heel to the strike leg.
         // This remains a visual pelvis adjustment, not collision movement.
         const rearDrive=attack.attackKind==='heavy'?1:.45;
-        hips.position.z+=attack.step*(.26+rearDrive*.08);
-        hips.position.y-=attack.plant*(.012+rearDrive*.024);
+        hips.position.z+=attack.step*(.36+rearDrive*.10);
+        hips.position.y-=attack.plant*(.013+rearDrive*.023);
         hips.position.x+=(attack.profile.hand==='r'?-1:1)*
-          attack.reach*(.012+rearDrive*.016);
+          attack.weightTransfer*(.015+rearDrive*.023);
       }
       if(idlePose>.0001){
         const offset=COMBAT_IDLE.hipsOffset;
@@ -657,17 +669,28 @@ export function poseFighter(view,alpha){
       [sign*length*.018,-length*.988,length*.012]:
       [sign*length*.12,
         -length*(.91-lift*.26-brace*.13-jumpCurl*.17),
-        length*(.05+stepMotion*.46+(attack?.step||0)*(side==='l'?.18:-.18))];
+        length*(.05+stepMotion*.46)];
     if(attack&&a.grounded&&!airborne){
-      // An attacking fighter plants BOTH soles. Earlier brace
-      // compression shortened the leg targets and levitated the whole
-      // character in the middle of every punch.
+      // Boxing footwork is world-planted, not a tiny forward nudge of the
+      // hip-relative ankle vector. The left/lead foot visibly steps while
+      // the right/rear foot anchors the hip twist. Goals use ROOT YAW only,
+      // so the fighter's forward body lean never drags the shoes off ground.
       const hipWorld=hip.getWorldPosition(vec());
-      const sole=view.footSoleHeights?.[side]??.09;
-      const worldGoal=vec(...target).applyQuaternion(rootQ).add(hipWorld);
-      worldGoal.y=sole;
+      const sole=(view.footSoleHeights?.[side]??.09)+.004;
+      const lead=side==='l',cross=attack.attackKind==='heavy';
+      const rootHeading=new THREE.Quaternion().setFromAxisAngle(Y,yaw);
+      const baseX=sign*length*(lead?.25:.36);
+      const baseZ=length*(lead?.36:-.10);
+      const leadTravel=lead?attack.step*(cross?1.45:1.65):0;
+      const backPivot=(!lead&&cross)?attack.pivot*.045:0;
+      const worldGoal=vec(baseX+(!lead&&cross?sign*attack.pivot*.045:0),
+        0,baseZ+leadTravel-backPivot).applyQuaternion(rootHeading).
+        add(root.position);
+      worldGoal.y=sole+(lead?attack.stepLift:0);
+      // Keep a heel/toe planted even when pelvis weight shift and the
+      // shoulder's forward drive bring its thigh close to extension.
       const dy=worldGoal.y-hipWorld.y;
-      const reach=Math.max(.001,length-.012);
+      const reach=Math.max(.001,length-.010);
       const maxXZ=Math.sqrt(Math.max(.0001,reach*reach-dy*dy));
       const dx=worldGoal.x-hipWorld.x,dz=worldGoal.z-hipWorld.z;
       const horizontal=Math.hypot(dx,dz);
@@ -775,11 +798,23 @@ export function poseFighter(view,alpha){
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
   rotate(view,'foot_r',X,(walkingMotion?rightStep.roll*walkAmount:
     -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
-  // Rear foot pivots WITH the rear hip on the cross; the front foot
-  // stays planted for the jab. No actual foot/world position changes.
-  if(attack?.pivot){
-    rotate(view,'foot_'+attack.profile.hand,Y,
-      (view.legSides?.[attack.profile.hand]??1)*attack.pivot,rootQ);
+  // Give grounded punching shoes a world-flat sole AFTER leg IK. A heavy
+  // cross pivots the rear shoe while its ankle stays anchored on the mat;
+  // a jab keeps the rear foot facing ahead as the lead foot steps in.
+  if(attack&&a.grounded&&!airborne){
+    for(const side of ['l','r']){
+      const foot=view.bones.get('foot_'+side);
+      const rest=view.footRestWorldQuats?.[side];
+      if(!foot||!rest||!foot.parent)continue;
+      const rear=side==='r',cross=attack.attackKind==='heavy';
+      const pivot=rear&&cross?attack.pivot*
+        (view.legSides?.[side]??-1):side==='l'?-.04*attack.stepProgress:0;
+      const desired=new THREE.Quaternion().
+        setFromAxisAngle(Y,yaw+pivot).multiply(rest);
+      const parent=foot.parent.getWorldQuaternion(new THREE.Quaternion());
+      foot.quaternion.copy(parent.invert().multiply(desired)).normalize();
+      foot.updateWorldMatrix(false,true);
+    }
   }
   // Flatten each actual planted foot in world space after the knee solve.
   // With no correction, calf rotation pitches the shoe sharply into the
@@ -1036,6 +1071,9 @@ export function poseFighter(view,alpha){
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     punchKind:attack?.attackKind||null,punchPhase:attack?.phase||null,
     punchPivot:attack?.pivot||0,punchCommit:attack?.reach||0,
+    punchLeadStep:attack?.step||0,
+    punchStepLift:attack?.stepLift||0,
+    punchWeightShift:attack?.weightTransfer||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
   };
 }
