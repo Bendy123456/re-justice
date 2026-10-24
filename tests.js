@@ -159,6 +159,34 @@
     equal(frame.moveX??frame.x,1);
     equal(frame.moveY??frame.y,-1);
   });
+  test('Xbox and PS5 standard Gamepad mappings agree on both sticks and attack buttons',()=>{
+    for(const id of ['Xbox Wireless Controller','DualSense Wireless Controller',
+        'DualShock 4 Wireless Controller']){
+      const up=FG.InputUtils.padFrame(fakePad(0,[],[0,-1,0,0],id));
+      const right=FG.InputUtils.padFrame(fakePad(0,[],[1,0,0,0],id));
+      const lookRight=FG.InputUtils.padFrame(fakePad(0,[],[0,0,1,0],id));
+      const buttons=FG.InputUtils.padFrame(fakePad(0,[0,1,2,5,9],[0,0,0,0],id));
+      equal(up.moveY,-1,id+' stick up');
+      equal(right.moveX,1,id+' stick right');
+      assert(lookRight.lookX>.95,id+' right stick look');
+      for(const name of ['power','heavy','light','burn','pause'])
+        assert(buttons[name],id+' '+name);
+    }
+    equal(FG.InputUtils.padFamily('Xbox Wireless Controller'),'xbox');
+    equal(FG.InputUtils.padFamily('DualSense Wireless Controller'),'ps');
+    equal(FG.InputUtils.padFamily('DualShock 4 Wireless Controller'),'ps');
+  });
+  test('Legacy reversed axis settings cannot break a fresh Xbox or PS5 session',()=>{
+    localStorage.setItem('rejustice-stick-directions-v1',
+      JSON.stringify({moveY:true,lookX:true}));
+    localStorage.setItem('rejustice-stick-directions-v2',
+      JSON.stringify({moveX:true,moveY:true,lookX:true,lookY:true}));
+    localStorage.setItem('rejustice-stick-directions-v3','null');
+    const input=new FG.InputManager(fakeWindow());
+    for(const axis of ['moveX','moveY','lookX','lookY'])
+      equal(input.stickSettings[axis],false,axis+' should start normal');
+    input.destroy();
+  });
   test('Standard controller stick up walks forward and stick down walks backward',()=>{
     // Standard Gamepad API reports negative Y when stick is pushed UP.
     // The gameplay engine maps moveY -1 into forward (+Z).
