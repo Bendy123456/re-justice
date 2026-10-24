@@ -161,6 +161,28 @@
     equal(input.padSlots[1],0);
     input.destroy();
   });
+  test('Controller can reach FIGHT and SETTINGS sidebar and return to all modes',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    const g=new FG.Game({input,audio:{play(){},unlock(){}},
+      assets:{load(){},image(){return null;},sound(){return null;}}});
+    const tick=buttons=>{win.pads=[fakePad(0,buttons)];g.step();};
+    tick([]);
+    equal(g.menuZone,'cards');equal(g.menuCursor,1);
+    tick([14]);equal(g.menuZone,'sidebar');equal(g.menuSidebar,'fight');
+    tick([]);tick([13]);equal(g.menuSidebar,'settings');
+    tick([]);tick([0]);equal(g.scene,'settings');
+    tick([]);tick([13]);equal(g.settingsRow,-1);
+    tick([]);tick([15]);equal(g.settingsDevice,'pad');
+    tick([]);tick([1]);equal(g.scene,'title');
+    equal(g.menuZone,'sidebar');equal(g.menuSidebar,'settings');
+    tick([]);tick([12]);equal(g.menuSidebar,'fight');
+    tick([]);tick([0]);equal(g.menuZone,'cards');
+    tick([]);tick([12]);equal(g.menuCursor,0);
+    tick([]);tick([13]);equal(g.menuCursor,1);
+    tick([]);tick([13]);equal(g.menuCursor,2);
+    tick([]);tick([0]);equal(g.scene,'versus');equal(g.mode,'sandbox');
+    input.destroy();
+  });
   test('Controller disconnect unassigns pad and fires callback',()=>{
     const win=fakeWindow();const input=new FG.InputManager(win);
     win.pads=[fakePad(0,[0])];input.update();let called=0;
