@@ -3,8 +3,12 @@
   const FG=window.FG=window.FG||{};
   const DEADZONE=0.35,ANALOG_PRESS=0.55, BINDINGS_KEY='shattered-accord-input-v1';
   const RUMBLE_KEY='shattered-accord-rumble-v1';
-  const STICK_KEY='rejustice-stick-directions-v1';
-  const STICK_DEFAULT={moveX:false,moveY:true,lookX:false,lookY:false};
+  // v1 accidentally defaulted the running stick to reversed Y. Give
+  // everyone the standard controller direction on upgrade. Keep any
+  // manually chosen look/X preferences, and persist future changes in v2.
+  const STICK_KEY='rejustice-stick-directions-v2';
+  const LEGACY_STICK_KEY='rejustice-stick-directions-v1';
+  const STICK_DEFAULT={moveX:false,moveY:false,lookX:false,lookY:false};
   const STICK_AXES=['moveX','moveY','lookX','lookY'];
   const ACTIONS=['left','right','up','down','light','heavy','power','super','throw','block','burn','pause','reset'];
   const BUTTON_DEFAULT={light:2,heavy:1,power:0,super:7,throw:4,block:6,burn:5,pause:9,reset:8};
@@ -88,9 +92,15 @@
       this.toasts=[];this.disconnected=false;this.toggleKeys=new Set();
       this.stickSettings={...STICK_DEFAULT};
       try{
-        const saved=JSON.parse(localStorage.getItem(STICK_KEY));
-        for(const axis of STICK_AXES)if(typeof saved?.[axis]==='boolean')
-          this.stickSettings[axis]=saved[axis];
+        const current=localStorage.getItem(STICK_KEY);
+        const saved=JSON.parse(current||localStorage.getItem(LEGACY_STICK_KEY));
+        for(const axis of STICK_AXES){
+          // v1 could not distinguish the accidentally inverted default
+          // from a player's intentional choice. Reset that ONE axis.
+          if(!current&&axis==='moveY')continue;
+          if(typeof saved?.[axis]==='boolean')
+            this.stickSettings[axis]=saved[axis];
+        }
       }catch(_){};
       try{this.rumbleEnabled=localStorage.getItem(RUMBLE_KEY)!=='false';}
       catch(_){this.rumbleEnabled=true;}
