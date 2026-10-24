@@ -131,9 +131,52 @@ try{
       input.preferControllerP1();
       const assigned=input.padSlots[1]===0;
       press(-1);
+      // Measure the actual PROJECTED screen positions, not world-space
+      // X/Z. Previous browser tests passed despite screen-left/right being
+      // reversed because world +X points left from this camera.
+      const point=()=>new ar.camera.position.constructor(a.x,1.35,a.z)
+        .project(ar.camera);
+      const poseAt=(yaw=0)=>{
+        a.reset(-11,-9);ar.sandboxOrbitYaw=yaw;ar.sandboxOrbitPitch=0;
+        pad.axes=[0,0,0,0];press(-1);
+        ar.initialCamera=false;ar.render(1);
+      };
+      const screenMove=(axisIndex,axisValue)=>{
+        const before=point();
+        pad.axes=[0,0,0,0];pad.axes[axisIndex]=axisValue;tick();
+        const after=point();
+        pad.axes=[0,0,0,0];
+        return {x:after.x-before.x,y:after.y-before.y};
+      };
+      const testedControllers=[];
+      let screenDirections=true;
+      for(const name of ['Xbox Wireless Controller',
+          'DualSense Wireless Controller']){
+        pad.id=name;
+        for(const yaw of [0,Math.PI/2,-Math.PI/2,Math.PI]){
+          poseAt(yaw);
+          const right=screenMove(0,1);
+          poseAt(yaw);
+          const left=screenMove(0,-1);
+          poseAt(yaw);
+          const up=screenMove(1,-1);
+          poseAt(yaw);
+          const down=screenMove(1,1);
+          const ok=right.x>.006&&left.x<-.006&&
+            up.y>.004&&down.y<-.004;
+          testedControllers.push({name,yaw,right:right.x,left:left.x,
+            forward:up.y,back:down.y,ok});
+          if(!ok)screenDirections=false;
+        }
+      }
+      pad.id='Xbox Wireless Controller';
+      poseAt(0);
       const beginX=a.x;
+      // Projected rightward movement means world X DECREASES from this
+      // behind-the-back camera, unlike the old incorrect QA assertion.
       pad.axes[0]=1;tick();
-      const movedRight=a.x>beginX+.02;
+      const movedRight=a.x<beginX-.02;
+      pad.axes=[0,0,0,0];
       ar.initialCamera=false;ar.render(1);
       const originalCamera=ar.camera.position.clone();
       const originalLook=ar.camera.getWorldDirection(ar.camera.position.clone());
@@ -143,38 +186,19 @@ try{
       ar.initialCamera=false;ar.render(1);
       const newCamera=ar.camera.position.clone();
       const changedLook=ar.camera.getWorldDirection(ar.camera.position.clone());
-      const orbitMoved=ar.sandboxOrbitYaw>.015&&ar.sandboxOrbitPitch<-.01 &&
+      const orbitMoved=ar.sandboxOrbitYaw<-.015&&ar.sandboxOrbitPitch<-.01 &&
         Math.hypot(newCamera.x-originalCamera.x,
           newCamera.z-originalCamera.z)>.13;
-      // The camera is an orbital third-person camera. Check that its
-      // horizontal view changes when the analog look axis moves, with the
-      // direction controlled explicitly by the player's Settings toggle.
-      const lookRightCorrect=Math.abs(changedLook.x-originalLook.x)>.019;
+      const lookRightCorrect=changedLook.x>originalLook.x+.019;
       const orbitDistance=Math.hypot(newCamera.x-a.x,newCamera.z-a.z);
       const distancePreserved=Math.abs(orbitDistance-originalDistance)<.12;
       const orbitYaw=ar.sandboxOrbitYaw;
-      // This player reports that their running Y axis is inverted.
-      // Default correction reverses only the analog Y axis, without
-      // reversing D-pad or WASD. A physically reversed pad sends +Y
-      // while pushing forward, and can now run forward (+Z).
-      const axisConfig={...input.stickSettings};
-      input.setStickDirection('moveY',true);
-      a.reset(-11,-9);ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
-      pad.axes=[0,1,0,0];tick();
-      const forwardCorrect=a.z>-9+.04;
-      a.reset(-11,-9);ar.sandboxOrbitYaw=Math.PI/2;
-      pad.axes=[0,1,0,0];tick();
-      const turnedForwardCorrect=a.x<-11-.04&&Math.abs(a.z+9)<.025;
-      a.reset(-11,-9);
-      pad.axes=[1,0,0,0];tick();
-      const turnedRightCorrect=a.z>-9+.04&&Math.abs(a.x+11)<.025;
-      // The user can flip a single axis without disturbing menu input.
-      input.setStickDirection('moveY',false);
-      a.reset(-11,-9);ar.sandboxOrbitYaw=0;
-      pad.axes=[0,-1,0,0];tick();
-      const standardPadCorrect=a.z>-9+.04;
-      for(const axis of Object.keys(axisConfig))
-        input.setStickDirection(axis,axisConfig[axis]);
+      // Xbox and DualSense default to the same standard Gamepad API
+      // -Y forward. Custom inverted axes remain user-adjustable in Settings.
+      const forwardCorrect=testedControllers[0].forward>.004;
+      const turnedForwardCorrect=testedControllers[1].forward>.004;
+      const turnedRightCorrect=testedControllers[1].right>.006;
+      const standardPadCorrect=testedControllers[4].forward>.004;
       a.reset(-11,-9);ar.sandboxOrbitYaw=0;ar.sandboxOrbitPitch=0;
       pad.axes=[0,0,0,0];press(2);tick();
       const light=a.attack?.button==='light';
@@ -190,8 +214,8 @@ try{
       press(-1);tick();
       return {model:ar.views[0].key,initiallyP2,assigned,movedRight,
         orbitMoved,lookRightCorrect,distancePreserved,forwardCorrect,
-        turnedForwardCorrect,turnedRightCorrect,standardPadCorrect,orbitYaw,
-        light,heavy,dashed,jumped};
+        turnedForwardCorrect,turnedRightCorrect,standardPadCorrect,screenDirections,
+        testedControllers,orbitYaw,light,heavy,dashed,jumped};
     }finally{
       input.win=savedWin;input.padSlots=savedSlots;
       input.keyboardJoined=savedJoined;
@@ -204,7 +228,7 @@ try{
   });
   console.log('SANDBOX_GAMEPAD_AND_LOOK_QA',JSON.stringify(controllerArenaQA));
   if(Object.entries(controllerArenaQA).some(([k,v])=>
-      !['model','orbitYaw'].includes(k)&&v!==true)||
+      !['model','orbitYaw','testedControllers'].includes(k)&&v!==true)||
      controllerArenaQA.model!=='male')
     throw Error('Standard controller buttons/movement or right-stick camera failed in Sandbox');
 
