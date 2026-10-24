@@ -483,10 +483,10 @@ class Arena3D {
     // original distance; left stick continues to move the actual fighter.
     if(this.mode==='sandbox'&&!this.paused){
       const controls=input?.frame(1);
-      // Restore the camera's original horizontal orbit response. Controller
-      // inversion is adjustable independently in Settings, never by
-      // changing keyboard movement or the camera's original distance.
-      this.sandboxOrbitYaw+= (controls?.lookX||0)*.049;
+      // Standard right stick right turns the VIEW right. With our orbit
+      // geometry, negative yaw rotates the VIEW right (positive camera
+      // look X). Keep pitch independent and preserve the original distance.
+      this.sandboxOrbitYaw-= (controls?.lookX||0)*.049;
       this.sandboxOrbitPitch=clamp(
         this.sandboxOrbitPitch+(controls?.lookY||0)*.031,-.72,1.03);
     }
@@ -552,15 +552,21 @@ class Arena3D {
   }
   move(a,b,control,keys,human){
     const startMoveX=a.x,startMoveZ=a.z;
-    // A solo session uses a stable camera-relative travel direction.
-    // Duels still orient around the actual opponent.
+    // Movement must follow the CAMERA'S screen axes, not global +X/+Z.
+    // The camera is behind and 1.15 world units to the right of the
+    // fighter, so its view forward is NOT simply (0, +1) at zero yaw.
+    // Compute the horizontal look direction from exactly the same
+    // offsets used by renderSandbox. This makes left/right and forward/
+    // back agree with the actual image on Xbox and PlayStation alike.
     const orbitYaw=this.sandboxOrbitYaw||0;
+    const c=Math.cos(orbitYaw),sn=Math.sin(orbitYaw);
+    const viewDepth=CAM_DIST+1.25+1.05,viewSide=1.15;
     const forward=b?unit(b.x-a.x,b.z-a.z):
-      {x:-Math.sin(orbitYaw),z:Math.cos(orbitYaw)};
-    // Free-roam right means screen-right even after orbiting the camera.
-    // Preserve duel strafing handedness for existing combat balance.
-    const right=b?{x:-forward.z,z:forward.x}:
-      {x:forward.z,z:-forward.x};
+      unit(-viewSide*c-viewDepth*sn,viewDepth*c-viewSide*sn,{x:0,z:1});
+    // Right on screen is cameraForward CROSS worldUp. In our XZ
+    // world, the right vector is (-forward.z,+forward.x), NOT its
+    // negation. Preserve the existing duel-oriented controls.
+    const right={x:-forward.z,z:forward.x};
     // Keep combat targeting/strike cones on the opponent, but let the mesh
     // turn into actual travel, like a third-person arena fighter.
     a.facing=b?forward:unit(Math.sin(a.visualYaw),Math.cos(a.visualYaw));
