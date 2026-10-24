@@ -152,6 +152,28 @@
     input.update();assert(!input.frame(1).pressed.up);
     input.destroy();
   });
+  test('Right stick controls camera independently of left-stick movement',()=>{
+    const pad=fakePad(0,[2],[.9,-.9,.82,-.76]);
+    const frame=FG.InputUtils.padFrame(pad);
+    equal(frame.x,1);equal(frame.y,-1);
+    assert(frame.lookX>.5&&frame.lookY<-.5);
+    assert(frame.light);
+    const idle=FG.InputUtils.padFrame(fakePad(0,[],[0,0,.08,-.06]));
+    equal(idle.lookX,0);equal(idle.lookY,0);
+    const leftOnly=FG.InputUtils.padFrame(fakePad(0,[],[-1,0,0,0]));
+    equal(leftOnly.x,-1);equal(leftOnly.lookX,0);
+  });
+  test('Gamepad takeover forwards held attack and right-stick camera immediately',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    input.keyboardJoined[1]=true;
+    win.pads=[fakePad(0,[2],[0,0,1,0])];input.update();
+    equal(input.padSlots[2],0);
+    assert(input.preferControllerP1());
+    equal(input.padSlots[1],0);
+    assert(input.frame(1).light);
+    assert(input.frame(1).lookX>.95);
+    input.destroy();
+  });
   test('Controller takes over P1 in single player after keyboard joined menu',()=>{
     const win=fakeWindow(),input=new FG.InputManager(win);
     input._down({code:'KeyJ',preventDefault(){}});
