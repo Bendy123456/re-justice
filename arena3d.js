@@ -483,10 +483,10 @@ class Arena3D {
     // original distance; left stick continues to move the actual fighter.
     if(this.mode==='sandbox'&&!this.paused){
       const controls=input?.frame(1);
-      // In Three.js a camera orbiting +yaw moves the VIEW left.
-      // Standard right stick → must turn the VIEW right, so orbit yaw
-      // moves in the opposite direction. Movement uses this same yaw.
-      this.sandboxOrbitYaw-= (controls?.lookX||0)*.049;
+      // Restore the camera's original horizontal orbit response. Controller
+      // inversion is adjustable independently in Settings, never by
+      // changing keyboard movement or the camera's original distance.
+      this.sandboxOrbitYaw+= (controls?.lookX||0)*.049;
       this.sandboxOrbitPitch=clamp(
         this.sandboxOrbitPitch+(controls?.lookY||0)*.031,-.72,1.03);
     }
@@ -580,7 +580,9 @@ class Arena3D {
         this.game.audio.play('jump',.22);
       }
       if((control.pressed.burn||human&&keys.has('ShiftLeft'))&&!a.dashCooldown&&a.grounded){
-        const x=control.x||0,z=-(control.y||0);
+        const x=!b?(control.moveX??control.x??0):(control.x||0);
+        const y=!b?(control.moveY??control.y??0):(control.y||0);
+        const z=-y;
         a.dashDirection=unit(right.x*x+forward.x*z,right.z*x+forward.z*z,forward);
         a.dash=DASH_FRAMES;a.dashElapsed=0;a.dashRecovery=0;
         a.dashCooldown=DASH_COOLDOWN;
@@ -614,8 +616,11 @@ class Arena3D {
         a.travel={...a.dashDirection};
         a.dash--;a.dashElapsed++;a.state='dash';
         if(a.dash===0)a.dashRecovery=7;
-      }else if(control.x||control.y){
-        const dx=control.x||0,dz=-(control.y||0);
+      }else if((!b?(control.moveX??control.x):control.x)||
+                (!b?(control.moveY??control.y):control.y)){
+        const dx=!b?(control.moveX??control.x??0):(control.x||0);
+        const dy=!b?(control.moveY??control.y??0):(control.y||0);
+        const dz=-dy;
         const direction=unit(right.x*dx+forward.x*dz,right.z*dx+forward.z*dz);
         const speed=dz<0?BACK:Math.abs(dx)>Math.abs(dz)?STRAFE:RUN;
         a.x+=direction.x*speed*STEP;a.z+=direction.z*speed*STEP;
