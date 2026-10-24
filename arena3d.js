@@ -451,7 +451,8 @@ class Arena3D {
       a.facing={x:0,z:1};
       this.phase='live';this.intro=0;this.roundFrames=Infinity;
     }else this.startRound();
-    this.active=true;this.paused=false;this.initialCamera=false;
+    this.active=true;this.paused=false;this.pausedByDisconnect=false;
+    this.initialCamera=false;
     this.sandboxOrbitYaw=0;this.sandboxOrbitPitch=0;
     this.show(true);
   }
@@ -464,7 +465,7 @@ class Arena3D {
   }
   end(){
     this.active=false;this.show(false);this.clearAvatars();
-    this.game.scene='title';this.paused=false;
+    this.game.scene='title';this.paused=false;this.pausedByDisconnect=false;
   }
   finish(winner){
     if(this.phase!=='live')return;
@@ -489,6 +490,7 @@ class Arena3D {
     if(keys.has('Escape')||input?.frame(1)?.pressed?.pause||
        (this.mode==='versus'&&input?.frame(2)?.pressed?.pause)){
       this.paused=!this.paused;
+      this.pausedByDisconnect=false;
       this.game.audio.play('confirm',.25);
     }
     if(this.paused){
@@ -905,10 +907,24 @@ function install(game){
   if(game.input){
     const onDisconnect=game.input.onDisconnect;
     game.input.onDisconnect=(slot)=>{
-      if(game.scene==='arena3d'){
+      if(game.scene==='arena3d'&&
+         (slot===1||game.arena3d.mode==='versus')){
         game.arena3d.paused=true;
+        game.arena3d.pausedByDisconnect=true;
         game.input.toast('P'+slot+' controller disconnected · paused');
       }else onDisconnect?.(slot);
+    };
+    const onJoin=game.input.onJoin;
+    game.input.onJoin=(slot,pad)=>{
+      onJoin?.(slot,pad);
+      // Reconnected P1 resumes only an interruption caused by losing the
+      // controller, never a deliberate Start/Escape pause.
+      if(slot===1&&game.scene==='arena3d'&&
+         game.arena3d.pausedByDisconnect){
+        game.arena3d.paused=false;
+        game.arena3d.pausedByDisconnect=false;
+        game.input.toast('Controller restored · gameplay resumed');
+      }
     };
   }
 }
