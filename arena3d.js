@@ -483,10 +483,11 @@ class Arena3D {
     // original distance; left stick continues to move the actual fighter.
     if(this.mode==='sandbox'&&!this.paused){
       const controls=input?.frame(1);
-      // Standard right stick right turns the VIEW right. With our orbit
-      // geometry, negative yaw rotates the VIEW right (positive camera
-      // look X). Keep pitch independent and preserve the original distance.
-      this.sandboxOrbitYaw-= (controls?.lookX||0)*.049;
+      // The camera orbits on the player's right when the RIGHT stick is
+      // pushed right. In this behind-the-back view, positive orbit yaw
+      // moves stationary scenery LEFT across the screen: a right turn.
+      // Do not invert the right stick in the game camera itself.
+      this.sandboxOrbitYaw+= (controls?.lookX||0)*.049;
       this.sandboxOrbitPitch=clamp(
         this.sandboxOrbitPitch+(controls?.lookY||0)*.031,-.72,1.03);
     }
