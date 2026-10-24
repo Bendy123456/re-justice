@@ -99,18 +99,32 @@ try{
     // Capture the WebGL backing canvas synchronously, BEFORE the next
     // animation tick resets camera. This excludes overlaid HUD entirely.
     const previewJpeg=ar.webgl.toDataURL('image/jpeg',.72).split(',')[1];
+    // Rear-left hand close-up catches reversed knuckles that fingertip
+    // contraction tests can miss; the earlier screenshot was only frontal.
+    const fist= v.bones.get('hand_l').getWorldPosition(v.root.position.clone());
+    camera.position.set(fist.x+.24,fist.y+.30,fist.z-1.12);
+    camera.lookAt(fist.x,fist.y,fist.z);
+    ar.renderer.render(ar.scene,camera);
+    ar.renderer.getContext().finish();
+    const rearFistJpeg=ar.webgl.toDataURL('image/jpeg',.66).split(',')[1];
     camera.position.copy(cameraBefore.position);
     camera.quaternion.copy(cameraBefore.quaternion);
     return {root:[origin.x,origin.y,origin.z],head,measured,
-      metrics:v.poseMetrics,fingerQA,boneHierarchy,previewJpeg,
+      metrics:v.poseMetrics,fingerQA,boneHierarchy,previewJpeg,rearFistJpeg,
       model:v.key,rootRotation:v.root.rotation.y};
   });
   const previewJpeg=guardQA.previewJpeg;
+  const rearFistJpeg=guardQA.rearFistJpeg;
   delete guardQA.previewJpeg;
+  delete guardQA.rearFistJpeg;
   console.log('SCULPTED_GUARD_DIAGNOSTIC',JSON.stringify(guardQA));
   const guardChunks=(previewJpeg||'').match(/.{1,5000}/g)||[];
   guardChunks.forEach((chunk,i)=>console.log('SCULPTED_GUARD_JPG:'+i+'/'+guardChunks.length+':'+chunk));
   console.log('SCULPTED_GUARD_JPG_END:'+guardChunks.length);
+  const rearChunks=(rearFistJpeg||'').match(/.{1,5000}/g)||[];
+  rearChunks.forEach((chunk,i)=>
+    console.log('LEFT_FIST_REAR_JPG:'+i+'/'+rearChunks.length+':'+chunk));
+  console.log('LEFT_FIST_REAR_JPG_END:'+rearChunks.length);
   if(guardChunks.length<4)
     throw Error('Sculpted idle: cannot capture WebGL render for visual QA');
   if(['l','r'].some(side=>guardQA.fingerQA?.[side]?.index?.closure<.03))
