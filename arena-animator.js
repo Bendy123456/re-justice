@@ -69,8 +69,7 @@ const STRIKES=Object.freeze({
   // initiates, ribs follow, shoulder extends LAST. Not a sideways slap.
   heavy: {hand:'r',chamber:.72,rotation:.48,hip:.32,lean:.16,
     step:.22,hook:.03,contact:.96,guard:.90,shoulder:.31,pivot:.20},
-  throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22},
-  super: {hand:'r',chamber:.68,rotation:.92,hip:.66,lean:.33,step:.30,hook:.45}
+  throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22}
 });
 
 // Ease between hand-authored contact poses at frame-exact gameplay stages.
