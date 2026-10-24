@@ -70,6 +70,9 @@
       this.cpu=new FG.BasicAI();this.sounds=true;
       this.scene='title';this.titleIndex=1;this.mode='cpu';
       this.menuItems=['online','cpu','sandbox','settings'];this.menuCursor=1;
+      // Gamepad/keyboard focus covers BOTH the mode cards and the sidebar.
+      // Mouse hover remains independent of controller focus.
+      this.menuZone='cards';this.menuSidebar='fight';
       this.settingsPlayer=1;this.settingsDevice='keyboard';this.settingsRow=-2;
       this.rebinding=null;this.rebindDelay=0;
       this.p1Id='flash';this.p2Id='batman';this.stageId='neon-rooftop';
@@ -197,6 +200,7 @@
         if(spot.id==='fight-tab'){
           this.rebinding=null;this.rebindDelay=0;
           this.scene='title';this.menuCursor=1;
+          this.menuZone='cards';this.menuSidebar='fight';
           this.audio.play('confirm',.3);
           return;
         }
@@ -227,10 +231,13 @@
         for(const spot of this.titleHotspots()){
           if(!this.pointInRect(p,spot))continue;
           if(spot.id==='settings-tab'){this.menuCursor=3;this.openSettings();return;}
-          if(spot.id==='fight-tab'){this.menuCursor=1;this.audio.play('confirm',.16);return;}
-          if(spot.id==='online'){this.menuCursor=0;this.activateMenuItem();return;}
-          if(spot.id==='cpu'){this.menuCursor=1;this.activateMenuItem();return;}
-          if(spot.id==='sandbox'){this.menuCursor=2;this.activateMenuItem();return;}
+          if(spot.id==='fight-tab'){
+            this.menuZone='cards';this.menuSidebar='fight';this.menuCursor=1;
+            this.audio.play('confirm',.16);return;
+          }
+          if(spot.id==='online'){this.menuZone='cards';this.menuCursor=0;this.activateMenuItem();return;}
+          if(spot.id==='cpu'){this.menuZone='cards';this.menuCursor=1;this.activateMenuItem();return;}
+          if(spot.id==='sandbox'){this.menuZone='cards';this.menuCursor=2;this.activateMenuItem();return;}
         }
       }
     }
@@ -292,11 +299,17 @@
       this.audio.unlock();
     }
     openSettings(){
-      this.scene='settings';this.settingsPlayer=1;this.settingsDevice='keyboard';
+      this.scene='settings';this.menuZone='sidebar';this.menuSidebar='settings';
+      this.settingsPlayer=1;this.settingsDevice='keyboard';
       this.settingsRow=-2;this.rebinding=null;this.rebindDelay=0;
       this.audio.play('confirm',.35);
     }
     activateMenuItem(){
+      if(this.menuZone==='sidebar'){
+        if(this.menuSidebar==='settings')this.openSettings();
+        else{this.menuZone='cards';this.audio.play('confirm',.2);}
+        return;
+      }
       const item=this.menuItems[this.menuCursor];
       if(item==='settings'){this.openSettings();return;}
       if(item==='online'){
@@ -321,23 +334,36 @@
       this.audio.play('confirm',.25);
     }
     updateTitle(keys){
-      const navUp=keys.has('ArrowUp')||keys.has('KeyW')||this.input?.anyPress('up');
-      const navDown=keys.has('ArrowDown')||keys.has('KeyS')||this.input?.anyPress('down');
-      const navLeft=keys.has('ArrowLeft')||keys.has('KeyA')||this.input?.anyPress('left');
-      const navRight=keys.has('ArrowRight')||keys.has('KeyD')||this.input?.anyPress('right');
-      const confirm=keys.has('Enter')||keys.has('Space')||this.input?.anyPress('power')||this.input?.anyPress('pause')||this.input?.anyPress('light');
-      if(navUp){
-        this.menuCursor=(this.menuCursor+this.menuItems.length-1)%this.menuItems.length;
+      const up=keys.has('ArrowUp')||keys.has('KeyW')||this.input?.anyPress('up');
+      const down=keys.has('ArrowDown')||keys.has('KeyS')||this.input?.anyPress('down');
+      const left=keys.has('ArrowLeft')||keys.has('KeyA')||this.input?.anyPress('left');
+      const right=keys.has('ArrowRight')||keys.has('KeyD')||this.input?.anyPress('right');
+      const confirm=keys.has('Enter')||keys.has('Space')||
+        this.input?.anyPress('power')||this.input?.anyPress('pause')||
+        this.input?.anyPress('light');
+      const back=keys.has('Escape')||this.input?.anyPress('heavy');
+      // All five visible targets are controller reachable:
+      // left sidebar: FIGHT / SETTINGS; right column: 3 game modes.
+      if(left&&this.menuZone!=='sidebar'){
+        this.menuZone='sidebar';
+        this.menuSidebar='fight';
         this.audio.play('confirm',.16);
-      }
-      if(navDown){
-        this.menuCursor=(this.menuCursor+1)%this.menuItems.length;
+      }else if(right&&this.menuZone==='sidebar'){
+        this.menuZone='cards';
         this.audio.play('confirm',.16);
-      }
-      if(navLeft||navRight){
-        if(this.menuCursor===0||this.menuCursor===1){this.menuCursor=this.menuCursor===0?1:0;this.audio.play('confirm',.16);}
-        else if(this.menuCursor===2){this.menuCursor=1;this.audio.play('confirm',.16);}
-        else if(navRight){this.menuCursor=2;this.audio.play('confirm',.16);}
+      }else if(this.menuZone==='sidebar'){
+        if(up||down){
+          this.menuSidebar=up?'fight':'settings';
+          this.audio.play('confirm',.16);
+        }
+        if(back){this.menuZone='cards';this.audio.play('confirm',.16);return;}
+      }else{
+        if(up||down){
+          // Keep navigation within the three real game-mode cards, never
+          // silently select an invisible fourth card named settings.
+          this.menuCursor=(this.menuCursor+(up?2:1))%3;
+          this.audio.play('confirm',.16);
+        }
       }
       if(confirm)this.activateMenuItem();
     }
@@ -371,7 +397,10 @@
         }
         return;
       }
-      if(back){this.scene='title';this.audio.play('confirm',.3);return;}
+      if(back){
+        this.scene='title';this.menuZone='sidebar';this.menuSidebar='settings';
+        this.audio.play('confirm',.3);return;
+      }
       if(navUp){this.settingsRow=this.settingsRow<=-2?maxRow:this.settingsRow-1;this.audio.play('confirm',.14);}
       if(navDown){this.settingsRow=this.settingsRow>=maxRow?-2:this.settingsRow+1;this.audio.play('confirm',.14);}
       if(this.settingsRow===-2&&(navLeft||navRight)){
