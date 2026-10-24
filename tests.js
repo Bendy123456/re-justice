@@ -225,10 +225,21 @@
     tick([]);tick([0]);equal(g.scene,'versus');equal(g.mode,'sandbox');
     input.destroy();
   });
-  test('Controller disconnect unassigns pad and fires callback',()=>{
+  test('Temporary browser gamepad polling gap does not disconnect controller',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    win.pads=[fakePad(0,[0])];input.update();
+    let disconnects=0;input.onDisconnect=()=>disconnects++;
+    win.pads=[];for(let i=0;i<5;i++)input.update();
+    equal(input.padSlots[1],0);equal(disconnects,0);
+    win.pads=[fakePad(0,[2],[0,0,.75,0])];input.update();
+    assert(input.frame(1).light&&input.frame(1).lookX>.6);
+    equal(disconnects,0);input.destroy();
+  });
+  test('Sustained controller disconnect unassigns pad and fires callback',()=>{
     const win=fakeWindow();const input=new FG.InputManager(win);
     win.pads=[fakePad(0,[0])];input.update();let called=0;
-    input.onDisconnect=p=>called=p;win.pads=[];input.update();
+    input.onDisconnect=p=>called=p;
+    win.pads=[];for(let i=0;i<13;i++)input.update();
     equal(called,1);equal(input.padSlots[1],null);input.destroy();
   });
   test('Controller glyphs match PlayStation versus Xbox IDs',()=>{
