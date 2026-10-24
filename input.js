@@ -27,16 +27,23 @@
     if(/xbox|microsoft|045e/i.test(id||''))return 'xbox';
     return /dualsense|dualshock|playstation|wireless controller|sony|054c/i.test(id||'')?'ps':'xbox';
   }
-  function readButton(button){return Boolean(button&&(button.pressed||button.value>=ANALOG_PRESS));}
+  function readButton(button){
+    return Boolean(button&&(button.pressed||Number(button.value||0)>=ANALOG_PRESS));
+  }
   function padFrame(pad,bindings=BUTTON_DEFAULT){
     const out=emptyFrame();
     if(!pad)return out;
-    const axes=pad.axes||[];const snapped=snapStick(axes[0]||0,axes[1]||0);
-    const pressed=(n)=>readButton(pad.buttons&&pad.buttons[n]);
-    out.left=pressed(14)||snapped.x===-1;
-    out.right=pressed(15)||snapped.x===1;
-    out.up=pressed(12)||snapped.y===-1;
-    out.down=pressed(13)||snapped.y===1;
+    const axes=pad.axes||[];
+    const snapped=snapStick(Number(axes[0])||0,Number(axes[1])||0);
+    const pressed=n=>Number.isInteger(n)&&readButton(pad.buttons?.[n]);
+    // Standard mapping: left stick + D-pad. Never treat right-stick aim
+    // movement as an additional character movement input.
+    const dpad={left:pressed(14),right:pressed(15),up:pressed(12),down:pressed(13)};
+    const hasDpad=Object.values(dpad).some(Boolean);
+    out.left=dpad.left||(!hasDpad&&snapped.x===-1);
+    out.right=dpad.right||(!hasDpad&&snapped.x===1);
+    out.up=dpad.up||(!hasDpad&&snapped.y===-1);
+    out.down=dpad.down||(!hasDpad&&snapped.y===1);
     for(const name of Object.keys(BUTTON_DEFAULT))out[name]=pressed(bindings[name]);
     return resolveSOCD(out);
   }
@@ -69,7 +76,16 @@
       };
       this._up=e=>{this.keys.delete(e.code);};
       this._blur=()=>{this.keys.clear();this.pulses.clear();};
-      this._connected=e=>this.toast((padFamily(e.gamepad.id)==='ps'?'PlayStation':'Xbox / standard')+' controller connected');
+      this._connected=e=>{
+        this.toast((padFamily(e.gamepad.id)==='ps'?'PlayStation':'Xbox / standard')+
+          ' controller connected');
+        // The gamepadconnected event can arrive before the first button
+        // press. Assign P1 immediately; don't require a keyboard action.
+        if(e.gamepad?.connected!==false&&this.padSlots[1]===null){
+          this.padSlots[1]=e.gamepad.index;
+          this.toast('Controller ready as P1 · use D-pad or left stick');
+        }
+      };
       this._disconnected=e=>this.disconnect(e.gamepad.index);
       win.addEventListener('keydown',this._down);
       win.addEventListener('keyup',this._up);
@@ -83,7 +99,8 @@
         this.padSlots[slot]=null;this.disconnected=true;
         if(this.onDisconnect)this.onDisconnect(slot);
       }
-      delete this.padLast[index];this.toast('Controller disconnected · fight paused');
+      delete this.padLast[index];if(this.padLastAxes)delete this.padLastAxes[index];
+      this.toast('Controller disconnected');
     }
     setBinding(player,device,action,value){
       if(![1,2].includes(player)||!['keyboard','pad'].includes(device)||!ACTIONS.includes(action))return false;
@@ -108,23 +125,42 @@
     // This is called EXACTLY ONCE per fixed simulation tick, never in render().
     update(){
       const nav=this.win.navigator;
-      const pads=nav.getGamepads?Array.from(nav.getGamepads()||[]):[];
-      this.rawPads=pads.filter(Boolean);
-      for(const [key,idx] of Object.entries(this.padSlots)){
-        if(idx!==null&&!pads[idx])this.disconnect(idx);
+      let pads=[];
+      try{pads=nav.getGamepads?Array.from(nav.getGamepads()||[]):[];}
+      catch(_){pads=[];} // Browser visibility/permission glitches must not kill gameplay.
+      this.rawPads=pads.filter(p=>p&&p.connected!==false);
+      for(const [slot,idx] of Object.entries(this.padSlots)){
+        if(idx!==null&&!this.rawPads.some(p=>p.index===idx))this.disconnect(idx);
+      }
+      // A plugged-in controller should WORK without the user having to
+      // discover the hidden "press a face button to join" prerequisite.
+      // A keyboard player may coexist with P1's controller.
+      if(this.padSlots[1]===null&&this.rawPads.length){
+        const pad=this.rawPads[0];
+        this.padSlots[1]=pad.index;
+        this.disconnected=false;
+        this.toast('Controller ready as P1 · D-pad/left stick to move');
+        this.onJoin?.(1,pad);
       }
       for(const pad of this.rawPads){
         const previous=this.padLast[pad.index]||[];
         const buttons=(pad.buttons||[]).map(readButton);
-        const firstPress=buttons.some((down,i)=>down&&!previous[i]);
+        const axis=pad.axes||[];
+        const wasAxis=this.padLastAxes?.[pad.index]||[0,0];
+        const stick=Math.hypot(Number(axis[0])||0,Number(axis[1])||0);
+        const oldStick=Math.hypot(Number(wasAxis[0])||0,Number(wasAxis[1])||0);
+        const firstPress=buttons.some((down,i)=>down&&!previous[i])||
+          (stick>DEADZONE&&oldStick<=DEADZONE);
         const assigned=Object.values(this.padSlots).includes(pad.index);
-        if(firstPress&&!assigned){
-          const slot=[1,2].find(p=>this.padSlots[p]===null&&!this.keyboardJoined[p]);
-          if(slot){this.padSlots[slot]=pad.index;this.toast('Controller joined as P'+slot);
-            if(this.onJoin)this.onJoin(slot,pad);
-          }else this.toast('Both player slots are already in use');
+        // Second pad can explicitly join P2 with any face button or D-pad.
+        if(firstPress&&!assigned&&this.padSlots[2]===null){
+          this.padSlots[2]=pad.index;
+          this.toast('Second controller joined as P2');
+          this.onJoin?.(2,pad);
         }
         this.padLast[pad.index]=buttons;
+        if(!this.padLastAxes)this.padLastAxes={};
+        this.padLastAxes[pad.index]=[Number(axis[0])||0,Number(axis[1])||0];
       }
       for(const player of [1,2]){
         const current=emptyFrame();
