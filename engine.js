@@ -74,6 +74,7 @@
       // Mouse hover remains independent of controller focus.
       this.menuZone='cards';this.menuSidebar='fight';
       this.settingsPlayer=1;this.settingsDevice='keyboard';this.settingsRow=-2;
+      this.settingsStickFocus=0;
       this.rebinding=null;this.rebindDelay=0;
       this.p1Id='flash';this.p2Id='batman';this.stageId='neon-rooftop';
       this.previewPlayer=1;this.selectLocked={1:false,2:false};this.selectNavCooldown={1:0,2:0};
@@ -138,6 +139,11 @@
         {id:'settings-player',x:146,y:188,w:179,h:48},
         {id:'settings-device',x:354,y:188,w:250,h:48}
       ];
+      // Four clickable stick-direction toggles share the header panel.
+      for(let i=0;i<4;i++)hotspots.push({
+        id:'stick-direction',axis:['moveX','moveY','lookX','lookY'][i],index:i,
+        x:623+i*153,y:188,w:146,h:48
+      });
       const actions=FG.InputUtils.ACTIONS;
       for(let row=0;row<actions.length+2;row++){
         const col=Math.floor(row/8),r=row%8;
@@ -212,6 +218,10 @@
         }else if(spot.id==='settings-device'){
           this.settingsRow=-1;
           this.settingsDevice=this.settingsDevice==='keyboard'?'pad':'keyboard';
+        }else if(spot.id==='stick-direction'){
+          this.settingsRow=-3;this.settingsStickFocus=spot.index;
+          this.input?.setStickDirection(spot.axis,
+            !this.input?.stickSettings?.[spot.axis]);
         }else if(spot.id==='settings-row'){
           this.settingsRow=spot.row;
           const actions=FG.InputUtils.ACTIONS;
@@ -401,9 +411,12 @@
         this.scene='title';this.menuZone='sidebar';this.menuSidebar='settings';
         this.audio.play('confirm',.3);return;
       }
-      if(navUp){this.settingsRow=this.settingsRow<=-2?maxRow:this.settingsRow-1;this.audio.play('confirm',.14);}
-      if(navDown){this.settingsRow=this.settingsRow>=maxRow?-2:this.settingsRow+1;this.audio.play('confirm',.14);}
-      if(this.settingsRow===-2&&(navLeft||navRight)){
+      if(navUp){this.settingsRow=this.settingsRow<=-3?maxRow:this.settingsRow-1;this.audio.play('confirm',.14);}
+      if(navDown){this.settingsRow=this.settingsRow>=maxRow?-3:this.settingsRow+1;this.audio.play('confirm',.14);}
+      if(this.settingsRow===-3&&(navLeft||navRight)){
+        this.settingsStickFocus=(this.settingsStickFocus+(navRight?1:3))%4;
+        this.audio.play('confirm',.14);
+      }else if(this.settingsRow===-2&&(navLeft||navRight)){
         this.settingsPlayer=this.settingsPlayer===1?2:1;this.audio.play('confirm',.14);
       }else if(this.settingsRow===-1&&(navLeft||navRight)){
         this.settingsDevice=this.settingsDevice==='keyboard'?'pad':'keyboard';this.audio.play('confirm',.14);
@@ -413,7 +426,13 @@
         this.audio.play('confirm',.14);
       }
       if(confirm){
-        if(this.settingsRow>=0&&this.settingsRow<actions.length)this.beginRebind(actions[this.settingsRow]);
+        if(this.settingsRow===-3){
+          const axis=['moveX','moveY','lookX','lookY'][this.settingsStickFocus];
+          this.input?.setStickDirection(axis,!this.input?.stickSettings?.[axis]);
+          this.input?.toast?.(axis+' stick direction: '+
+            (this.input.stickSettings[axis]?'REVERSED':'NORMAL'));
+          this.audio.play('confirm',.22);
+        }else if(this.settingsRow>=0&&this.settingsRow<actions.length)this.beginRebind(actions[this.settingsRow]);
         else if(this.settingsRow===actions.length){
           this.input?.setRumble(!this.input?.rumbleEnabled);this.input?.toast?.(`Rumble ${this.input?.rumbleEnabled?'ON':'OFF'}`);this.audio.play('confirm',.22);
         }else if(this.settingsRow===actions.length+1){
