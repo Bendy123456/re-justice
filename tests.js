@@ -187,6 +187,24 @@
       equal(input.stickSettings[axis],false,axis+' should start normal');
     input.destroy();
   });
+  test('Old look inversion resets without reversing movement or vertical look',()=>{
+    localStorage.setItem('rejustice-stick-directions-v3',JSON.stringify({
+      moveX:true,moveY:false,lookX:true,lookY:true
+    }));
+    localStorage.setItem('rejustice-stick-directions-v4','null');
+    const input=new FG.InputManager(fakeWindow());
+    equal(input.stickSettings.moveX,true);
+    equal(input.stickSettings.moveY,false);
+    equal(input.stickSettings.lookX,false);
+    equal(input.stickSettings.lookY,true);
+    input.setStickDirection('lookX',true);
+    const restored=new FG.InputManager(fakeWindow());
+    equal(restored.stickSettings.lookX,true,'user can still invert look manually');
+    input.destroy();restored.destroy();
+    // Don't carry preferences into unrelated test cases.
+    localStorage.setItem('rejustice-stick-directions-v4','null');
+    localStorage.setItem('rejustice-stick-directions-v3','null');
+  });
   test('Standard controller stick up walks forward and stick down walks backward',()=>{
     // Standard Gamepad API reports negative Y when stick is pushed UP.
     // The gameplay engine maps moveY -1 into forward (+Z).
