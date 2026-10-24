@@ -159,16 +159,27 @@
     equal(frame.moveX??frame.x,1);
     equal(frame.moveY??frame.y,-1);
   });
-  test('Reversed physical left stick runs forward without inverting menus',()=>{
-    // Some hardware reports positive Y for physical stick-up. The analog
-    // correction must not change D-pad/menu navigation or keyboard keys.
+  test('Standard controller stick up walks forward and stick down walks backward',()=>{
+    // Standard Gamepad API reports negative Y when stick is pushed UP.
+    // The gameplay engine maps moveY -1 into forward (+Z).
+    const up=FG.InputUtils.padFrame(fakePad(0,[],[0,-1,0,0]));
+    equal(up.y,-1);equal(up.moveY,-1);equal(-up.moveY,1);
+    const down=FG.InputUtils.padFrame(fakePad(0,[],[0,1,0,0]));
+    equal(down.y,1);equal(down.moveY,1);equal(-down.moveY,-1);
+    const nav=FG.InputUtils.padFrame(fakePad(0,[12]));
+    assert(nav.up);equal(nav.moveY,-1);
+    const input=new FG.InputManager(fakeWindow());
+    equal(input.stickSettings.moveY,false);
+    input.destroy();
+  });
+  test('Manually reversed left stick changes gameplay without changing menu',()=>{
     const pad=fakePad(0,[],[0,1,0,0]);
-    const flipped=FG.InputUtils.padFrame(pad);
+    const flipped=FG.InputUtils.padFrame(pad,FG.InputUtils.BUTTON_DEFAULT,
+      {moveX:false,moveY:true,lookX:false,lookY:false});
     equal(flipped.y,1);equal(flipped.moveY,-1);
     const dpad=FG.InputUtils.padFrame(fakePad(0,[12]));
     equal(dpad.up,true);equal(dpad.moveY,-1);
-    const normal=FG.InputUtils.padFrame(pad,FG.InputUtils.BUTTON_DEFAULT,
-      {moveX:false,moveY:false,lookX:false,lookY:false});
+    const normal=FG.InputUtils.padFrame(pad);
     equal(normal.moveY,1);
   });
   test('Settings can reverse each analog stick direction by controller',()=>{
