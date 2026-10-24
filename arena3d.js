@@ -435,6 +435,7 @@ class Arena3D {
       throw new Error('Invalid character choice for this arena mode');
     this.clearAvatars();
     this.mode=sandbox?'sandbox':options.mode||'cpu';
+    if(sandbox||this.mode==='cpu')this.game.input?.preferControllerP1?.();
     this.fighters=sandbox?[new Combatant(p1,1,-11,-9)]:
       [new Combatant(p1,1,-11,-7),new Combatant(p2,2,11,-7)];
     this.views=this.fighters.map(a=>this.createAvatar(a));
@@ -861,6 +862,8 @@ function install(game){
   game.step=function(){
     if(this.scene!=='arena3d')return step();
     this.frame++;this.input?.update();
+    if(this.arena3d.mode==='sandbox'||this.arena3d.mode==='cpu')
+      this.input?.preferControllerP1?.();
     this.arena3d.step(this.input,this.input?.toggleKeys||new Set());
   };
   const render=game.render.bind(game);
