@@ -196,7 +196,7 @@
   }
   function modeRow(c,g,mode){
     const [x,y,w,h]=mode.rect;
-    const focus=g.menuItems[g.menuCursor]===mode.id;
+    const focus=g.menuZone!=='sidebar'&&g.menuItems[g.menuCursor]===mode.id;
     const hovered=g.uiHover===mode.id;
     const v=state.alpha[mode.id];
     c.save();
@@ -206,6 +206,11 @@
     c.fillStyle='rgba(0,0,0,.10)';rr(c,x,y,w,h,11);c.fill();
     c.strokeStyle=mode.edge;c.lineWidth=1;rr(c,x,y,w,h,11);c.stroke();
     shadowStroke(c,x,y,w,h,11,mode.accent,.25+v*.8);
+    if(focus){
+      // Crisp outline remains visible even when the hover animation fades.
+      c.strokeStyle='#f5faff';c.lineWidth=2.8;
+      rr(c,x+3,y+3,w-6,h-6,9);c.stroke();
+    }
     // Hover draws a crisp top highlight, accent stripe and animated shine.
     c.fillStyle=mode.accent;c.fillRect(x+24,y+1,73+v*75,2);
     c.fillStyle=mode.accent;c.fillRect(x+1,y+20,2,25+v*80);
@@ -247,11 +252,19 @@
     c.restore();
   }
   function sideButton(c,g,id,x,y,name,selected){
-    const v=state.alpha[id],color=selected?'#3fd5fa':'#9db5c7';
+    const v=state.alpha[id];
+    const focused=g.menuZone==='sidebar'&&g.menuSidebar===id;
+    const color=selected||focused?'#3fd5fa':'#9db5c7';
     c.save();rr(c,x,y-v*2,77,84,10);
     c.fillStyle=selected?'rgba(12,39,56,.98)':'rgba(12,23,38,.91)';c.fill();
-    shadowStroke(c,x,y-v*2,77,84,10,selected?'#2abaff':'#8baabd',.06+v*.7);
-    if(selected){c.fillStyle='#27cafc';c.fillRect(x+2,y+14-v*2,3,55);}
+    shadowStroke(c,x,y-v*2,77,84,10,selected||focused?'#2abaff':'#8baabd',.06+v*.7);
+    if(selected||focused){
+      c.fillStyle='#27cafc';c.fillRect(x+2,y+14-v*2,3,55);
+    }
+    if(focused){
+      c.strokeStyle='#f5faff';c.lineWidth=2.7;
+      rr(c,x+3,y+3-v*2,71,78,8);c.stroke();
+    }
     const bx=x+38,by=y+28-v*2;
     c.strokeStyle=color;c.lineWidth=2.7;c.lineCap='round';
     if(id==='fight'){
@@ -267,7 +280,7 @@
           bx+Math.cos(a)*15,by+Math.sin(a)*15,color,3);
       }
     }
-    text(c,name,bx,y+69-v*2,12,selected?'#fff':'#a7b7c5',900,'center');c.restore();
+    text(c,name,bx,y+69-v*2,12,selected||focused?'#fff':'#a7b7c5',900,'center');c.restore();
   }
   function draw(c,g){
     if(!state.temple)state.temple=templeBackdrop();
@@ -278,13 +291,15 @@
         // Pointer hover temporarily wins over gamepad focus; only the card
         // under the mouse glows. Focus resumes when the pointer leaves.
         const isHot=pointerOnMode?g.uiHover===mode.id:
-          g.menuItems[g.menuCursor]===mode.id;
+          g.menuZone!=='sidebar'&&g.menuItems[g.menuCursor]===mode.id;
         state.alpha[mode.id]=lerp(state.alpha[mode.id],isHot?1:0,.15);
       }
       state.alpha.settings=lerp(state.alpha.settings,
-        g.uiHover==='settings-tab'?1:0,.16);
+        g.uiHover==='settings-tab'||g.menuZone==='sidebar'&&
+        g.menuSidebar==='settings'?1:0,.16);
       state.alpha.fight=lerp(state.alpha.fight,
-        g.uiHover==='fight-tab'?1:0,.16);
+        g.uiHover==='fight-tab'||g.menuZone==='sidebar'&&
+        g.menuSidebar==='fight'?1:0,.16);
       state.last=g.frame;
     }
     c.drawImage(state.temple,0,0);
@@ -310,7 +325,9 @@
     sideButton(c,g,'settings',9,170,'SETTINGS',false);
     for(const mode of MODES)modeRow(c,g,mode);
     // Subtle dark scrim to separate text from busy temple artwork.
-    c.fillStyle='rgba(3,8,16,.15)';c.fillRect(94,674,580,46);
+    c.fillStyle='rgba(3,8,16,.66)';c.fillRect(94,674,580,46);
+    text(c,'D-PAD / LEFT STICK   NAVIGATE',108,692,12,'#c7e6f5',800);
+    text(c,'LEFT  SIDEBAR   •   A / X  SELECT',108,710,12,'#a2c5d8',800);
   }
   FG.MenuRedesign={draw,modes:MODES};
 })();
