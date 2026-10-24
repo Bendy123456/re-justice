@@ -286,6 +286,7 @@
     }
     enterVersus(mode){
       this.mode=mode;this.scene='versus';this.previewPlayer=1;
+      if(mode==='cpu'||mode==='sandbox')this.input?.preferControllerP1?.();
       this.selectLocked={1:false,2:false};this.selectNavCooldown={1:0,2:0};
       // The on-screen footer explains joining; avoid covering the preview with a toast.
       this.audio.unlock();
@@ -432,6 +433,9 @@
     step(){
       this.frame++;
       this.input?.update();
+      if((this.scene==='versus'&&(this.mode==='cpu'||this.mode==='sandbox'))||
+         (this.scene==='fight'&&this.mode==='cpu'))
+        this.input?.preferControllerP1?.();
       const keys=this.input?.toggleKeys||new Set();
       if(keys.has('F3'))this.debug=!this.debug;
       if(keys.has('F4'))this.padDebug=!this.padDebug;
