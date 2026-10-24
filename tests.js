@@ -19,10 +19,10 @@
   function fakePad(index=0,buttons=[],axes=[0,0],id='Xbox Wireless Controller'){
     return {index,id,axes,buttons:Array.from({length:18},(_,i)=>({pressed:buttons.includes(i),value:buttons.includes(i)?1:0})),mapping:'standard'};
   }
-  test('Playable characters are data-only and have nine normals each',()=>{
+  test('Playable characters have Light and Heavy normals in every stance',()=>{
     equal(FG.ROSTER.length,30);equal(FG.PLAYABLE.length,4);
     for(const id of FG.PLAYABLE){const c=FG.CHARACTERS[id];assert(c.hurtboxes&&c.stats!==null);
-      for(const stance of ['standing','crouching','airborne'])for(const key of ['light','medium','heavy']){
+      for(const stance of ['standing','crouching','airborne'])for(const key of ['light','heavy']){
         const m=c.moves[stance][key];assert(m.startup>0&&m.active>0&&m.recovery>0&&m.damage>0);
       }
     }
@@ -59,8 +59,8 @@
   });
   test('Unblocked hit interrupts an opponent attack and causes hitstun',()=>{
     const a=new FG.Fighter(FG.CHARACTERS.flash,1,200,584),b=new FG.Fighter(FG.CHARACTERS.superman,2,300,584);
-    assert(b.attemptAttack('medium'));
-    const move=a.def.moves.standing.medium;
+    assert(b.attemptAttack('heavy'));
+    const move=a.def.moves.standing.heavy;
     FG.EngineUtils.contactDamage(b,a,move,false);
     equal(b.attack,null);equal(b.stun,move.hitstun);equal(b.state,'hitstun');
   });
@@ -94,9 +94,29 @@
     const ticks=g.roundTicks;g.tickFight();equal(g.roundTicks,ticks-1);
     g.hitstop=6;g.tickFight();equal(g.roundTicks,ticks-1);
   });
-  test('Gamepad standard buttons: Square/X light, Triangle/Y medium, Circle/B heavy',()=>{
+  test('Removed Medium Attack is unavailable to players and AI',()=>{
+    const moves=FG.CHARACTERS.flash.moves;
+    for(const posture of ['standing','crouching','airborne']){
+      equal(Object.keys(moves[posture]).join(','),'light,heavy');
+    }
+    const actor=new FG.Fighter(FG.CHARACTERS.flash,1,200,584);
+    assert(!actor.attemptAttack('medium'));
+    assert(!FG.InputUtils.ACTIONS.includes('medium'));
+    const pad=fakePad(0,[3]);
+    const frame=FG.InputUtils.padFrame(pad);
+    assert(!('medium' in frame));
+    assert(!frame.light&&!frame.heavy);
+    const cpu=new FG.BasicAI(55);
+    const opponent=new FG.Fighter(FG.CHARACTERS.batman,2,300,584);
+    for(let t=0;t<300;t++){
+      cpu.cooldown=0;
+      const out=cpu.decide(actor,opponent,t);
+      assert(!('medium' in out));
+    }
+  });
+  test('Gamepad standard buttons: Square/X light and Circle/B heavy',()=>{
     const p=fakePad(0,[2,3,1,0,7,4,6,5,9,8]);const frame=FG.InputUtils.padFrame(p);
-    for(const a of ['light','medium','heavy','power','super','throw','block','burn','pause','reset'])assert(frame[a],a);
+    for(const a of ['light','heavy','power','super','throw','block','burn','pause','reset'])assert(frame[a],a);
   });
   test('Analog deadzone and eight-way diagonal snapping',()=>{
     equal(FG.InputUtils.snapStick(.18,.17).x,0);
@@ -322,7 +342,7 @@
       assert(Boolean(rig.LOOKS[id]),'Missing model '+id);
       const data=rig.LOOKS[id];assert(Boolean(rig.BUILDS[data.build]));
     }
-    equal(rig.ANIMATIONS.filter(k=>/^(standing|crouching|airborne)_(light|medium|heavy)$/.test(k)).length,9);
+    equal(rig.ANIMATIONS.filter(k=>/^(standing|crouching|airborne)_(light|heavy)$/.test(k)).length,6);
   });
   test('Animation sampler follows attack startup and active frames',()=>{
     const move=FG.CHARACTERS.flash.moves.standing.light;
