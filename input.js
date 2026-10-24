@@ -72,6 +72,7 @@
       this.win=win;this.keys=new Set();this.pulses=new Set();this.prev=[null,emptyFrame(),emptyFrame()];
       this.frames=[null,emptyFrame(),emptyFrame()];this.padSlots={1:null,2:null};
       this.keyboardJoined={1:false,2:false};this.padLast={};this.rawPads=[];
+      this.missingPadTicks={1:0,2:0};
       this.toasts=[];this.disconnected=false;this.toggleKeys=new Set();
       try{this.rumbleEnabled=localStorage.getItem(RUMBLE_KEY)!=='false';}
       catch(_){this.rumbleEnabled=true;}
@@ -106,6 +107,7 @@
         if(this.onDisconnect)this.onDisconnect(slot);
       }
       delete this.padLast[index];if(this.padLastAxes)delete this.padLastAxes[index];
+      for(const slot of [1,2])this.missingPadTicks[slot]=0;
       this.toast('Controller disconnected');
     }
     setBinding(player,device,action,value){
@@ -136,7 +138,15 @@
       catch(_){pads=[];} // Browser visibility/permission glitches must not kill gameplay.
       this.rawPads=pads.filter(p=>p&&p.connected!==false);
       for(const [slot,idx] of Object.entries(this.padSlots)){
-        if(idx!==null&&!this.rawPads.some(p=>p.index===idx))this.disconnect(idx);
+        if(idx===null){this.missingPadTicks[slot]=0;continue;}
+        if(this.rawPads.some(p=>p.index===idx)){
+          this.missingPadTicks[slot]=0;
+        }else if(++this.missingPadTicks[slot]>12){
+          // Chromium sometimes exposes an empty Gamepad API list for a
+          // few frames after creating a WebGL context or switching focus.
+          // A single missing poll must NEVER pause the entire fight.
+          this.disconnect(idx);
+        }
       }
       // A plugged-in controller should WORK without the user having to
       // discover the hidden "press a face button to join" prerequisite.
