@@ -330,7 +330,7 @@
     const hotspot=g.titleHotspots().find(x=>x.id==='cpu');
     assert(g.pointInRect({x:1000,y:320},hotspot));
     const rows=g.settingsHotspots().filter(x=>x.id==='settings-row');
-    equal(rows.length,16);
+    equal(rows.length,FG.InputUtils.ACTIONS.length+2);
     const firstRight=rows.find(x=>x.row===8),lastLeft=rows.find(x=>x.row===7);
     assert(firstRight.x>lastLeft.x,'Right settings column missing');
     assert(lastLeft.y<630,'Last settings row outside panel');
