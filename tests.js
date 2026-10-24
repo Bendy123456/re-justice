@@ -116,7 +116,27 @@
   });
   test('Gamepad standard buttons: Square/X light and Circle/B heavy',()=>{
     const p=fakePad(0,[2,3,1,0,7,4,6,5,9,8]);const frame=FG.InputUtils.padFrame(p);
-    for(const a of ['light','heavy','power','super','throw','block','burn','pause','reset'])assert(frame[a],a);
+    for(const a of ['light','heavy','power','throw','block','burn','pause','reset'])assert(frame[a],a);
+    assert(!('super' in frame),'Super Attack must not be an input action');
+  });
+  test('Super Attack is removed from controller, keyboard, and Settings',()=>{
+    assert(!FG.InputUtils.ACTIONS.includes('super'));
+    const input=new FG.InputManager(fakeWindow());
+    for(const player of [1,2]){
+      assert(!('super' in input.bindings.pad[player]));
+      assert(!('super' in input.bindings.keyboard[player]));
+    }
+    assert(!input.setBinding(1,'pad','super',7));
+    assert(!input.setBinding(1,'keyboard','super','KeyO'));
+    const trigger=FG.InputUtils.padFrame(fakePad(0,[7]));
+    for(const name of ['light','heavy','throw','power','burn','block'])
+      assert(!trigger[name],'RT/R2 unexpectedly triggers '+name);
+    assert(!('super' in trigger));
+    const game=makeGame();
+    const rows=game.settingsHotspots().filter(x=>x.id==='settings-row');
+    equal(rows.length,FG.InputUtils.ACTIONS.length+2);
+    assert(rows.length===14,'Settings should contain twelve inputs plus vibration/reset');
+    input.destroy();
   });
   test('Analog deadzone and eight-way diagonal snapping',()=>{
     equal(FG.InputUtils.snapStick(.18,.17).x,0);
