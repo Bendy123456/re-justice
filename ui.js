@@ -672,7 +672,21 @@
       };
       selector(146,188,179,48,'PLAYER','PLAYER '+g.settingsPlayer,g.settingsRow===-2);
       selector(354,188,250,48,'INPUT DEVICE',g.settingsDevice==='keyboard'?'KEYBOARD':'CONTROLLER',g.settingsRow===-1);
-      label(c,'CLICK A BINDING TO CHANGE IT',776,217,14,'#b9d0df','left','600');
+      const stickAxes=['moveX','moveY','lookX','lookY'],
+        stickLabels=['MOVE X','MOVE Y','LOOK X','LOOK Y'];
+      for(let i=0;i<4;i++){
+        const x=623+i*153,y=188,w=146,h=48;
+        const focused=g.settingsRow===-3&&g.settingsStickFocus===i;
+        const inverted=Boolean(input.stickSettings?.[stickAxes[i]]);
+        c.save();rounded(c,x,y,w,h,7);
+        c.fillStyle=focused?'#31516b':'#172e40';c.fill();
+        c.lineWidth=focused?2.6:1;
+        c.strokeStyle=focused?'#f4fbff':'rgba(136,177,199,.36)';c.stroke();
+        label(c,stickLabels[i],x+w/2,y+18,11,focused?'#ffffff':'#9ec3da','center','900');
+        label(c,inverted?'REVERSED':'NORMAL',x+w/2,y+36,12,
+          inverted?'#ffc67c':'#8af0d2','center','900');
+        c.restore();
+      }
       const names={left:'MOVE LEFT',right:'MOVE RIGHT',up:'JUMP / UP',down:'CROUCH / DOWN',
         light:'LIGHT ATTACK',heavy:'HEAVY ATTACK',
         power:'CHARACTER POWER',super:'SUPER MOVE',throw:'THROW',block:'BLOCK',
@@ -700,7 +714,7 @@
         label(c,vtext,vx+tw/2,y+24,13,selected?'#ecfbff':'#c7e3ef','center','800');
         c.restore();
       }
-      label(c,'CLICK A ROW TO REBIND  •  LEFT / RIGHT SWITCH COLUMNS  •  ESC / B RETURN',690,680,13,'#9ab4c7','center','700');
+      label(c,'UP FROM PLAYER FOR STICK DIRECTIONS  •  LEFT / RIGHT TO CHOOSE  •  A / X TO FLIP  •  B TO RETURN',690,680,13,'#9ab4c7','center','700');
       if(g.rebinding){
         c.fillStyle='rgba(3,8,14,.75)';c.fillRect(104,60,1176,660);
         c.save();rounded(c,356,253,630,216,15);c.fillStyle='#142638';c.fill();
