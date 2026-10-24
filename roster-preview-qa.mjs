@@ -232,6 +232,92 @@ try{
      controllerArenaQA.model!=='male')
     throw Error('Standard controller buttons/movement or right-stick camera failed in Sandbox');
 
+  // Full-body punch QA on the same actual Blender 65-bone model the
+  // player sees. Exercise frame-authored load, contact and recovery.
+  // Record actual elbow bends, fist positions, root lean, hip and chest
+  // rotation rather than trusting a named "heavy" scalar or a thumbnail.
+  const punchQA=await page.evaluate(()=>{
+    const ar=window.game.arena3d,v=ar.views[0],a=v.actor;
+    const V=ar.camera.position.constructor;
+    const at=name=>v.bones.get(name)?.getWorldPosition(new V());
+    const summary=(kind,tick)=>{
+      const moves=window.FG.CHARACTERS.flash.moves.standing;
+      a.attack={...moves[kind],button:kind,kind:'standing'};
+      a.state='attack';a.attackTick=tick;
+      a.prevX=a.x;a.prevY=a.y;a.prevZ=a.z;
+      a.visualYaw=a.prevVisualYaw=0;
+      a.lean=a.prevLean=0;a.bank=a.prevBank=0;
+      a.grounded=true;a.blocking=false;a.stun=0;
+      a.animClock++;
+      v.lastWalkPose=null;v.walkStopStart=null;
+      ar.pose(v,1);
+      const shoulder=at('upperarm_'+(kind==='light'?'l':'r'));
+      const elbow=at('lowerarm_'+(kind==='light'?'l':'r'));
+      const wrist=at('hand_'+(kind==='light'?'l':'r'));
+      const offWrist=at('hand_'+(kind==='light'?'r':'l'));
+      const head=at('head');
+      const a1=shoulder.clone().sub(elbow).normalize(),
+        b1=wrist.clone().sub(elbow).normalize();
+      const bendDegrees=180-Math.acos(Math.max(-1,Math.min(1,
+        a1.dot(b1))))*180/Math.PI;
+      const m=v.poseMetrics;
+      ar.camera.position.set(a.x+2.25,2.10,a.z+3.35);
+      ar.camera.lookAt(a.x,1.20,a.z);
+      ar.renderer.render(ar.scene,ar.camera);
+      return {kind,tick,phase:m.punchPhase,reach:m.attackReach,
+        wind:m.attackWind,hip:m.hipTwist,torso:m.torsoTwist,
+        lean:m.rootPitch,pivot:m.punchPivot,bendDegrees,
+        wristZ:wrist.z-shoulder.z,
+        offHandToHead:offWrist.distanceTo(head),
+        screenshot:ar.webgl.toDataURL('image/jpeg',.66).split(',')[1]};
+    };
+    const results=[];
+    for(const kind of ['light','heavy']){
+      const move=window.FG.CHARACTERS.flash.moves.standing[kind];
+      const stages=[
+        ['load',Math.max(1,move.startup-1)],
+        ['contact',move.startup+move.active-1],
+        ['recover',move.startup+move.active+Math.max(1,
+          Math.floor(move.recovery*.80))]
+      ];
+      for(const [label,tick] of stages){
+        const sample=summary(kind,tick);
+        sample.stage=label;results.push(sample);
+      }
+    }
+    a.attack=null;a.attackTick=0;a.state='idle';
+    a.animClock++;ar.pose(v,1);ar.initialCamera=false;
+    return results;
+  });
+  const punchFrames=[];
+  for(const sample of punchQA){
+    const image=sample.screenshot;delete sample.screenshot;
+    if(sample.stage==='contact'||sample.stage==='load'){
+      const name=`ci-images/boxing-${sample.kind}-${sample.stage}.jpg`;
+      fs.writeFileSync(name,Buffer.from(image,'base64'));
+      punchFrames.push(name);
+    }
+  }
+  console.log('BOXING_ANIMATION_QA',JSON.stringify(punchQA));
+  console.log('BOXING_SCREENSHOTS',JSON.stringify(punchFrames));
+  for(const kind of ['light','heavy']){
+    const parts=punchQA.filter(v=>v.kind===kind);
+    if(parts.length!==3||parts.some(p=>!Number.isFinite(p.bendDegrees)||
+        !Number.isFinite(p.wristZ)||!Number.isFinite(p.hip)||
+        !Number.isFinite(p.torso)||
+        p.offHandToHead>1.0)){
+      throw Error('Punch geometry contains invalid bones or dropped guard');
+    }
+    if(parts[0].wind<.65||parts[1].reach<.85||
+       parts[0].bendDegrees<16||parts[0].bendDegrees>165||
+       parts[1].bendDegrees<4||parts[1].bendDegrees>120||
+       parts[1].wristZ<parts[0].wristZ+.20||
+       Math.abs(parts[1].hip)<.12||
+       Math.abs(parts[1].torso)<.12||
+       parts[2].reach>.22)
+      throw Error('Punch failed to visibly chamber, rotate, extend or recover');
+  }
+
   const beforeMove=await page.evaluate(()=>{
     const f=window.game.arena3d.fighters[0];return {x:f.x,z:f.z};
   });
