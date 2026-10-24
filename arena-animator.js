@@ -61,8 +61,14 @@ const COMBAT_IDLE=Object.freeze({
   trailFootYaw:.20
 });
 const STRIKES=Object.freeze({
-  light: {hand:'l',chamber:.26,rotation:-.31,hip:-.17,lean:.12,step:.11,hook:0},
-  heavy: {hand:'r',chamber:.58,rotation:.99,hip:.64,lean:.33,step:.27,hook:.45},
+  // A real jab begins in guard, shortens into a bent elbow, then snaps
+  // forward behind a subtle lead-hip and lead-shoulder rotation.
+  light: {hand:'l',chamber:.44,rotation:-.40,hip:-.24,lean:.12,
+    step:.11,hook:0,contact:.88,guard:.86,shoulder:.18,pivot:.055},
+  // A true rear-hand cross: deeper elbow chamber, rear-foot pivot, hip
+  // initiates, ribs follow, shoulder extends LAST. Not a sideways slap.
+  heavy: {hand:'r',chamber:.72,rotation:.80,hip:.58,lean:.28,
+    step:.23,hook:.08,contact:.93,guard:.90,shoulder:.34,pivot:.25},
   throw: {hand:'l',chamber:.48,rotation:-.42,hip:-.31,lean:.25,step:.19,hook:.22},
   super: {hand:'r',chamber:.68,rotation:.92,hip:.66,lean:.33,step:.30,hook:.45}
 });
@@ -77,27 +83,39 @@ function strikePose(actor){
   const active=Math.max(1,move.active);
   const recovery=Math.max(1,move.recovery);
   const tick=Math.max(0,actor.attackTick);
-  let chamber=0,extend=0,recoil=0,impact=0;
+  let chamber=0,extend=0,recoil=0,impact=0,commit=0;
   if(tick<startup){
-    const t=ease(tick/startup);
-    chamber=t;extend=-.23*t;
+    chamber=ease(tick/startup);
+    extend=0;
   }else if(tick<startup+active){
     const t=ease((tick-startup+1)/active);
     chamber=1-t;
-    extend=lerp(.79,1,t);
-    impact=sin(Math.PI*t); // fast contact-frame shoulder recoil
+    // Keep a crisp contact while the real game's active window is open.
+    extend=lerp(.44,1,t);
+    impact=sin(Math.PI*t);
   }else{
     const t=ease((tick-startup-active)/recovery);
-    extend=1-t;recoil=sin(t*Math.PI)*.19;
+    // Fast pullback on impact, then deliberate guard recovery.
+    extend=1-ease(clamp(t/.68));
+    recoil=sin(Math.PI*t)*.12;
   }
-  return {profile:p,wind:chamber,reach:extend,follow:recoil,impact,
-    shoulderPunch:impact*(p.hook>.3?.18:.11),
-    twist:p.rotation*(extend*.94-chamber*.66),
-    hip:p.hip*(extend*.86-chamber*.72),
-    lean:p.lean*(extend*.78+chamber*.32)+impact*.05,
-    plant:clamp(chamber*.7+extend),
-    crouch:chamber*.20+extend*.055,
-    step:p.step*extend
+  const contact=ease(extend),wind=chamber;
+  // The hips lead the chest on commitment; elbow extension follows.
+  commit=ease(clamp((extend-.10)/.75));
+  const preload=wind*(1-commit);
+  return {profile:p,wind,reach:contact,follow:recoil,impact,
+    attackKind:move.button,
+    phase:tick<startup?'load':tick<startup+active?'drive':'recover',
+    entry:ease(clamp(tick/Math.max(2,Math.min(4,startup*.64)))),
+    shoulderPunch:contact*p.shoulder+impact*.055,
+    twist:p.rotation*(commit*.96-preload*.42),
+    hip:p.hip*(ease(clamp((extend+.10)/.75))*.94-preload*.60),
+    lean:p.lean*(contact*.94+wind*.15)+impact*.025,
+    pivot:p.pivot*commit,
+    plant:clamp(wind*.70+contact),
+    crouch:wind*.135+contact*.035,
+    step:p.step*(wind*.18+contact*.82),
+    retract:1-contact
   };
 }
 function aim(view,name,child,target,rootQ){
@@ -332,6 +350,15 @@ export function poseFighter(view,alpha){
         hips.position.y-=walkFade*(.072+runMix*.080);
         hips.position.y-=body.compression*walkFade;
       }
+      if(attack){
+        // Body weight transitions from the rear heel to the strike leg.
+        // This remains a visual pelvis adjustment, not collision movement.
+        const rearDrive=attack.attackKind==='heavy'?1:.45;
+        hips.position.z+=attack.step*(.26+rearDrive*.08);
+        hips.position.y-=attack.plant*(.012+rearDrive*.024);
+        hips.position.x+=(attack.profile.hand==='r'?-1:1)*
+          attack.reach*(.012+rearDrive*.016);
+      }
       if(idlePose>.0001){
         const offset=COMBAT_IDLE.hipsOffset;
         hips.position.x+=idlePose*offset[0];
@@ -358,7 +385,7 @@ export function poseFighter(view,alpha){
   const chestPitch=walkingMotion?
     walkAmount*(.006+.009*cos(2*strideClock+.35)):0;
   const torsoBend=(walkingMotion?walkAmount*(.018+.007*abs(step)):drive*.047)*abs(step)+
-    (attack?.lean||0)*.20+dashBurst*.045;
+    (attack?.lean||0)*.44+dashBurst*.045;
   // Hand-authored three-segment spine and deliberately uneven shoulders.
   // Idle strength blends every joint together during stop/start transitions.
   const idleBreath=idlePose*(1-walkFade)*breath*.012;
@@ -389,7 +416,7 @@ export function poseFighter(view,alpha){
   rotate(view,'neck_01',Z,idlePose*COMBAT_IDLE.neck[2],rootQ);
   rotate(view,'head',X,-pitch*(walkingMotion?.32:.25)+breath*.012+
     idlePose*COMBAT_IDLE.head[0],rootQ);
-  rotate(view,'head',Y,-torsoTwist*.16+
+  rotate(view,'head',Y,-torsoTwist*.27+
     idlePose*COMBAT_IDLE.head[1],rootQ);
   rotate(view,'head',Z,idlePose*COMBAT_IDLE.head[2],rootQ);
   rotate(view,'clavicle_l',X,idlePose*COMBAT_IDLE.clavicleL[0],rootQ);
@@ -447,33 +474,26 @@ export function poseFighter(view,alpha){
   }
 
   if(attack){
+    // The normal run IK remains untouched. During a punch, use two-bone
+    // IK below to place the actual WRIST while a real anatomical elbow
+    // follows the shoulder/chest. The non-punching hand guards the face.
     const p=attack.profile;
     const attackingL=p.hand==='l';
-    const chamber=attack.wind,reach=attack.reach,follow=attack.follow;
-    // Guard hand stays close to chin while the attacking elbow is chambered.
-    const windUpper=[attackingL?-.44:.44,-.37-chamber*.32,
-      .39-chamber*.49];
-    const contactUpper=[attackingL?-.20:.20,-.03+.07*p.hook,
-      1.0-p.hook*.28+attack.shoulderPunch];
-    const contactFore=[attackingL?-.10:.10,-.01,1.0];
+    const load=attack.wind,hit=attack.reach;
+    const sideSign=attackingL?-1:1;
+    const closeGuard=[sideSign*.30,-.18,.42];
+    const loadUpper=[sideSign*.55,-.23,.03];
+    const hitUpper=[sideSign*.17,-.13,1.05];
     if(attackingL){
-      leftUpper=blendVec(windUpper,contactUpper,Math.max(0,reach));
-      leftFore=blendVec([-.15,.70,.18],contactFore,Math.max(0,reach));
-      rightUpper=[.35,-.30,.63];rightFore=[.23,.68,.57];
+      leftUpper=blendVec(loadUpper,hitUpper,hit);
+      leftFore=blendVec([sideSign*.13,.40,.14],
+        [sideSign*.06,-.10,.95],hit);
+      rightUpper=[.29,-.28,.61];rightFore=[.22,.67,.54];
     }else{
-      rightUpper=blendVec(windUpper,contactUpper,Math.max(0,reach));
-      rightFore=blendVec([.15,.70,.18],contactFore,Math.max(0,reach));
-      leftUpper=[-.35,-.30,.63];leftFore=[-.23,.68,.57];
-    }
-    // Heavy cross/hook swings over the opponent's guard, never beyond wrist.
-    if(p.hook&&reach>.1){
-      const offset=p.hook*reach;
-      if(attackingL){leftUpper[0]-=offset*.28;leftFore[0]-=offset*.65;}
-      else{rightUpper[0]+=offset*.28;rightFore[0]+=offset*.65;}
-    }
-    if(follow){
-      if(attackingL)leftUpper[2]-=follow;
-      else rightUpper[2]-=follow;
+      rightUpper=blendVec(loadUpper,hitUpper,hit);
+      rightFore=blendVec([sideSign*.13,.40,.14],
+        [sideSign*.06,-.10,.95],hit);
+      leftUpper=[-.29,-.28,.61];leftFore=[-.22,.67,.54];
     }
   }
   // The imported rigs do not all agree on whether "_l" is -X or +X.
@@ -528,6 +548,47 @@ export function poseFighter(view,alpha){
       solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
         [sgn*reach*handX,reach*handY,reach*handZ],armPole,rootQ);
     }
+  }else if(attack){
+    // Measure both real imported arm lengths independently (male/female
+    // rigs differ). Shoulder-relative fist goals guarantee the elbow folds
+    // BACK during load and retains a slight bend on full extension.
+    for(const side of ['l','r']){
+      const upper=view.bones.get('upperarm_'+side);
+      const elbow=view.bones.get('lowerarm_'+side);
+      const wrist=view.bones.get('hand_'+side);
+      if(!upper||!elbow||!wrist)continue;
+      const sgn=view.armSides?.[side]??(side==='l'?-1:1);
+      const upperLen=upper.getWorldPosition(vec()).distanceTo(
+        elbow.getWorldPosition(vec()));
+      const foreLen=elbow.getWorldPosition(vec()).distanceTo(
+        wrist.getWorldPosition(vec()));
+      const length=upperLen+foreLen;
+      const striking=attack.profile.hand===side;
+      const wind=attack.wind,reach=attack.reach,profile=attack.profile;
+      let goal,pole;
+      if(striking){
+        // The loaded fist curls beside the cheek/shoulder (elbow deeply
+        // bent and behind the ribs). Then it travels almost the whole
+        // upper+forearm length forward, driven by the turning chest.
+        const ready=[sgn*.26,.12,.23];
+        const chamber=[sgn*.19,.015,-.13-profile.chamber*.09];
+        const contact=[sgn*(.08+profile.hook*.16),-.055,
+          profile.contact];
+        const coiled=blendVec(ready,chamber,wind);
+        goal=blendVec(coiled,contact,reach).map(v=>v*length);
+        // Elbow behind/outside the torso during load, folding inward
+        // toward the punch line on extension, never inverting at lockout.
+        pole=[sgn*(.94-.17*reach),-.24+.13*wind,
+          -.52*wind+.42*reach];
+      }else{
+        // The opposite hand stays beside the jaw throughout the strike,
+        // with a genuinely BENT elbow and no counter-swing outward.
+        goal=[sgn*.28*length,.17*length,.34*length];
+        pole=[sgn*.86,.08,-.15];
+      }
+      solveLimb(view,'upperarm_'+side,'lowerarm_'+side,'hand_'+side,
+        goal,pole,rootQ);
+    }
   }else{
     aim(view,'upperarm_l','lowerarm_l',leftUpper,rootQ);
     aim(view,'upperarm_r','lowerarm_r',rightUpper,rootQ);
@@ -544,6 +605,13 @@ export function poseFighter(view,alpha){
     rotate(view,'hand_'+side,X,drive*wristSwing*(walkingMotion?.13:.17)+
       (attack?.impact||0)*-.06,rootQ);
     rotate(view,'hand_'+side,Y,sign*(.045+drive*.035),rootQ);
+    if(attack&&attack.profile.hand===side){
+      // Pronation is delayed until the fist reaches the target, rather
+      // than twisting an extended wrist during the wind-up.
+      rotate(view,'hand_'+side,Z,sign*attack.reach*
+        (attack.attackKind==='heavy'?.23:.15),rootQ);
+      rotate(view,'hand_'+side,X,-attack.reach*.065,rootQ);
+    }
   }
   // The Blender mesh already has 3 deforming joints and a tip per
   // finger. Pose them independently, splaying each digit and curling
@@ -685,6 +753,12 @@ export function poseFighter(view,alpha){
     -leftLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
   rotate(view,'foot_r',X,(walkingMotion?rightStep.roll*walkAmount:
     -rightLeg*strideDamp*.39)+land*.14+dashBrake*.11,rootQ);
+  // Rear foot pivots WITH the rear hip on the cross; the front foot
+  // stays planted for the jab. No actual foot/world position changes.
+  if(attack?.pivot){
+    rotate(view,'foot_'+attack.profile.hand,Y,
+      (view.legSides?.[attack.profile.hand]??1)*attack.pivot,rootQ);
+  }
   // Flatten each actual planted foot in world space after the knee solve.
   // With no correction, calf rotation pitches the shoe sharply into the
   // ground, producing skating even when the ankle itself is planted.
@@ -938,6 +1012,8 @@ export function poseFighter(view,alpha){
     dashSculptLand:dashVisualPose.land||0,
     attackReach:attack?.reach||0,
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
+    punchKind:attack?.attackKind||null,punchPhase:attack?.phase||null,
+    punchPivot:attack?.pivot||0,punchCommit:attack?.reach||0,
     chest:vec().copy(view.bones.get('spine_03')?.getWorldPosition(temp)||root.position).toArray()
   };
 }
