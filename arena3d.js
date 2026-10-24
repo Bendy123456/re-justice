@@ -46,7 +46,7 @@ class Combatant {
     this.x=x;this.z=z;this.y=0;
     this.prevX=x;this.prevZ=z;this.prevY=0;
     this.vy=0;this.grounded=true;this.facing={x:1,z:0};
-    this.health=this.maxHealth;this.meter=0;
+    this.health=this.maxHealth;
     this.state='idle';this.attack=null;this.attackTick=0;this.attackHit=false;
     this.stun=0;this.blocking=false;this.flash=0;this.animClock=0;
     this.gaitPhase=this.prevGaitPhase=0;
@@ -602,13 +602,6 @@ class Arena3D {
       if(control.pressed.throw&&a.attackWith('light')){
         a.attack={...a.attack,button:'throw',startup:7,active:2,recovery:18,reach:63,damage:75,hitstun:19};
       }
-      if(control.pressed.super&&a.meter>=4&&!a.attack){
-        a.meter-=4;
-        a.attack={button:'super',kind:'standing',startup:16,active:5,recovery:32,
-          damage:285,reach:145,hitstun:35,blockstun:22};
-        a.attackHit=false;a.attackTick=0;a.state='attack';
-        this.flashTicks=16;this.game.audio.play('super',.75);
-      }
     }
     if(a.attack){
       a.attackTick++;
@@ -692,13 +685,11 @@ class Arena3D {
     const scaled=Math.max(1,Math.round(raw*clamp(1-.10*a.combo,.5,1)));
     const damage=blocked?Math.max(1,Math.ceil(raw*.06)):scaled;
     b.health=Math.max(0,b.health-damage);
-    a.meter=clamp(a.meter+(blocked?.08:.20),0,4);
-    b.meter=clamp(b.meter+.065,0,4);
     if(!blocked){
       a.combo++;a.comboTicks=85;b.stun=move.hitstun||17;
       b.attack=null;b.attackTick=0;b.attackHit=false;b.blocking=false;
       b.knock={x:direction.x*.21,z:direction.z*.21};
-      this.game.input?.rumble?.(b.slot,move.button==='super'?.9:.43,110);
+      this.game.input?.rumble?.(b.slot,.43,110);
     }else b.stun=move.blockstun||7;
     b.flash=8;
     this.effects.push({x:(a.x+b.x)/2,z:(a.z+b.z)/2,y:1.2+(a.y+b.y)/2,life:15});
@@ -823,10 +814,6 @@ class Arena3D {
     c.fillStyle='#ecc47d';c.fillRect(36,56,462*a.health/a.maxHealth,23);
     c.fillStyle='#83d4e8';c.fillRect(1244-462*b.health/b.maxHealth,56,462*b.health/b.maxHealth,23);
     c.strokeStyle='#d0ebf7';c.strokeRect(36,56,462,23);c.strokeRect(782,56,462,23);
-    for(let i=0;i<4;i++){
-      c.fillStyle=i<a.meter?'#f6c86b':'#30444d';c.fillRect(36+i*63,89,57,10);
-      c.fillStyle=i<b.meter?'#8ed6ea':'#30444d';c.fillRect(1187-i*63,89,57,10);
-    }
     text(String(Math.ceil(this.roundFrames/FPS)),640,70,43,'#fff','center');
     text('ROUND '+this.round,640,99,14,'#c5dce6','center');
     for(let i=0;i<2;i++){
@@ -866,7 +853,7 @@ class Arena3D {
     }
     c.fillStyle='rgba(5,16,24,.77)';c.fillRect(20,665,1240,47);
     text('WASD / LEFT STICK: MOVE   SPACE / A: JUMP   SHIFT / RB: DASH    J / X: LIGHT   L / B: HEAVY',38,685,14,'#e5f5ff');
-    text('I / LT: BLOCK   O / RT: SUPER (4 BARS)   ESC / START: PAUSE',38,705,14,'#a6d8ea');
+    text('I / LT: BLOCK   ESC / START: PAUSE',38,705,14,'#a6d8ea');
     if(this.paused){
       c.fillStyle='rgba(6,12,19,.85)';c.fillRect(0,0,1280,720);
       text('PAUSED',640,303,75,'#ffdc93','center');
