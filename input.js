@@ -227,6 +227,7 @@
       resolveSOCD(next);
       this.frames[1]=next;
       this.frames[2]=emptyFrame();
+      this.onJoin?.(1,pad);
       this.toast('Controller active for Player 1');
       return true;
     }
