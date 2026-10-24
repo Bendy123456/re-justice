@@ -83,6 +83,10 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
     if(!hand)continue;
     const handQ=hand.getWorldQuaternion(new THREE.Quaternion());
     const phase=Math.sin(strideClock+(side==='l'?0:Math.PI));
+    // Bone-hand axes are mirrored in the imported GLB. Inverting the left
+    // finger curl (NOT the right) keeps the left knuckles folding into the
+    // palm instead of bending backward as seen from behind the character.
+    const fingerCurlSign=side==='l'?-1:1;
     for(const f of FINGERS){
       const id=f.name+'_',suffix='_'+side;
       // In idle, retract finger splay and fold all three knuckles into
@@ -92,11 +96,11 @@ export function animateFingers(view,{idlePose=0,walkAmount=0,runMix=0,
         grip*(2.82-f.curl);
       const wave=.016*breath*(.25+idlePose)+.025*walkAmount*phase;
       handRotate(view,id+'01'+suffix,X,spread,handQ);
-      handRotate(view,id+'01'+suffix,Z,bend*.60+wave,handQ);
-      handRotate(view,id+'02'+suffix,Z,bend*.64,handQ);
-      handRotate(view,id+'03'+suffix,Z,bend*.42+f.tip*.20,handQ);
+      handRotate(view,id+'01'+suffix,Z,fingerCurlSign*(bend*.60+wave),handQ);
+      handRotate(view,id+'02'+suffix,Z,fingerCurlSign*bend*.64,handQ);
+      handRotate(view,id+'03'+suffix,Z,fingerCurlSign*(bend*.42+f.tip*.20),handQ);
       // The skin has vertices bound to the terminal leaf too.
-      handRotate(view,id+'04_leaf'+suffix,Z,bend*.20,handQ);
+      handRotate(view,id+'04_leaf'+suffix,Z,fingerCurlSign*bend*.20,handQ);
       posed++;
     }
     // Mirror thumb flexion for opposite palms so the right thumb wraps
