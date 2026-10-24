@@ -271,7 +271,7 @@ try{
       const elbow=at('lowerarm_'+(kind==='light'?'l':'r'));
       const wrist=at('hand_'+(kind==='light'?'l':'r'));
       const offWrist=at('hand_'+(kind==='light'?'r':'l'));
-      const head=at('head');
+      const head=at('head'),leadFoot=at('foot_l'),rearFoot=at('foot_r');
       const a1=shoulder.clone().sub(elbow).normalize(),
         b1=wrist.clone().sub(elbow).normalize();
       const bendDegrees=180-Math.acos(Math.max(-1,Math.min(1,
@@ -286,6 +286,9 @@ try{
         wristZ:wrist.z-shoulder.z,
         offHandToHead:offWrist.distanceTo(head),
         floorL:m.floorErrorL,floorR:m.floorErrorR,
+        leadFootForward:leadFoot.z-a.z,rearFootForward:rearFoot.z-a.z,
+        leadFootLift:m.punchStepLift,leadStep:m.punchLeadStep,
+        weightShift:m.punchWeightShift,
         screenshot:ar.webgl.toDataURL('image/png').split(',')[1]};
     };
     const results=[];
@@ -330,6 +333,9 @@ try{
        parts[0].bendDegrees<16||parts[0].bendDegrees>165||
        parts[1].bendDegrees<4||parts[1].bendDegrees>120||
        parts[1].wristZ<parts[0].wristZ+.20||
+       parts[1].leadStep<.15||
+       parts[1].leadFootForward<parts[0].leadFootForward+.075||
+       parts[1].weightShift<.3||
        Math.abs(parts[1].hip)<.12||
        Math.abs(parts[1].torso)<.12||
        parts[2].reach>.22)
