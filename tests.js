@@ -152,6 +152,34 @@
     input.update();assert(!input.frame(1).pressed.up);
     input.destroy();
   });
+  test('Reversed physical left stick runs forward without inverting menus',()=>{
+    // Some hardware reports positive Y for physical stick-up. The analog
+    // correction must not change D-pad/menu navigation or keyboard keys.
+    const pad=fakePad(0,[],[0,1,0,0]);
+    const flipped=FG.InputUtils.padFrame(pad);
+    equal(flipped.y,1);equal(flipped.moveY,-1);
+    const dpad=FG.InputUtils.padFrame(fakePad(0,[12]));
+    equal(dpad.up,true);equal(dpad.moveY,-1);
+    const normal=FG.InputUtils.padFrame(pad,FG.InputUtils.BUTTON_DEFAULT,
+      {moveX:false,moveY:false,lookX:false,lookY:false});
+    equal(normal.moveY,1);
+  });
+  test('Settings can reverse each analog stick direction by controller',()=>{
+    const win=fakeWindow(),input=new FG.InputManager(win);
+    const g=new FG.Game({input,audio:{play(){},unlock(){}},
+      assets:{load(){},image(){return null;},sound(){return null;}}});
+    g.openSettings();
+    g.updateSettings(new Set(['ArrowUp']));
+    equal(g.settingsRow,-3);
+    g.updateSettings(new Set(['ArrowRight']));equal(g.settingsStickFocus,1);
+    const old=input.stickSettings.moveY;
+    g.updateSettings(new Set(['Enter']));
+    equal(input.stickSettings.moveY,!old);
+    g.updateSettings(new Set(['Enter']));equal(input.stickSettings.moveY,old);
+    g.updateSettings(new Set(['ArrowDown']));equal(g.settingsRow,-2);
+    g.updateSettings(new Set(['Escape']));equal(g.scene,'title');
+    input.destroy();
+  });
   test('Right stick controls camera independently of left-stick movement',()=>{
     const pad=fakePad(0,[2],[.9,-.9,.82,-.76]);
     const frame=FG.InputUtils.padFrame(pad);
