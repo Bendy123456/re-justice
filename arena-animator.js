@@ -8,7 +8,7 @@
  */
 import * as THREE from 'three';
 import {animateShoulders,animateFingers,animateFootBalls}
-  from './arena-anatomy.js?v=closed-sculpted-fists-4';
+  from './arena-anatomy.js?v=left-mirrored-fist-5';
 import {applyShinobiIdle} from './arena-shinobi-idle.js?v=grounded-boxing-hips-10';
 import {applyDashSculpt} from './arena-dash-sculpt.js?v=athletic-dash-2';
 import {groundedStep,walkArm,bodyCycle,clampAnkleReach}
