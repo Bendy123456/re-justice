@@ -689,8 +689,8 @@
       }
       const names={left:'MOVE LEFT',right:'MOVE RIGHT',up:'JUMP / UP',down:'CROUCH / DOWN',
         light:'LIGHT ATTACK',heavy:'HEAVY ATTACK',
-        power:'CHARACTER POWER',super:'SUPER MOVE',throw:'THROW',block:'BLOCK',
-        burn:'METER BURN',pause:'PAUSE',reset:'TRAINING RESET'};
+        power:'JUMP',throw:'THROW',block:'BLOCK',
+        burn:'DASH',pause:'PAUSE',reset:'TRAINING RESET'};
       const total=actions.length+2;
       for(let row=0;row<total;row++){
         const col=Math.floor(row/8),idx=row%8;
@@ -998,7 +998,7 @@
       label(c,'ESC / START  ·  RESUME',640,343,22,'#e8f5fd','center');
       label(c,'Q  ·  QUIT TO TITLE',640,387,21,'#b0c8d7','center');
       label(c,'F3 HITBOX DEBUG   /   F4 CONTROLLER TEST',640,442,17,BLUE,'center');
-      label(c,'Move lists, supers and specials arrive in Phase 2–4.',640,481,17,'#a2b0ba','center','500');
+      label(c,'Light and Heavy punches, throws, blocks, and movement are available.',640,481,17,'#a2b0ba','center','500');
     }
     toasts(){
       const c=this.ctx,toasts=this.game.input?.toasts||[];
