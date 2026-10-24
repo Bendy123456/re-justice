@@ -34,24 +34,42 @@ try{
   encoded.forEach((part,i)=>console.log('CINEMATIC_MENU_FRAME:'+i+'/'+encoded.length+':'+part));
   console.log('CINEMATIC_MENU_FRAME_FINISH:'+encoded.length);
   const menuCheck=await page.evaluate(()=>{
-    const g=window.game;
-    const hotspots=g.titleHotspots();
-    const bothCards=hotspots.some(h=>h.id==='online'&&h.w===540)&&
-      hotspots.some(h=>h.id==='cpu'&&h.w===552);
-    const sandboxCard=hotspots.some(h=>h.id==='sandbox'&&h.w===1112&&h.h===135);
-    const oldFooter=hotspots.some(h=>h.id==='mode-confirm');
-    g.menuCursor=1;
+    const g=window.game,hotspots=g.titleHotspots();
+    const bothCards=hotspots.some(h=>h.id==='online'&&h.w===579)&&
+      hotspots.some(h=>h.id==='cpu'&&h.w===579);
+    const sandboxCard=hotspots.some(h=>h.id==='sandbox'&&h.w===579&&h.h===176);
+    const tabs=['fight-tab','settings-tab'].every(id=>
+      hotspots.some(h=>h.id===id&&h.w===77));
+    g.menuZone='cards';g.menuCursor=1;
     g.updateTitle(new Set(['ArrowLeft']));
-    const left=g.menuItems[g.menuCursor];
+    const sidebar=g.menuZone==='sidebar'&&g.menuSidebar==='fight';
+    g.updateTitle(new Set(['ArrowDown']));
+    const settingsFocus=g.menuZone==='sidebar'&&g.menuSidebar==='settings';
+    g.updateTitle(new Set(['Enter']));
+    const settingsOpened=g.scene==='settings';
+    g.updateSettings(new Set(['Escape']));
+    const returned=g.scene==='title'&&g.menuZone==='sidebar';
     g.updateTitle(new Set(['ArrowRight']));
-    const right=g.menuItems[g.menuCursor];
-    return {bothCards,sandboxCard,oldFooter,left,right,scene:g.scene};
+    const modes=g.menuZone==='cards'&&g.menuCursor===1;
+    g.updateTitle(new Set(['ArrowDown']));
+    const sandbox=g.menuItems[g.menuCursor]==='sandbox';
+    g.menuCursor=1;g.menuZone='cards';
+    return {bothCards,sandboxCard,tabs,sidebar,settingsFocus,
+      settingsOpened,returned,modes,sandbox,scene:g.scene};
   });
   console.log('CINEMATIC_MENU_NAV',JSON.stringify(menuCheck));
-  if(!menuCheck.bothCards||!menuCheck.sandboxCard||menuCheck.oldFooter||
-     menuCheck.left!=='online'||
-     menuCheck.right!=='cpu'||menuCheck.scene!=='title')
-    throw Error('New mode menu broke keyboard/controller navigation');
+  if(Object.entries(menuCheck).some(([k,v])=>k!=='scene'&&!v)||
+     menuCheck.scene!=='title')
+    throw Error('Controller cannot access both title sidebar tabs and mode cards');
+  // Capture the visible controller focus on the Settings tab too.
+  await page.evaluate(()=>{
+    const g=window.game;g.menuZone='sidebar';g.menuSidebar='settings';g.uiHover=null;g.frame++;
+    g.render();
+  });
+  await page.screenshot({path:'ci-images/controller-settings-tab-focus.png'});
+  await page.evaluate(()=>{
+    const g=window.game;g.menuZone='cards';g.menuCursor=1;g.frame++;g.render();
+  });
   // Click the actual canvas's SOLO mode selection at its original hitbox.
   await page.mouse.click(982,365);
   const afterMouse=await page.evaluate(()=>window.game.scene);
