@@ -165,6 +165,8 @@
   });
   test('Gamepad takeover forwards held attack and right-stick camera immediately',()=>{
     const win=fakeWindow(),input=new FG.InputManager(win);
+    const joined=[];
+    input.onJoin=slot=>joined.push(slot);
     input.keyboardJoined[1]=true;
     win.pads=[fakePad(0,[2],[0,0,1,0])];input.update();
     equal(input.padSlots[2],0);
@@ -172,6 +174,7 @@
     equal(input.padSlots[1],0);
     assert(input.frame(1).light);
     assert(input.frame(1).lookX>.95);
+    assert(joined.includes(1),'P1 reconnect event not emitted');
     input.destroy();
   });
   test('Controller takes over P1 in single player after keyboard joined menu',()=>{
