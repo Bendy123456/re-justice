@@ -115,7 +115,7 @@
       const h=isLow?shoulderY+61:shoulderY-4;
       if(phase==='windup'){strikeElbowX=14;strikeElbowY=shoulderY+33;strikeFistX=-16;strikeFistY=h-7;}
       if(phase==='extend'){
-        const mult=f.attack.button==='heavy'?1.43:f.attack.button==='medium'?1.26:1;
+        const mult=f.attack.button==='heavy'?1.43:1;
         strikeElbowX=43*mult;strikeElbowY=h;strikeFistX=77*mult;strikeFistY=h;
         // Short non-persistent motion trail.
         ctx.save();ctx.strokeStyle=ch.glow;ctx.globalAlpha*=.43;ctx.lineWidth=22;
@@ -674,7 +674,7 @@
       selector(354,188,250,48,'INPUT DEVICE',g.settingsDevice==='keyboard'?'KEYBOARD':'CONTROLLER',g.settingsRow===-1);
       label(c,'CLICK A BINDING TO CHANGE IT',776,217,14,'#b9d0df','left','600');
       const names={left:'MOVE LEFT',right:'MOVE RIGHT',up:'JUMP / UP',down:'CROUCH / DOWN',
-        light:'LIGHT ATTACK',medium:'MEDIUM ATTACK',heavy:'HEAVY ATTACK',
+        light:'LIGHT ATTACK',heavy:'HEAVY ATTACK',
         power:'CHARACTER POWER',super:'SUPER MOVE',throw:'THROW',block:'BLOCK',
         burn:'METER BURN',pause:'PAUSE',reset:'TRAINING RESET'};
       const total=actions.length+2;
@@ -956,8 +956,8 @@
       label(c,'P1  '+Math.round(a.health)+' / '+a.maxHealth,70,170,13,'#a9b9c9');
       label(c,'P2  '+Math.round(b.health)+' / '+b.maxHealth,1210,170,13,'#a9b9c9','right');
       panel(c,30,643,1220,58,.55);
-      label(c,'P1  '+(g.input?.glyph(1,'light')||'J')+' LIGHT   '+(g.input?.glyph(1,'medium')||'K')+
-        ' MEDIUM   '+(g.input?.glyph(1,'heavy')||'L')+' HEAVY',54,674,17,'#b6d4e5');
+      label(c,'P1  '+(g.input?.glyph(1,'light')||'J')+' LIGHT   '+
+        (g.input?.glyph(1,'heavy')||'L')+' HEAVY',54,674,17,'#b6d4e5');
       label(c,'HOLD BACK / BLOCK  •  DOWN + BACK = LOW BLOCK  •  ESC / START PAUSE',1220,674,15,'#b6d4e5','right');
       label(c,FG.STAGES[g.stageId].name,640,623,18,'#c6d7e2','center','700');
     }
