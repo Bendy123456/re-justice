@@ -17,7 +17,7 @@
         if(self.x<enemy.x)out.right=true;else out.left=true;
         if(range>240&&frame%125===0)out.up=true;
       } else if(this.cooldown===0&&self.state!=='attack'&&self.stun<=0){
-        const roll=this.random();const name=roll<.5?'light':roll<.82?'medium':'heavy';
+        const roll=this.random();const name=roll<.62?'light':'heavy';
         out[name]=true;out.pressed[name]=true;this.cooldown=15+Math.floor(this.random()*19);
       }
       return FG.InputUtils.resolveSOCD(out);
