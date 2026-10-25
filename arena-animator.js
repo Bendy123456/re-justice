@@ -105,8 +105,8 @@ function strikePose(actor){
   const recovering=tick>=startup+active;
   const stepProgress=recovering?
     1-ease(clamp((tick-startup-active)/(recovery*.90))):
-    driving?.70+.30*ease((tick-startup+1)/active):
-    .70*ease(tick/startup);
+    driving?.44+.56*ease((tick-startup+1)/active):
+    .44*ease(tick/startup);
   const stepLift=!driving&&!recovering?
     .057*Math.sin(Math.PI*clamp(tick/startup)):0;
   // The hips lead the chest on commitment; elbow extension follows.
@@ -681,9 +681,12 @@ export function poseFighter(view,alpha){
       const sole=(view.footSoleHeights?.[side]??.09)+.004;
       const lead=side==='l',cross=attack.attackKind==='heavy';
       const rootHeading=new THREE.Quaternion().setFromAxisAngle(Y,yaw);
-      const baseX=sign*length*(lead?.25:.36);
-      const baseZ=length*(lead?.36:-.10);
-      const leadTravel=lead?attack.step*(cross?1.45:1.65):0;
+      // Keep the initial footprint close enough for the real imported
+      // thigh/calf lengths to reach. A wide static target was saturating
+      // ankle IK and making the lead foot move BACK at contact.
+      const baseX=sign*length*(lead?.12:.24);
+      const baseZ=length*(lead?.10:-.06);
+      const leadTravel=lead?attack.step*(cross?1.14:1.25):0;
       const backPivot=(!lead&&cross)?attack.pivot*.045:0;
       const worldGoal=vec(baseX+(!lead&&cross?sign*attack.pivot*.045:0),
         0,baseZ+leadTravel-backPivot).applyQuaternion(rootHeading).
@@ -858,6 +861,27 @@ export function poseFighter(view,alpha){
       const parentWorld=foot.parent.getWorldQuaternion(new THREE.Quaternion());
       foot.quaternion.copy(parentWorld.invert().multiply(worldNow)).normalize();
       foot.updateWorldMatrix(false,true);
+    }
+  }
+  // Absorb the unavoidable ankle IK residual in the pelvis when both
+  // shoes are bearing weight at impact. This preserves the planted foot
+  // locations and makes the torso drive DOWN into the strike instead of
+  // visually levitating 10+ cm above the mat. No simulation translation,
+  // collision, or hitbox is touched.
+  if(attack&&a.grounded&&!airborne&&attack.reach>.001){
+    const pelvis=view.bones.get('pelvis')||view.bones.get('hips');
+    const left=view.bones.get('foot_l'),right=view.bones.get('foot_r');
+    if(pelvis&&left&&right){
+      const soleL=view.footSoleHeights?.l??.09,
+        soleR=view.footSoleHeights?.r??.09;
+      const errL=left.getWorldPosition(vec()).y-soleL,
+        errR=right.getWorldPosition(vec()).y-soleR;
+      const correction=clamp(Math.min(errL,errR)-.004,0,.16)*
+        ease(attack.reach);
+      if(correction>.001){
+        pelvis.position.y-=correction;
+        root.updateWorldMatrix(true,true);
+      }
     }
   }
   // Record measured ankle-vs-floor error for rig-level visual QA. This is
