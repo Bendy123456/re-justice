@@ -334,8 +334,16 @@ export function poseFighter(view,alpha){
   const pitch=(attack?rawLean+attack.lean*.16:lean)+walkLean+
     dashVisual*.32+dashBurst*.10-dashIgnite*.095-
     dashBrake*.025+land*.07;
-  root.position.set(lerp(a.prevX,a.x,alpha),
-    lerp(a.prevY,a.y,alpha)+bob,lerp(a.prevZ,a.z,alpha));
+  // A boxer's fist is carried by the body's forward weight transfer.
+  // Translate the RENDERED rig only, not the fighting physics actor.
+  // Keep the rear shoe at the actor origin with world-space foot IK below.
+  const punchDrive=attack?.reach*
+    (attack.attackKind==='heavy'?.19:.18)||0;
+  const actorX=lerp(a.prevX,a.x,alpha),
+    actorZ=lerp(a.prevZ,a.z,alpha);
+  root.position.set(actorX+Math.sin(yaw)*punchDrive,
+    lerp(a.prevY,a.y,alpha)+bob,
+    actorZ+Math.cos(yaw)*punchDrive);
   view.shadow.position.set(root.position.x,.018,root.position.z);
   view.shadow.material.opacity=.74/(1+a.y*.18);
   root.rotation.order='YXZ';
@@ -691,9 +699,10 @@ export function poseFighter(view,alpha){
       const baseZ=length*(lead?.10:-.06);
       const leadTravel=lead?attack.step*(cross?1.14:1.25):0;
       const backPivot=(!lead&&cross)?attack.pivot*.045:0;
+      const groundOrigin=lead?root.position:vec(actorX,0,actorZ);
       const worldGoal=vec(baseX+(!lead&&cross?sign*attack.pivot*.045:0),
         0,baseZ+leadTravel-backPivot).applyQuaternion(rootHeading).
-        add(root.position);
+        add(groundOrigin);
       worldGoal.y=sole+(lead?attack.stepLift:0);
       // Keep a heel/toe planted even when pelvis weight shift and the
       // shoulder's forward drive bring its thigh close to extension.
@@ -1097,6 +1106,7 @@ export function poseFighter(view,alpha){
     attackWind:attack?.wind||0,attackImpact:attack?.impact||0,
     punchKind:attack?.attackKind||null,punchPhase:attack?.phase||null,
     punchPivot:attack?.pivot||0,punchCommit:attack?.reach||0,
+    punchForwardDrive:punchDrive,
     punchLeadStep:attack?.step||0,
     punchStepLift:attack?.stepLift||0,
     punchWeightShift:attack?.weightTransfer||0,
