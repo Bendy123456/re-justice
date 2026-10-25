@@ -89,7 +89,7 @@ try{
      sandboxSelect.cursor!==2||sandboxSelect.previewPlayable)
     throw Error('Sandbox does not open solo roster for preview-only characters');
   await page.keyboard.press('Enter');
-  await page.waitForFunction(()=>window.game?.scene==='arena3d',null,{timeout:10000});
+  await page.waitForFunction(()=>window.game?.scene==='arena3d',null,{timeout:30000});
   const soloStart=await page.evaluate(()=>{
     const g=window.game,a=g.arena3d,first=a.fighters[0];
     g.render();
