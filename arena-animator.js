@@ -337,8 +337,8 @@ export function poseFighter(view,alpha){
   // A boxer's fist is carried by the body's forward weight transfer.
   // Translate the RENDERED rig only, not the fighting physics actor.
   // Keep the rear shoe at the actor origin with world-space foot IK below.
-  const punchDrive=attack?.reach*
-    (attack.attackKind==='heavy'?.19:.18)||0;
+  const punchDrive=(attack?.reach||0)*
+    (attack?.attackKind==='heavy'?.19:.18);
   const actorX=lerp(a.prevX,a.x,alpha),
     actorZ=lerp(a.prevZ,a.z,alpha);
   root.position.set(actorX+Math.sin(yaw)*punchDrive,
