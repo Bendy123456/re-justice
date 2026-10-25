@@ -368,7 +368,10 @@ export function poseFighter(view,alpha){
         // This remains a visual pelvis adjustment, not collision movement.
         const rearDrive=attack.attackKind==='heavy'?1:.45;
         hips.position.z+=attack.step*(.36+rearDrive*.10);
-        hips.position.y-=attack.plant*(.013+rearDrive*.023);
+        // Shift the center of mass DOWN before solving the legs.
+        // This grants the lead ankle actual reach when the torso rotates;
+        // otherwise IK clamps it behind the intended step.
+        hips.position.y-=attack.plant*(.049+rearDrive*.063);
         hips.position.x+=(attack.profile.hand==='r'?-1:1)*
           attack.weightTransfer*(.015+rearDrive*.023);
       }
@@ -863,27 +866,6 @@ export function poseFighter(view,alpha){
       foot.updateWorldMatrix(false,true);
     }
   }
-  // Absorb the unavoidable ankle IK residual in the pelvis when both
-  // shoes are bearing weight at impact. This preserves the planted foot
-  // locations and makes the torso drive DOWN into the strike instead of
-  // visually levitating 10+ cm above the mat. No simulation translation,
-  // collision, or hitbox is touched.
-  if(attack&&a.grounded&&!airborne&&attack.reach>.001){
-    const pelvis=view.bones.get('pelvis')||view.bones.get('hips');
-    const left=view.bones.get('foot_l'),right=view.bones.get('foot_r');
-    if(pelvis&&left&&right){
-      const soleL=view.footSoleHeights?.l??.09,
-        soleR=view.footSoleHeights?.r??.09;
-      const errL=left.getWorldPosition(vec()).y-soleL,
-        errR=right.getWorldPosition(vec()).y-soleR;
-      const correction=clamp(Math.min(errL,errR)-.004,0,.16)*
-        ease(attack.reach);
-      if(correction>.001){
-        pelvis.position.y-=correction;
-        root.updateWorldMatrix(true,true);
-      }
-    }
-  }
   // Record measured ankle-vs-floor error for rig-level visual QA. This is
   // *actual solved bone position*, not a speculative animation target.
   const floorErrorL=view.bones.get('foot_l')?
@@ -1035,6 +1017,24 @@ export function poseFighter(view,alpha){
     view.lastWalkPose=null;
     view.lastWalkHips=null;
     view.walkStopStart=null;
+  }
+  // Last-resort sole contact AFTER foot rotations and all other
+  // authoring passes. Translate the rendered model only, never the physics
+  // actor: both support feet stay at the arena plane on contact frames.
+  if(attack&&a.grounded&&!airborne&&attack.reach>.001){
+    const left=view.bones.get('foot_l'),right=view.bones.get('foot_r');
+    if(left&&right){
+      const errL=left.getWorldPosition(vec()).y-
+        (view.footSoleHeights?.l??.09);
+      const errR=right.getWorldPosition(vec()).y-
+        (view.footSoleHeights?.r??.09);
+      const correction=clamp(Math.min(errL,errR)-.004,0,.14)*
+        ease(attack.reach);
+      if(correction>.001){
+        root.position.y-=correction;
+        root.updateWorldMatrix(true,true);
+      }
+    }
   }
   // Individual articulated joint angles measured on the rendered bones.
   // Exposing these makes regressions observable beyond visible root movement.
